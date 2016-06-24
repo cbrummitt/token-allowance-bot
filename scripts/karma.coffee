@@ -22,33 +22,59 @@ class Karma
 
   constructor: (@robot) ->
     @cache = {}
+    @cacheTokens = {}
 
+    maxTokensPerUser = 5
+
+    # list of responses to show when someone gets karma
     @increment_responses = [
       "+1!", "gained a level!", "is on the rise!", "leveled up!"
     ]
 
+    # list of responses to show when someone loses karma
     @decrement_responses = [
       "took a hit! Ouch.", "took a dive.", "lost a life.", "lost a level."
     ]
+
 
     @robot.brain.on 'loaded', =>
       if @robot.brain.data.karma
         @cache = @robot.brain.data.karma
 
+  # remove a key-item pair from the @cache
   kill: (thing) ->
     delete @cache[thing]
     @robot.brain.data.karma = @cache
 
   increment: (thing) ->
+    # check whether @cache[thing] is a variable that exists and if not set it to 0
     @cache[thing] ?= 0
+    # increment @cache[thing]
     @cache[thing] += 1
     @robot.brain.data.karma = @cache
 
   decrement: (thing) ->
+    # if the variable cache[thing] does not exist, then set it equal to 0
     @cache[thing] ?= 0
+    # decrement @cache[thing]
     @cache[thing] -= 1
     @robot.brain.data.karma = @cache
 
+
+##### begin Charlie's code ######
+  addToken: (sender, recipient) -> 
+    # check whether @cacheTokens[sender] exists and if not set it to []
+    @cacheTokens[sender] ?= []
+
+    # if the sender has not already given out more that `maxTokensPerUser` tokens, then add recepient to @cacheTokens[sender]'s list
+    if @cacheTokens[sender].length < maxTokensPerUser:
+      @cacheTokens[sender] push recipient
+
+
+
+##### end Charlie's code ######
+
+  # return a uniformly random response for incrementing someone's karma
   incrementResponse: ->
      @increment_responses[Math.floor(Math.random() * @increment_responses.length)]
 
@@ -86,7 +112,21 @@ module.exports = (robot) ->
   karma = new Karma robot
   allow_self = process.env.KARMA_ALLOW_SELF or "true"
 
+  robot.hear /give token (@\S+)+(\s|$)/, (msg) ->
+
+    recipient = msg.match[1].toLowerCase()
+
+    # if the sender has not already given out more that `maxTokensPerUser` tokens, then add recepient to @cacheTokens[sender]'s list
+    if @cacheTokens[sender]? and @cacheTokens[sender].length < maxTokensPerUser:
+      @cacheTokens[sender] push recipient
+      msg.send "#{msg.message.user.name} gave one token to #{recipient}"
+
+
   robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) ->
+
+    # `msg.match(regex)` checks whether msg matches the regular expression regex. I'm not sure what `msg.match[1]` does. 
+    # Does the [1] refer to the first capturing group in the regular expression /(\S+[^+:\s])[: ]*\+\+(\s|$)/? 
+    # Or does [1] refer to the first argument of this function?
     subject = msg.match[1].toLowerCase()
     if allow_self is true or msg.message.user.name.toLowerCase() != subject
       karma.increment subject
