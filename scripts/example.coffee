@@ -20,7 +20,9 @@ module.exports = (robot) ->
   minusminus_re = /@([a-z0-9_\-\.]+)(?::\s+)?\-{2,}/ig
   plusplus_minusminus_re = /@([a-z0-9_\-\.]+)(?::\s+)?[\+\-]{2,}/ig
 
-  
+  plusplus_regex = /// # beginning of regular expression
+    @([a-z0-9_\-\.]+)(?::\s+)?\+{2,}
+    ///ig
 
 
   robot.hear /badger/i, (res) ->
