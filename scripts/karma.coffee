@@ -61,7 +61,7 @@ class Karma
     @robot.brain.data.karma = @cache
 
 
-##### begin Charlie's code ######
+##### begin Charlie's code #######
   addToken: (sender, recipient) -> 
     # check whether @cacheTokens[sender] exists and if not set it to []
     @cacheTokens[sender] ?= []
@@ -72,7 +72,7 @@ class Karma
 
 
 
-##### end Charlie's code ######
+##### end Charlie's code #######
 
   # return a uniformly random response for incrementing someone's karma
   incrementResponse: ->
