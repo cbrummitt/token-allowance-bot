@@ -21,23 +21,112 @@
 
 # ##### begin Charlie's code #######
 
-# class KarmaNetwork
-#   constructor: (@robot) -> 
-#     @cacheTokens = {} # a dictionary of which tokens have been given to whom
-#     maxTokensPerUser = 5  # each user can give at most this many tokens to others
+class KarmaNetwork
+  #### Constructor ####
+  constructor: (@robot) -> 
+    # a dictionary of which tokens have been given to whom
+    @tokens_given = {}
+    
+    # each user can give at most this many tokens to others
+    # TODO: make this an environment variable? See `allow_self = process.env.KARMA_ALLOW_SELF or "true"` in the karma bot
+    @max_tokens_per_user = 5 
 
-#     @receive_token_responses = ["received a token!", "was thanked with a token!"]
-#     @lose_token_responses = ["lost a token :("]
+    # variable that determines whether tokens can be given right now
+    # TDOO: write a method that will turn this off and display a message in #general telling everyone that tokens can no longer be given?
+    @tokens_can_be_given = true
+    @tokens_can_be_revoked = true
 
-#   addToken: (sender, recipient) -> 
-#     # check whether @cacheTokens[sender] exists and if not set it to []
-#     @cacheTokens[sender] ?= []
+    # list of responses to display when someone receives or gives a token
+    @receive_token_responses = ["received a token!", "was thanked with a token!"]
+    @revoke_token_responses = ["lost a token :(", "had a token revoked"]
 
-#     # if the sender has not already given out more that `maxTokensPerUser` tokens, then add recepient to @cacheTokens[sender]'s list
-#     if @cacheTokens[sender].length < maxTokensPerUser:
-#       @cacheTokens[sender] push recipient
+    # if the brain was already on, then set the cache to the dictionary @robot.brain.data.tokens_given
+    # the fat arrow `=>` binds the current value of `this` (i.e., `@`) on the spot
+    @robot.brain.on 'loaded', =>
+      if @robot.brain.data.tokens_given
+        @tokens_given = @robot.brain.data.tokens_given
+
+
+  #### Methods ####
+
+  give_token: (sender, recipient) -> 
+    # check whether tokens can be given. 
+    # TODO: do this in the method that listens for the command? If @tokens_can_be_given is false, then we should display the message `Tokens can no longer be given.`
+    if @tokens_can_be_given
+
+      # check whether @cacheTokens[sender] exists and if not set it to []
+      @tokens_given[sender] ?= []
+
+      # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
+      # note that this allows someone to send multiple tokens to the same user
+      @tokens_given[sender].push recipient if @tokens_given[sender].length < @max_tokens_per_user
+      @robot.brain.data.tokens_given = @tokens_given
+
+      # TODO: if @tokens_given[sender].length >= @max_tokens_per_user, we want to send a message to the user saying that they've already given out all their tokens
+      # Send a message like the following:
+      #     You do not have any more tokens to give out. Type "token status" to find out to whom you have given your tokens, and type "token revoke @username" to revoke a token from @username.
+
+      # TODO: send a message that announces that a token was given using a command like
+      #       msg.send "#{subject} #{karma.receive_token_response()} (Karma: #{karma.get(subject)})"
+      # in the robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) function (or the equivalent that we write)
+
+  revoke_token: (sender, recipient) ->
+    # remove recipient from @tokens_given[sender] 
+    # note that if the sender has given >1 token to recipient, this will remove just one of those tokens from the recipient.
+    if @tokens_can_be_revoked
+      index = @tokens_given[sender].indexOf sender
+      @tokens_given.splice index, 1 if index isnt -1
+
+    # TODO: send a message using 
+    #       msg.send "#{subject} #{karma.revoke_token_response()} (Karma: #{karma.get(subject)})"
+    # in the robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) function
+  # return a uniformly random response for giving a token to someone someone's karma
+
+  receive_token_response: ->
+    @receive_token_responses[Math.floor(Math.random() * @receive_token_responses.length)]
+
+  revoke_token_response: ->
+    @revoke_token_responses[Math.floor(Math.random() * @revoke_token_responses.length)]
+
+  selfDeniedResponses: (name) ->
+    @self_denied_responses = [
+      "Sorry #{name}. Tokens cannot be given to oneself.",
+      "I can't do that #{name}.",
+      "Tokens can only be given to other people."
+    ]
+
+  status: (name) -> 
+    # return the number of tokens given and to whom
+
+    # displays how many of your tokens you still have, and how many you have given to other people, 
+    # and how many tokens you have received from other users
+
+    # Example:
+    # You have 2 of your own tokens in your pocket. 
+    # You have given tokens to the following people: 
+    # @user_4 (1 token)
+    # @user_8 (2 tokens) 
+    # You have received 2 tokens from others: 
+    # @user_4 (1 token)
+    # @user_5 (1 token)
+    
+
+    # in the code that listens for this command, we could display this if 
+    #       msg.message.user.name.toLowerCase() == subject 
+    # where subject = subject = msg.match[1].toLowerCase()
+    # Way to go! Get more tokens by contributing to others' ideas. Each token from a winning business proposal earns prize money.
+
+
+module.exports = (robot) ->
+  tokenBot = new KarmaNetwork robot
+
+  # environment variables
+  allow_self = process.env.KARMA_ALLOW_SELF or "true"
 
 ###### end Charlie's code #######
+
+
+
 
 class Karma
 
@@ -122,9 +211,9 @@ module.exports = (robot) ->
   #   recipient = msg.match[1].toLowerCase()
 
   #   # if the sender has not given out any tokens yet, or 
-  #   # if the sender has not already given out more that `maxTokensPerUser` tokens, 
+  #   # if the sender has not already given out more that `max_tokens_per_user` tokens, 
   #   # then add recepient to @cacheTokens[sender]'s list
-  #   if not(@cacheTokens[sender]?) or @cacheTokens[sender].length < maxTokensPerUser:
+  #   if not(@cacheTokens[sender]?) or @cacheTokens[sender].length < max_tokens_per_user:
   #     @cacheTokens[sender] ?= [] # if @cacheTokens[sender] doesn't exist then set it equal to []
   #     @cacheTokens[sender] push recipient # add recipient to the list
   #     msg.send "#{msg.message.user.name} gave one token to #{recipient}"
