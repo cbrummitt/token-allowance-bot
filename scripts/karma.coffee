@@ -24,7 +24,7 @@ class Karma
     @cache = {}
     @cacheTokens = {}
 
-    #jmaxTokensPerUser = 5
+    maxTokensPerUser = 5
 
     # list of responses to show when someone gets karma
     @increment_responses = [
