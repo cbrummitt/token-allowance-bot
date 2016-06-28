@@ -18,13 +18,31 @@
 # Author:
 #   stuartf
 
+
+# ##### begin Charlie's code #######
+
+# class KarmaNetwork
+#   constructor: (@robot) -> 
+#     @cacheTokens = {} # a dictionary of which tokens have been given to whom
+#     maxTokensPerUser = 5  # each user can give at most this many tokens to others
+
+#     @receive_token_responses = ["received a token!", "was thanked with a token!"]
+#     @lose_token_responses = ["lost a token :("]
+
+#   addToken: (sender, recipient) -> 
+#     # check whether @cacheTokens[sender] exists and if not set it to []
+#     @cacheTokens[sender] ?= []
+
+#     # if the sender has not already given out more that `maxTokensPerUser` tokens, then add recepient to @cacheTokens[sender]'s list
+#     if @cacheTokens[sender].length < maxTokensPerUser:
+#       @cacheTokens[sender] push recipient
+
+###### end Charlie's code #######
+
 class Karma
 
   constructor: (@robot) ->
     @cache = {}
-    @cacheTokens = {}
-
-    maxTokensPerUser = 5
 
     # list of responses to show when someone gets karma
     @increment_responses = [
@@ -60,26 +78,12 @@ class Karma
     @cache[thing] -= 1
     @robot.brain.data.karma = @cache
 
-
-##### begin Charlie's code #######
-  # addToken: (sender, recipient) -> 
-  #   # check whether @cacheTokens[sender] exists and if not set it to []
-  #   @cacheTokens[sender] ?= []
-
-  #   # if the sender has not already given out more that `maxTokensPerUser` tokens, then add recepient to @cacheTokens[sender]'s list
-  #   if @cacheTokens[sender].length < maxTokensPerUser:
-  #     @cacheTokens[sender] push recipient
-
-
-
-###### end Charlie's code #######
-
   # return a uniformly random response for incrementing someone's karma
   incrementResponse: ->
-     @increment_responses[Math.floor(Math.random() * @increment_responses.length)]
+    @increment_responses[Math.floor(Math.random() * @increment_responses.length)]
 
   decrementResponse: ->
-     @decrement_responses[Math.floor(Math.random() * @decrement_responses.length)]
+    @decrement_responses[Math.floor(Math.random() * @decrement_responses.length)]
 
   selfDeniedResponses: (name) ->
     @self_denied_responses = [
