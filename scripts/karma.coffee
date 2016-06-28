@@ -24,7 +24,7 @@ class Karma
     @cache = {}
     @cacheTokens = {}
 
-    maxTokensPerUser = 5
+    #jmaxTokensPerUser = 5
 
     # list of responses to show when someone gets karma
     @increment_responses = [
@@ -62,17 +62,17 @@ class Karma
 
 
 ##### begin Charlie's code #######
-  addToken: (sender, recipient) -> 
-    # check whether @cacheTokens[sender] exists and if not set it to []
-    @cacheTokens[sender] ?= []
+  # addToken: (sender, recipient) -> 
+  #   # check whether @cacheTokens[sender] exists and if not set it to []
+  #   @cacheTokens[sender] ?= []
 
-    # if the sender has not already given out more that `maxTokensPerUser` tokens, then add recepient to @cacheTokens[sender]'s list
-    if @cacheTokens[sender].length < maxTokensPerUser:
-      @cacheTokens[sender] push recipient
+  #   # if the sender has not already given out more that `maxTokensPerUser` tokens, then add recepient to @cacheTokens[sender]'s list
+  #   if @cacheTokens[sender].length < maxTokensPerUser:
+  #     @cacheTokens[sender] push recipient
 
 
 
-##### end Charlie's code #######
+###### end Charlie's code #######
 
   # return a uniformly random response for incrementing someone's karma
   incrementResponse: ->
@@ -112,19 +112,19 @@ module.exports = (robot) ->
   karma = new Karma robot
   allow_self = process.env.KARMA_ALLOW_SELF or "true"
 
-  # Charlie's "given token" message
-  robot.hear /give token (@\S+)+(\s|$)/, (msg) ->
+  # # Charlie's "given token" message
+  # robot.hear /give token (@\S+)+(\s|$)/, (msg) ->
 
-    recipient = msg.match[1].toLowerCase()
+  #   recipient = msg.match[1].toLowerCase()
 
-    # if the sender has not given out any tokens yet, or 
-    # if the sender has not already given out more that `maxTokensPerUser` tokens, 
-    # then add recepient to @cacheTokens[sender]'s list
-    if not(@cacheTokens[sender]?) or @cacheTokens[sender].length < maxTokensPerUser:
-      @cacheTokens[sender] ?= [] # if @cacheTokens[sender] doesn't exist then set it equal to []
-      @cacheTokens[sender] push recipient # add recipient to the list
-      msg.send "#{msg.message.user.name} gave one token to #{recipient}"
-      msg.send "#{msg.message.user.name} has given tokens to #{@cacheTokens[sender]}"
+  #   # if the sender has not given out any tokens yet, or 
+  #   # if the sender has not already given out more that `maxTokensPerUser` tokens, 
+  #   # then add recepient to @cacheTokens[sender]'s list
+  #   if not(@cacheTokens[sender]?) or @cacheTokens[sender].length < maxTokensPerUser:
+  #     @cacheTokens[sender] ?= [] # if @cacheTokens[sender] doesn't exist then set it equal to []
+  #     @cacheTokens[sender] push recipient # add recipient to the list
+  #     msg.send "#{msg.message.user.name} gave one token to #{recipient}"
+  #     msg.send "#{msg.message.user.name} has given tokens to #{@cacheTokens[sender]}"
 
 
   robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) ->
