@@ -21,11 +21,19 @@
 
 # ##### begin Charlie's code #######
 
+# Environment variables:
+#   TOKEN_ALLOW_SELF = false
+
 class KarmaNetwork
   #### Constructor ####
   constructor: (@robot) -> 
-    # a dictionary of which tokens have been given to whom
+    # a dictionary of whose tokens have been given to whom. The data is in the form 
+    #     sender : [recipient1, recipient2, ...]
     @tokens_given = {}
+
+    # a dictionary of who has received tokens from whom. The data is in the form 
+    #     recipient : [sender1, sender2, ...]
+    @tokens_received = {}
     
     # each user can give at most this many tokens to others
     # TODO: make this an environment variable? See `allow_self = process.env.KARMA_ALLOW_SELF or "true"` in the karma bot
@@ -59,8 +67,14 @@ class KarmaNetwork
 
       # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
       # note that this allows someone to send multiple tokens to the same user
-      @tokens_given[sender].push recipient if @tokens_given[sender].length < @max_tokens_per_user
-      @robot.brain.data.tokens_given = @tokens_given
+      if @tokens_given[sender].length < @max_tokens_per_user
+        @tokens_given[sender].push recipient
+        @robot.brain.data.tokens_given = @tokens_given
+
+        # update @tokens_received
+        @tokens_received[recipient] ?= []
+        @tokens_received[sender].push sender
+        @robot.brain.data.tokens_received = @tokens_received
 
       # TODO: if @tokens_given[sender].length >= @max_tokens_per_user, we want to send a message to the user saying that they've already given out all their tokens
       # Send a message like the following:
@@ -71,11 +85,16 @@ class KarmaNetwork
       # in the robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) function (or the equivalent that we write)
 
   revoke_token: (sender, recipient) ->
-    # remove recipient from @tokens_given[sender] 
+    # remove recipient from @tokens_given[sender] and remove sender from @tokens_received[recipient] 
     # note that if the sender has given >1 token to recipient, this will remove just one of those tokens from the recipient.
     if @tokens_can_be_revoked
-      index = @tokens_given[sender].indexOf sender
+      # remove recipient from @tokens_given[sender]
+      index = @tokens_given[sender].indexOf recipient
       @tokens_given.splice index, 1 if index isnt -1
+
+      # remove sender from @tokens_received[recipient]
+      index = @tokens_received[recipient].indexOf sender
+      @tokens_received.splice index, 1 if index isnt -1
 
     # TODO: send a message using 
     #       msg.send "#{subject} #{karma.revoke_token_response()} (Karma: #{karma.get(subject)})"
@@ -95,9 +114,46 @@ class KarmaNetwork
       "Tokens can only be given to other people."
     ]
 
+  tally: (list_of_strings) -> 
+    count = {}
+    for x in list_of_strings
+      if count[x]? then count[x] += 1 else count[x] = 1
+    return count
+
   status: (name) -> 
     # return the number of tokens given and to whom
 
+    # list of the people to whom `name` has given tokens
+    tokens_given_by_this_person = if @tokens_given[name]? then @tokens_given[name] else []
+    num_tokens_given = tokens_given_by_this_person.length
+
+
+    # build up a string of results
+    result = ""
+
+    # number of tokens this person has left to give others
+    tokens_remaining = @max_tokens_per_user - num_tokens_given
+    result += "#{name} has " + tokens_remaining + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others."
+
+    if num_tokens_given > 0
+      result += "#{name} has given " + num_tokens_given + "token" + (if num_tokens_given != 1 then "s" else "") + "s to the following people:"
+      for own name, number of tally(tokens_given_by_this_person)
+        result += "\t#{name}: #{number} tokens\n"
+    else
+      result += "#{name} has not given any tokens to others yet."
+
+
+    # tokens received from others
+    tokens_received_by_this_person = if @tokens_received[name]? then @tokens_received[name] else []
+    num_tokens_received = tokens_received_by_this_person.length
+    if num_tokens_received > 0
+      result += "#{name} has received " + num_tokens_received + "token" + (if num_tokens_received != 1 then "s" else "") + "s from the following people:"
+      for own name, number of tally(@tokens_given[name])
+        result += "\t#{name}: #{number} tokens\n"
+    else
+      result += "#{name} has not received any tokens from other people yet."
+
+    return result
     # displays how many of your tokens you still have, and how many you have given to other people, 
     # and how many tokens you have received from other users
 
@@ -121,7 +177,7 @@ module.exports = (robot) ->
   tokenBot = new KarmaNetwork robot
 
   # environment variables
-  allow_self = process.env.KARMA_ALLOW_SELF or "true"
+  allow_self = process.env.TOKEN_ALLOW_SELF # whether someone can give a token to himself
 
 ###### end Charlie's code #######
 
