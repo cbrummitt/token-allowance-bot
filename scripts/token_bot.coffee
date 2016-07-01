@@ -1,11 +1,11 @@
 # Description:
-#   Track arbitrary karma
+#   Track tokens given to acknowledge contributions from others
 #
 # Dependencies:
 #   None
 #
 # Configuration:
-#   KARMA_ALLOW_SELF
+#   TOKEN_ALLOW_SELF
 #
 # Commands:
 #   <thing>++ - give thing some karma
@@ -16,7 +16,7 @@
 #   hubot karma worst - show the bottom 5
 #
 # Author:
-#   stuartf
+#   cbrummitt
 
 
 # ##### begin Charlie's code #######
@@ -24,7 +24,7 @@
 # Environment variables:
 #   TOKEN_ALLOW_SELF = false
 
-class KarmaNetwork
+class TokenNetwork
   #### Constructor ####
   constructor: (@robot) -> 
     # a dictionary of whose tokens have been given to whom. The data is in the form 
@@ -186,7 +186,7 @@ class KarmaNetwork
 
 
 module.exports = (robot) ->
-  tokenBot = new KarmaNetwork robot
+  tokenBot = new TokenNetwork robot
 
   # we export a function of one variable, the `robot`, which `.hear`s messages and then does stuff
 
