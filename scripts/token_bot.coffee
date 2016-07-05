@@ -63,7 +63,16 @@ class TokenNetwork
     if @tokens_can_be_given
 
       # check whether @cacheTokens[sender] exists and if not set it to []
-      @tokens_given[sender] ?= []
+      if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
+        @tokens_given[sender] = []
+
+      if @tokens_received[recipient]? == false
+        @tokens_received[recipient] = []
+
+      # temp = {"a" : 1, "b" : 2}
+      # temp_str = ""
+      # temp_str += name + " has " + " tokens" for name, cnt in temp
+      # return temp_str #"@tokens_given = #{@tokens_given}"
 
       # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
       # note that this allows someone to send multiple tokens to the same user
@@ -72,11 +81,10 @@ class TokenNetwork
         @robot.brain.data.tokens_given = @tokens_given
 
         # update @tokens_received
-        @tokens_received[recipient] ?= []
-        @tokens_received[sender].push sender
+        @tokens_received[recipient].push sender
         @robot.brain.data.tokens_received = @tokens_received
         
-        return "#{sender} gave one token to #{recipient}."
+        return "#{sender} gave one token to #{recipient}." + " @tokens_received[recipient] = #{@tokens_received[recipient]}"
       else
         return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `revoke @user_name`."
 
@@ -185,8 +193,12 @@ class TokenNetwork
     # Way to go! Get more tokens by contributing to others' ideas. Each token from a winning business proposal earns prize money.
 
 
+
+# the script must export a function. `robot` is an instance of the bot.
 module.exports = (robot) ->
   tokenBot = new TokenNetwork robot
+
+  verbose = true
 
   # we export a function of one variable, the `robot`, which `.hear`s messages and then does stuff
 
@@ -197,22 +209,28 @@ module.exports = (robot) ->
   # environment variables
   allow_self = process.env.TOKEN_ALLOW_SELF # whether someone can give a token to himself
 
-  robot.hear /badger/i, (res) ->
-    res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS!!!"
+  robot.respond /test bot name/, (res) -> 
+    res.send "the bot name is #{bot_name}"
 
-  robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) ->
-  # `msg.match(regex)` checks whether msg matches the regular expression regex. I'm not sure what `msg.match[1]` does. 
-  # Does the [1] refer to the first capturing group in the regular expression /(\S+[^+:\s])[: ]*\+\+(\s|$)/? 
-  # Or does [1] refer to the first argument of this function?
-    sender = msg.message.user.name
-    recipient = msg.match[1].toLowerCase()
-    if allow_self is true or msg.message.user.name.toLowerCase() != subject
-      message = tokenBot.give_token msg.message.user.name, recipient
-      msg.send message
+  robot.hear /badger/i, (res) ->
+    res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS!123"
+
+  #robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) ->
+  # `res` is an instance of Response. 
+  robot.respond /give( a)? tokens{0,1}( to)? (\S+)/, (res) ->
+    sender = res.message.user.name
+    recipient = res.match[3] # the third capture group is the name 
+    if verbose
+      res.send "called give a token"
+      res.send "the sender is #{sender}"
+      res.send "hi #{sender}! thanks for asking to give a token to #{recipient}!"
+    if allow_self is true or res.message.user.name != recipient
+      message = tokenBot.give_token res.message.user.name, recipient
+      res.send message
       #karma.increment subject
       #msg.send "#{subject} #{karma.incrementResponse()} (Karma: #{karma.get(subject)})"
     else
-      msg.send msg.random karma.selfDeniedResponses(msg.message.user.name)
+      res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
 
 ###### end Charlie's code #######
 
