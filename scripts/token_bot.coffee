@@ -57,6 +57,10 @@ class TokenNetwork
 
   #### Methods ####
 
+  freeze_tokens: (allow_tokens_to_be_sent_or_received) -> 
+    @tokens_can_be_given = allow_tokens_to_be_sent_or_received
+    @tokens_can_be_revoked = allow_tokens_to_be_sent_or_received
+
   give_token: (sender, recipient) -> 
     # check whether tokens can be given. Returns a message to send to the chat channel.
     # TODO: do this in the method that listens for the command? If @tokens_can_be_given is false, then we should display the message `Tokens can no longer be given.`
@@ -101,21 +105,27 @@ class TokenNetwork
   revoke_token: (sender, recipient) ->
     # remove recipient from @tokens_given[sender] and remove sender from @tokens_received[recipient] 
     # note that if the sender has given >1 token to recipient, this will remove just one of those tokens from the recipient.
-    if @tokens_can_be_revoked
-      # remove recipient from @tokens_given[sender]
-      index = @tokens_given[sender].indexOf recipient
-      @tokens_given.splice index, 1 if index isnt -1
-
-      # remove sender from @tokens_received[recipient]
-      index = @tokens_received[recipient].indexOf sender
-      @tokens_received.splice index, 1 if index isnt -1
-
-      if index isnt -1
-        return "#{sender} revoked one token from #{recipient}."
-      else
-        return "#{sender}: #{recipient} does not have any tokens from you, so you cannot revoke a token from #{recipient}."
-    else
+    
+    # first check whether @tokens_can_be_revoked == false; if so, then return with a message.
+    if not @tokens_can_be_revoked
       return "Sorry #{sender}, tokens can no longer be given nor revoked."
+    else  
+      # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
+      if not @tokens_given[sender]? or not @tokens_received[recipient]
+        return "#{sender} has not sent anyone any tokens."
+      else
+        # remove recipient from @tokens_given[sender]
+        index = @tokens_given[sender].indexOf recipient
+        @tokens_given.splice index, 1 if index isnt -1
+
+        # remove sender from @tokens_received[recipient]
+        index = @tokens_received[recipient].indexOf sender
+        @tokens_received.splice index, 1 if index isnt -1
+
+        if index isnt -1
+          return "#{sender} revoked one token from #{recipient}."
+        else
+          return "#{sender}: #{recipient} does not have any tokens from you, so you cannot revoke a token from #{recipient}."
     # TODO: send a message using 
     #       msg.send "#{subject} #{karma.revoke_token_response()} (Karma: #{karma.get(subject)})"
     # in the robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) function
@@ -217,9 +227,15 @@ module.exports = (robot) ->
 
   #robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) ->
   # `res` is an instance of Response. 
-  robot.respond /give( a)? tokens{0,1}( to)? (\S+)/, (res) ->
+  robot.respond ///
+                (give|send)
+                (\sa)?
+                \stokens{0,1}
+                (\sto)?
+                \s(\S+)
+                ///, (res) ->
     sender = res.message.user.name
-    recipient = res.match[3] # the third capture group is the name 
+    recipient = res.match[4] # the third capture group is the name 
     if verbose
       res.send "called give a token"
       res.send "the sender is #{sender}"
