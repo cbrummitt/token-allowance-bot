@@ -233,7 +233,7 @@ module.exports = (robot) ->
 
 
   # environment variables
-  allow_self = process.env.TOKEN_ALLOW_SELF # whether someone can give a token to himself
+  allow_self = process.env.TOKEN_ALLOW_SELF or false # whether someone can give a token to himself
 
   robot.respond /test bot name/, (res) -> 
     res.send "the bot name is #{bot_name}"
