@@ -6,11 +6,16 @@
 #
 # Configuration:
 #   TOKEN_ALLOW_SELF
+#   TOKENS_CAN_BE_TRANSFERRED
 #
 # Commands:
 #   hubot give (a) token (to) @user_name - gives a token to @user_name. 'a' and 'to' are optional.
 #   hubot revoke (a) token (from) @user_name - revokes a token from @user_name. 'a' and 'from' are optional.
 #   hubot token status (of) @user_name - check the status of @user_name's tokens (given and received). 'of' is optional.
+#
+# Environment variables:
+#   TOKEN_ALLOW_SELF = false
+#   TOKENS_CAN_BE_TRANSFERRED = true
 #
 # Author:
 #   cbrummitt
@@ -32,10 +37,10 @@
 #   hubot karma worst - show the bottom 5
 
 
-# ##### begin Charlie's code #######
+# TODO: Other features we might want
+# a command to show a leader board list of people with the most tokens received?
+# find people who have tokens to give?
 
-# Environment variables:
-#   TOKEN_ALLOW_SELF = false
 
 class TokenNetwork
   #### Constructor ####
@@ -54,7 +59,7 @@ class TokenNetwork
 
     # variable that determines whether tokens can be given right now
     # TDOO: write a method that will turn this off and display a message in #general telling everyone that tokens can no longer be given?
-    # TODO: make these environment variables ` ... = process.env.HUBOT_CAN_GIVE_REVOKE_TOKENS or true`
+    # TODO: make these environment variables ` ... = process.env.HUBOT_CAN_TRANSFER_TOKENS or true`
     @tokens_can_be_given = true
     @tokens_can_be_revoked = true
 
@@ -76,8 +81,8 @@ class TokenNetwork
     @tokens_can_be_revoked = allow_tokens_to_be_sent_or_received
 
   give_token: (sender, recipient) -> 
-    # check whether tokens can be given. Returns a message to send to the chat channel.
-    # TODO: do this in the method that listens for the command? If @tokens_can_be_given is false, then we should display the message `Tokens can no longer be given.`
+    # `give_token` checks whether tokens can be given. It returns a message to send to the chat channel.
+    
     if not @tokens_can_be_given
       return "Sorry #{sender}, tokens can no longer be given nor revoked."
     else
@@ -99,12 +104,12 @@ class TokenNetwork
         @tokens_received[recipient].push sender
         @robot.brain.data.tokens_received = @tokens_received
 
-        return "#{sender} gave one token to #{recipient}." + "#{recipient} has received tokens from @tokens_received[recipient] = #{@tokens_received[recipient]}"
+        return "#{sender} gave one token to #{recipient}.\n#{recipient} has received tokens from the following: #{@tokens_received[recipient]}."
       else
         return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `revoke @user_name`."
 
   revoke_token: (sender, recipient) ->
-    # remove recipient from @tokens_given[sender] and remove sender from @tokens_received[recipient] 
+    # `revoke_token` removes recipient from @tokens_given[sender] and removes sender from @tokens_received[recipient] 
     # note that if the sender has given >1 token to recipient, this will remove just one of those tokens from the recipient.
     
     # first check whether @tokens_can_be_revoked == false; if so, then return with a message.
@@ -208,14 +213,19 @@ class TokenNetwork
 module.exports = (robot) ->
   tokenBot = new TokenNetwork robot
 
-  verbose = true
+  verbose = false
 
   # name of the bot 
   bot_name = process.env.HUBOT_ROCKETCHAT_BOTNAME
 
+  # whether tokens can be given or received
+  # defaults to true
+  tokens_can_be_given_or_revoked = process.env.TOKENS_CAN_BE_TRANSFERRED or true
+
   # environment variables
   allow_self = process.env.TOKEN_ALLOW_SELF or false # whether someone can give a token to himself
 
+  # three responses for testing purposes only (will remove these later)
   robot.respond /test/ig, (res) -> 
     res.send "responding to `test`"
 
@@ -225,6 +235,8 @@ module.exports = (robot) ->
   robot.hear /badger/i, (res) ->
     res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS!123"
 
+
+
   ## respond to `give a token @user_name`
   robot.respond ///
                 (give|send)         # give or send
@@ -232,33 +244,37 @@ module.exports = (robot) ->
                 \stokens{0,1}       # token or tokens
                 (\sto)?             # to is optional
                 \s                  # whitespace
-                @?([\w .\-]+)*$   # user name or name (to be matched in a fuzzy way below)
-                ///, (res) ->
+                @?([\w .\-]+)*$     # user name or name (to be matched in a fuzzy way below)
+                ///, (res) ->       # `res` is an instance of Response. 
     
-    # `res` is an instance of Response. 
     sender = res.message.user.name
-    recipients = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name 
-    ## TODO: does this handle errors with the name not a username? 
-    ## what does this command do if I give it "/give token xxx" where "xxx" isn't the name of a user?
-    
-    if not (recipients.length >= 1)
-      res.send "Sorry, I didn't understand that user name #{res.match[4]}."
-    else
-      recipient = recipients[0]
 
-      if verbose
-        res.send "called `give a token`"
-        res.send "the sender is #{sender}"
-        res.send "the recipient is #{recipient}"
-        res.send "hi #{sender}! thanks for asking to give a token to #{recipient}!"
-      if allow_self is true or res.message.user.name != recipient
-        message = tokenBot.give_token res.message.user.name, recipient
-        res.send message
-        #karma.increment subject
-        #msg.send "#{subject} #{karma.incrementResponse()} (Karma: #{karma.get(subject)})"
+    if not tokens_can_be_given_or_revoked
+      res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
+    else 
+    # tokens can be given, so we proceed 
+
+      # figure out who the recipient is 
+      recipients = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name of the recipient
+      ## TODO: does this handle errors with the name not a username? 
+      ## TODO: what does this command do if I give it "/give token xxx" where "xxx" isn't the name of a user?
+      
+      if not (recipients.length >= 1) # I don't think this will every occur.
+        res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       else
-        # allow_self is false and res.message.user.name == recipient, so return a random message saying that you can't give a token to yourself
-        res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
+        recipient = recipients[0]
+
+        if verbose
+          res.send "The command `give a token` fired. The sender is #{sender}. The recipient is #{recipient}."
+        if allow_self is true or res.message.user.name != recipient
+          message = tokenBot.give_token res.message.user.name, recipient
+          res.send message
+          #karma.increment subject
+          #msg.send "#{subject} #{karma.incrementResponse()} (Karma: #{karma.get(subject)})"
+        else
+          # allow_self is false and res.message.user.name == recipient, 
+          # so return a random message saying that you can't give a token to yourself
+          res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
 
   # respond to "status (of) @user"
   robot.respond ///            
@@ -268,25 +284,29 @@ module.exports = (robot) ->
                 @?([\w .\-]+)*   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
                 ///, (res) ->
     # for debugging: 
-    res.send "the status `respond` fired; the name provided is #{res.match[2]}"
 
-    if not res.match[2]?
-      res.send "Sorry, I couldn't understand the name you provided, which was #{res.match[2]}."
+    name = res.match[2]
+    if verbose
+      res.send "the command `status (of) @user` fired; the name provided is #{name}"
+
+    if not name?
+      res.send "Sorry, I couldn't understand the name you provided, which was #{name}."
     else
-      users = robot.brain.usersForFuzzyName(res.match[2].trim()) # the second capture group is the user name
+      users = robot.brain.usersForFuzzyName(name.trim()) # the second capture group is the user name
       if not (users.length >= 1)
-        res.send "Sorry, I didn't understand that user name #{res.match[2]}."
+        res.send "Sorry, I didn't understand that user name #{name}."
       else
         user = users[0]
         res.send tokenBot.status user
 
-  # TODO: should we allow the command "status" without a user name? 
+  # Listen for the command `status` without any user name provided.
+  # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
   robot.respond /status/, (res) ->
     # for debugging: 
-    res.send "the command `status` (without a user name provided) fired"
+    if verbose 
+      res.send "the command `status` (without a user name provided) fired"
     res.send tokenBot.status res.message.user.name
 
-###### end Charlie's code #######
 
 
 
