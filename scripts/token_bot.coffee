@@ -8,9 +8,9 @@
 #   TOKEN_ALLOW_SELF
 #
 # Commands:
-#   hubot give token @user_name - gives a token to @user_name
-#   hubot revoke token @user_name - revokes a token from @user_name
-#   hubot token status @user_name - check the status of @user_name's tokens (given and received)
+#   hubot give (a) token (to) @user_name - gives a token to @user_name. 'a' and 'to' are optional.
+#   hubot revoke (a) token (from) @user_name - revokes a token from @user_name. 'a' and 'from' are optional.
+#   hubot token status (of) @user_name - check the status of @user_name's tokens (given and received). 'of' is optional.
 #
 # Author:
 #   cbrummitt
@@ -179,25 +179,25 @@ class TokenNetwork
 
     # number of tokens this person has left to give others
     tokens_remaining = @max_tokens_per_user - num_tokens_given
-    result += "#{name} has " + tokens_remaining + "token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others."
+    result += "#{name} has " + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
 
     if num_tokens_given > 0
-      result += "#{name} has given " + num_tokens_given + "token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:"
-      for own name, number of tally(tokens_given_by_this_person)
-        result += "\t#{name}: #{number} tokens\n"
+      result += "#{name} has given " + num_tokens_given + "token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:\n"
+      for own name, number of @tally(tokens_given_by_this_person)
+        result += "\t#{name}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
-      result += "#{name} has not given any tokens to others yet."
+      result += "#{name} has not given any tokens to other people. "
 
 
     # tokens received from others
     tokens_received_by_this_person = if @tokens_received[name]? then @tokens_received[name] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
-      result += "#{name} has received " + num_tokens_received + "token" + (if num_tokens_received != 1 then "s" else "") + "s from the following people:"
-      for own name, number of tally(tokens_received_by_this_person)
-        result += "\t#{name}: #{number} tokens\n"
+      result += "#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people:\n"
+      for own name, number of @tally(tokens_received_by_this_person)
+        result += "\t#{name}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
-      result += "#{name} has not received any tokens from other people yet."
+      result += "#{name} has not received any tokens from other people."
 
     return result
     # displays how many of your tokens you still have, and how many you have given to other people, 
@@ -249,26 +249,52 @@ module.exports = (robot) ->
                 \stokens{0,1}       # token or tokens
                 (\sto)?             # to is optional
                 \s                  # whitespace
-                @?([\w .\-]+)\?*$   # user name or name (to be matched in a fuzzy way below)
+                @?([\w .\-]+)*$   # user name or name (to be matched in a fuzzy way below)
                 ///, (res) ->
     
     # `res` is an instance of Response. 
     sender = res.message.user.name
-    recipient = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name 
+    recipients = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name 
     ## TODO: does this handle errors with the name not a username? 
     ## what does this command do if I give it "/give token xxx" where "xxx" isn't the name of a user?
-    if verbose
-      res.send "called give a token"
-      res.send "the sender is #{sender}"
-      res.send "the recipient is #{recipient}"
-      res.send "hi #{sender}! thanks for asking to give a token to #{recipient}!"
-    if allow_self is true or res.message.user.name != recipient
-      message = tokenBot.give_token res.message.user.name, recipient
-      res.send message
-      #karma.increment subject
-      #msg.send "#{subject} #{karma.incrementResponse()} (Karma: #{karma.get(subject)})"
+    
+    if not (recipients.length >= 1)
+      res.send "Sorry, I didn't understand that user name #{res.match[4]}."
     else
-      res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
+      recipient = recipients[0]
+
+      if verbose
+        res.send "called give a token"
+        res.send "the sender is #{sender}"
+        res.send "the recipient is #{recipient}"
+        res.send "hi #{sender}! thanks for asking to give a token to #{recipient}!"
+      if allow_self is true or res.message.user.name != recipient
+        message = tokenBot.give_token res.message.user.name, recipient
+        res.send message
+        #karma.increment subject
+        #msg.send "#{subject} #{karma.incrementResponse()} (Karma: #{karma.get(subject)})"
+      else
+        res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
+
+  # respond to "status (of) @user"
+  robot.respond ///            # beginning of line
+                status           # "status"
+                (\sof)?           # "of" is optional
+                \s               # whitespace
+                @?([\w .\-]+)*   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
+                ///, (res) ->
+    # for debugging: 
+    res.send "the status `respond` fired; the name provided is #{res.match[2]}"
+
+    if not res.match[2]?
+      res.send "Sorry, I couldn't understand the name you provided, which was #{res.match[2]}."
+    else
+      users = robot.brain.usersForFuzzyName(res.match[2].trim()) # the second capture group is the user name
+      if not (users.length >= 1)
+        res.send "Sorry, I didn't understand that user name #{res.match[2]}."
+      else
+        user = users[0]
+        res.send tokenBot.status user
 
 ###### end Charlie's code #######
 
