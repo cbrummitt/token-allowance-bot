@@ -149,6 +149,7 @@ class TokenNetwork
       if count[x]? then count[x] += 1 else count[x] = 1
     return count
 
+
   status: (name) -> 
     # return the number of tokens remaining, number of tokens, and number of tokens received (including whom).
     # Example:
@@ -260,9 +261,9 @@ module.exports = (robot) ->
         res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
 
   # respond to "status (of) @user"
-  robot.respond ///            # beginning of line
+  robot.respond ///            
                 status           # "status"
-                (\sof)?           # "of" is optional
+                (\sof)?          # "of" is optional
                 \s               # whitespace
                 @?([\w .\-]+)*   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
                 ///, (res) ->
@@ -278,6 +279,12 @@ module.exports = (robot) ->
       else
         user = users[0]
         res.send tokenBot.status user
+
+  # TODO: should we allow the command "status" without a user name? 
+  robot.respond /status/, (res) ->
+    # for debugging: 
+    res.send "the command `status` (without a user name provided) fired"
+    res.send tokenBot.status res.message.user.name
 
 ###### end Charlie's code #######
 
