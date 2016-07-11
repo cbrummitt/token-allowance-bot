@@ -118,10 +118,11 @@ class TokenNetwork
     else  
       # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
       if not @tokens_given[sender]?
-        return "#{sender} has not given tokens to anyone."
+        return "#{sender} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
       else if not @tokens_received[recipient] # TODO: should this check whether recipient is in @tokens_given[sender]? right now this is checked by the `splice` code below 
-        return "#{sender} has not given any tokens to #{recipient}."
-      else
+        return "#{recipient} has not received any tokens from anyone." #"#{sender} has not given any tokens to #{recipient}."
+      else # sender has sent >=1 token to someone, and recipieint has received >=1 token from someone
+        
         # remove recipient from @tokens_given[sender]
         index = @tokens_given[sender].indexOf recipient
         @tokens_given.splice index, 1 if index isnt -1
@@ -252,8 +253,6 @@ module.exports = (robot) ->
     if not tokens_can_be_given_or_revoked
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
     else 
-    # tokens can be given, so we proceed 
-
       # figure out who the recipient is 
       recipients = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name of the recipient
       ## TODO: does this handle errors with the name not a username? 
@@ -267,7 +266,7 @@ module.exports = (robot) ->
         if verbose
           res.send "The command `give a token` fired. The sender is #{sender}. The recipient is #{recipient}."
         if allow_self is true or res.message.user.name != recipient
-          message = tokenBot.give_token res.message.user.name, recipient
+          message = tokenBot.give_token sender, recipient
           res.send message
           #karma.increment subject
           #msg.send "#{subject} #{karma.incrementResponse()} (Karma: #{karma.get(subject)})"
@@ -275,6 +274,38 @@ module.exports = (robot) ->
           # allow_self is false and res.message.user.name == recipient, 
           # so return a random message saying that you can't give a token to yourself
           res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
+
+
+  ## respond to `revoke (a) token (from) @user_name`
+  robot.respond ///
+                (revoke|remove)     # revoke or remove
+                (\sa)?              # a is optional
+                \stokens{0,1}       # token or tokens
+                (\sfrom)?           # from is optional
+                \s                  # whitespace
+                @?([\w .\-]+)*$     # user name or name (to be matched in a fuzzy way below)
+                ///, (res) ->       # `res` is an instance of Response. 
+    
+    sender = res.message.user.name # the user name of the person who is revoking a token from someone else
+
+    if not tokens_can_be_given_or_revoked
+      res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
+    else 
+      # figure out who the recipient (person losing a token) is 
+      recipients = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name of the recipient
+      ## TODO: does this handle errors with the name not a username? 
+      ## TODO: what does this command do if I give it "/revoke token xxx" where "xxx" isn't the name of a user?
+      
+      if not (recipients.length >= 1) # I don't think this will every occur.
+        res.send "Sorry, I didn't understand that user name #{res.match[4]}."
+      else
+        recipient = recipients[0]
+
+        res.send "The command `revoke a token` fired. The sender is #{sender}. The recipient is #{recipient}."
+        if verbose
+          res.send "The command `revoke a token` fired. The sender is #{sender}. The recipient is #{recipient}."
+        message = tokenBot.revoke_token sender, recipient
+        res.send message
 
   # respond to "status (of) @user"
   robot.respond ///            
