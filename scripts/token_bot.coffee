@@ -8,15 +8,28 @@
 #   TOKEN_ALLOW_SELF
 #
 # Commands:
+#   hubot give token @user_name - gives a token to @user_name
+#   hubot revoke token @user_name - revokes a token from @user_name
+#   hubot token status @user_name - check the status of @user_name's tokens (given and received)
+#
+# Author:
+#   cbrummitt
+
+
+## TODO: Update the commands list above. 
+## From the scripting documentation: 
+#####  At load time, Hubot looks at the Commands section of each scripts, and build a list of all commands. 
+##### The included help.coffee lets a user ask for help across all commands, or with a search. 
+##### Refer to the Hubot as hubot, even if your hubot is named something else. It will automatically be replaced with the correct name. This makes it easier to share scripts without having to update docs.
+
+
+#### Commands from karma bot: 
 #   <thing>++ - give thing some karma
 #   <thing>-- - take away some of thing's karma
 #   hubot karma <thing> - check thing's karma (if <thing> is omitted, show the top 5)
 #   hubot karma empty <thing> - empty a thing's karma
 #   hubot karma best - show the top 5
 #   hubot karma worst - show the bottom 5
-#
-# Author:
-#   cbrummitt
 
 
 # ##### begin Charlie's code #######
@@ -41,6 +54,7 @@ class TokenNetwork
 
     # variable that determines whether tokens can be given right now
     # TDOO: write a method that will turn this off and display a message in #general telling everyone that tokens can no longer be given?
+    # TODO: make these environment variables ` ... = process.env.HUBOT_CAN_GIVE_REVOKE_TOKENS or true`
     @tokens_can_be_given = true
     @tokens_can_be_revoked = true
 
@@ -88,7 +102,7 @@ class TokenNetwork
         @tokens_received[recipient].push sender
         @robot.brain.data.tokens_received = @tokens_received
         
-        return "#{sender} gave one token to #{recipient}." + " @tokens_received[recipient] = #{@tokens_received[recipient]}"
+        return "#{sender} gave one token to #{recipient}." + "#{recipient} has received tokens from @tokens_received[recipient] = #{@tokens_received[recipient]}"
       else
         return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `revoke @user_name`."
 
@@ -111,8 +125,10 @@ class TokenNetwork
       return "Sorry #{sender}, tokens can no longer be given nor revoked."
     else  
       # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
-      if not @tokens_given[sender]? or not @tokens_received[recipient]
-        return "#{sender} has not sent anyone any tokens."
+      if not @tokens_given[sender]?
+        return "#{sender} has not given tokens to anyone."
+      else if not @tokens_received[recipient]
+        return "#{sender} has not given any tokens to #{recipient}."
       else
         # remove recipient from @tokens_given[sender]
         index = @tokens_given[sender].indexOf recipient
@@ -163,10 +179,10 @@ class TokenNetwork
 
     # number of tokens this person has left to give others
     tokens_remaining = @max_tokens_per_user - num_tokens_given
-    result += "#{name} has " + tokens_remaining + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others."
+    result += "#{name} has " + tokens_remaining + "token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others."
 
     if num_tokens_given > 0
-      result += "#{name} has given " + num_tokens_given + "token" + (if num_tokens_given != 1 then "s" else "") + "s to the following people:"
+      result += "#{name} has given " + num_tokens_given + "token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:"
       for own name, number of tally(tokens_given_by_this_person)
         result += "\t#{name}: #{number} tokens\n"
     else
@@ -178,7 +194,7 @@ class TokenNetwork
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
       result += "#{name} has received " + num_tokens_received + "token" + (if num_tokens_received != 1 then "s" else "") + "s from the following people:"
-      for own name, number of tally(@tokens_given[name])
+      for own name, number of tally(tokens_received_by_this_person)
         result += "\t#{name}: #{number} tokens\n"
     else
       result += "#{name} has not received any tokens from other people yet."
@@ -226,19 +242,25 @@ module.exports = (robot) ->
     res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS!123"
 
   #robot.hear /(\S+[^+:\s])[: ]*\+\+(\s|$)/, (msg) ->
-  # `res` is an instance of Response. 
+  # respodnd to `give a token @user_name`
   robot.respond ///
-                (give|send)
-                (\sa)?
-                \stokens{0,1}
-                (\sto)?
-                \s(\S+)
+                (give|send)         # give or send
+                (\sa)?              # a is optional
+                \stokens{0,1}       # token or tokens
+                (\sto)?             # to is optional
+                \s                  # whitespace
+                @?([\w .\-]+)\?*$   # user name or name (to be matched in a fuzzy way below)
                 ///, (res) ->
+    
+    # `res` is an instance of Response. 
     sender = res.message.user.name
-    recipient = res.match[4] # the third capture group is the name 
+    recipient = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name 
+    ## TODO: does this handle errors with the name not a username? 
+    ## what does this command do if I give it "/give token xxx" where "xxx" isn't the name of a user?
     if verbose
       res.send "called give a token"
       res.send "the sender is #{sender}"
+      res.send "the recipient is #{recipient}"
       res.send "hi #{sender}! thanks for asking to give a token to #{recipient}!"
     if allow_self is true or res.message.user.name != recipient
       message = tokenBot.give_token res.message.user.name, recipient
