@@ -368,5 +368,9 @@ module.exports = (robot) ->
     res.send tokenBot.status res.message.user.name
 
 
-
+  # log all errors 
+  robot.error (err, res) ->
+  robot.logger.error "#{err}\n#{err.stack}"
+  if res?
+     res.reply "#{err}\n#{err.stack}"
 
