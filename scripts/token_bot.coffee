@@ -181,7 +181,7 @@ class TokenNetwork
     # number of tokens this person has left to give others
     tokens_remaining = @max_tokens_per_user - num_tokens_given
     result += "#{name} has " + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
-    result += "\n"
+    result += "\n\n"
 
     if num_tokens_given > 0
       result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:\n"
