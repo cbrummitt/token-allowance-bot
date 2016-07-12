@@ -273,7 +273,7 @@ module.exports = (robot) ->
       if not (recipients.length >= 1) # I don't think this will every occur.
         res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       else
-        recipient = recipients[0]
+        recipient = recipients[0]['name']
 
         if verbose
           res.send "The command `give a token` fired. The sender is #{sender}. The recipient is #{recipient}."
@@ -311,7 +311,7 @@ module.exports = (robot) ->
       if not (recipients.length >= 1) # I don't think this will every occur.
         res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       else
-        recipient = recipients[0]
+        recipient = recipients[0]['name']
 
         res.send "The command `revoke a token` fired. The sender is #{sender}. The recipient is #{recipient}."
         if verbose
@@ -342,11 +342,6 @@ module.exports = (robot) ->
     else
       users = robot.brain.usersForFuzzyName(name.trim()) # the second capture group is the user name
 
-      res.send "`name.trim()` = #{name.trim()}"
-      res.send "The list of users provided by `robot.brain.usersForFuzzyName(name.trim())` is #{users}"
-      res.send "The output of `robot.brain.userForName(name.trim())` is #{robot.brain.userForName(name.trim())}"
-      res.send "The output of `robot.brain.userForId(name.trim())` is #{robot.brain.userForId(name.trim())}"
-
       # if not (users.length >= 1)
       #   res.send "Sorry, I didn't understand that user name #{name}."
       # else
@@ -354,8 +349,8 @@ module.exports = (robot) ->
       #   res.send tokenBot.status user
       if users.length == 1
         user = users[0]
-        res.send "User = #{user}. User['name'] = #{user['name']}. User['id'] = #{user['id']}."
-        res.send tokenBot.status user
+        #res.send "User = #{user}. User['name'] = #{user['name']}. User['id'] = #{user['id']}."
+        res.send tokenBot.status user['name']
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
