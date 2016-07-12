@@ -41,6 +41,11 @@
 # a command to show a leader board list of people with the most tokens received?
 # find people who have tokens to give?
 
+# TODO: Do I need to use the save command to get persistence of the data? 
+# Currently the data disappears when I `git heroku push` new code.
+# See the source code at  https://github.com/github/hubot/blob/master/src/brain.coffee
+
+
 
 class TokenNetwork
   #### Constructor ####
@@ -183,16 +188,17 @@ class TokenNetwork
     result += "#{name} has " + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
     result += "\n\n"
 
+    # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
       result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:\n"
       for own name, number of @tally(tokens_given_by_this_person)
         result += "    - #{name}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
       result += "#{name} has not given any tokens to other people. "
-    result += "\n"
+    result += "\n\n"
 
 
-    # tokens received from others
+    # number of tokens `name` has received from others (and from whom)
     tokens_received_by_this_person = if @tokens_received[name]? then @tokens_received[name] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
