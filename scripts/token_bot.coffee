@@ -224,6 +224,10 @@ class TokenNetwork
 ######################################################################################################
 ######################################################################################################
 
+# for inspecting an object
+Util = require "util"
+
+
 # the script must export a function. `robot` is an instance of the bot.
 # we export a function of one variable, the `robot`, which `.hear`s messages and then does stuff
 module.exports = (robot) ->
@@ -316,6 +320,8 @@ module.exports = (robot) ->
       ## TODO: does this handle errors with the name not a username? 
       ## TODO: what does this command do if I give it "/revoke token xxx" where "xxx" isn't the name of a user?
       
+      res.send "recipients[0] = #{Util.inspect(recipients[0])}. recipients = #{Util.inspect(recipients)}." 
+
       #if not (recipients.length >= 1) # I don't think this will every occur.
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       #else
@@ -325,6 +331,8 @@ module.exports = (robot) ->
         res.send "The command `revoke a token` fired. The sender is #{sender}. The recipient is #{recipient}."
         message = tokenBot.revoke_token sender, recipient
         res.send message
+      else
+        res.send "Sorry #{sender}, I didn't understand to whom you're trying to give a token."
 
   ###
     Status commands 
@@ -349,6 +357,7 @@ module.exports = (robot) ->
     else
       users = robot.brain.usersForFuzzyName(name.trim()) # the second capture group is the user name
 
+      res.send "users = #{Util.inspect(users)}" 
       # if not (users.length >= 1)
       #   res.send "Sorry, I didn't understand that user name #{name}."
       # else
@@ -370,7 +379,12 @@ module.exports = (robot) ->
 
   # log all errors 
   robot.error (err, res) ->
-  robot.logger.error "#{err}\n#{err.stack}"
-  if res?
-     res.reply "#{err}\n#{err.stack}"
+    robot.logger.error "#{err}\n#{err.stack}"
+    if res?
+       res.reply "#{err}\n#{err.stack}"
+
+  # inspect a user's user name
+  robot.hear /hi robot/i, (res) ->
+    user = robot.brain.usersForFuzzyName(res.message.user.name)
+    res.send "#{Util.inspect(user)}"
 
