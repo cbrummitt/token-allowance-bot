@@ -283,7 +283,8 @@ module.exports = (robot) ->
       #if not (recipients.length >= 1) # I don't think this will every occur.
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       #else
-      res.send "recipients = #{recipients}"
+      res.send "recipients = #{Util.inspect(recipients)}. recipients[0] = #{Util.inspect(recipients[0])}. " 
+      
       if recipients.length == 1
         recipient = recipients[0]['name']
 
@@ -320,7 +321,7 @@ module.exports = (robot) ->
       ## TODO: does this handle errors with the name not a username? 
       ## TODO: what does this command do if I give it "/revoke token xxx" where "xxx" isn't the name of a user?
       
-      res.send "recipients[0] = #{Util.inspect(recipients[0])}. recipients = #{Util.inspect(recipients)}." 
+      res.send "recipients = #{Util.inspect(recipients)}. recipients[0] = #{Util.inspect(recipients[0])}. " 
 
       #if not (recipients.length >= 1) # I don't think this will every occur.
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
