@@ -123,13 +123,13 @@ class TokenNetwork
         return "#{recipient} has not received any tokens from anyone." #"#{sender} has not given any tokens to #{recipient}."
       else # sender has sent >=1 token to someone, and recipieint has received >=1 token from someone
         
-        # remove recipient from @tokens_given[sender]
+        # remove the first occurrence of recipient in the list @tokens_given[sender]
         index = @tokens_given[sender].indexOf recipient
-        @tokens_given.splice index, 1 if index isnt -1
+        @tokens_given[sender].splice index, 1 if index isnt -1
 
-        # remove sender from @tokens_received[recipient]
+        # remove the first occurence of sender in the list @tokens_received[recipient]
         index = @tokens_received[recipient].indexOf sender
-        @tokens_received.splice index, 1 if index isnt -1
+        @tokens_received[recipient].splice index, 1 if index isnt -1
 
         if index isnt -1
           return "#{sender} revoked one token from #{recipient}."
