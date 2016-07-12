@@ -348,7 +348,7 @@ module.exports = (robot) ->
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
-  robot.respond /status/, (res) ->
+  robot.respond /status$/, (res) ->
     # for debugging: 
     if verbose 
       res.send "the command `status` (without a user name provided) fired"
