@@ -282,8 +282,8 @@ module.exports = (robot) ->
       if recipients.length == 1
         recipient = recipients[0]['name']
 
-        if verbose
-          res.send "The command `give a token` fired. The sender is #{sender}. The recipient is #{recipient}."
+        res.send "The command `give a token` fired. The sender is #{sender}. The recipient is #{recipient}."
+
         if allow_self is true or res.message.user.name != recipient
           message = tokenBot.give_token sender, recipient
           res.send message
@@ -322,8 +322,6 @@ module.exports = (robot) ->
         recipient = recipients[0]['name']
 
         res.send "The command `revoke a token` fired. The sender is #{sender}. The recipient is #{recipient}."
-        if verbose
-          res.send "The command `revoke a token` fired. The sender is #{sender}. The recipient is #{recipient}."
         message = tokenBot.revoke_token sender, recipient
         res.send message
 
