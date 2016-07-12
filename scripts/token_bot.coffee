@@ -395,7 +395,16 @@ module.exports = (robot) ->
        res.reply "#{err}\n#{err.stack}"
 
   # inspect a user's user name
-  robot.hear /hi robot/i, (res) ->
+  robot.respond /hi robot/i, (res) ->
     user = robot.brain.usersForFuzzyName(res.message.user.name)
     res.send "#{Util.inspect(user)}"
+
+  robot.respond /show users$/i, (msg) ->
+    response = ""
+
+    for own key, user of robot.brain.data.users
+      response += "ID: #{user.id}\t\tuser name:  #{user.name}"
+      response += " <#{user.email_address}>" if user.email_address
+      response += "\n"
+    msg.send response
 
