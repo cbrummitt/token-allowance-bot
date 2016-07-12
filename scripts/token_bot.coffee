@@ -284,12 +284,13 @@ module.exports = (robot) ->
       #if not (recipients.length >= 1) # I don't think this will every occur.
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       #else
-      res.send "recipients = #{Util.inspect(recipients)}. recipients[0] = #{Util.inspect(recipients[0])}. " 
+
+      res.send "The command `give a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
+      res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
+      res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
 
       if recipients.length == 1
         recipient = recipients[0]['name']
-
-        res.send "The command `give a token` fired. The sender is #{sender}. The recipient is #{recipient}."
 
         if allow_self is true or res.message.user.name != recipient
           message = tokenBot.give_token sender, recipient
@@ -300,6 +301,8 @@ module.exports = (robot) ->
           # allow_self is false and res.message.user.name == recipient, 
           # so return a random message saying that you can't give a token to yourself
           res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
+      else
+        res.send "Sorry #{sender}, I didn't understand to whom you're trying to give a token."
 
 
   ## respond to `revoke (a) token (from) @user_name`
@@ -323,7 +326,9 @@ module.exports = (robot) ->
       ## TODO: does this handle errors with the name not a username? 
       ## TODO: what does this command do if I give it "/revoke token xxx" where "xxx" isn't the name of a user?
       
-      res.send "recipients = #{Util.inspect(recipients)}. recipients[0] = #{Util.inspect(recipients[0])}. " 
+      res.send "The command `revoke a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
+      res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
+      res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
 
       #if not (recipients.length >= 1) # I don't think this will every occur.
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
@@ -331,11 +336,10 @@ module.exports = (robot) ->
       if recipients.length == 1
         recipient = recipients[0]['name']
 
-        res.send "The command `revoke a token` fired. The sender is #{sender}. The recipient is #{recipient}."
         message = tokenBot.revoke_token sender, recipient
         res.send message
       else
-        res.send "Sorry #{sender}, I didn't understand to whom you're trying to give a token."
+        res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
 
   ###
     Status commands 
@@ -353,15 +357,15 @@ module.exports = (robot) ->
     # for debugging: 
 
     name = res.match[2]
-    if verbose
-      res.send "the command `status (of) @user` fired; the name provided is #{name}"
+    
+    res.send "the command `status (of) @user` fired; the name provided is #{name}"
 
     if not name?
       res.send "Sorry, I couldn't understand the name you provided, which was #{name}."
     else
       users = robot.brain.usersForFuzzyName(name.trim()) # the second capture group is the user name
 
-      res.send "users = #{Util.inspect(users)}" 
+      res.send "Util.inspect(users) = #{Util.inspect(users)}" 
       # if not (users.length >= 1)
       #   res.send "Sorry, I didn't understand that user name #{name}."
       # else
