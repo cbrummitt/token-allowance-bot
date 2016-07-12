@@ -266,9 +266,10 @@ module.exports = (robot) ->
                 (\sa)?              # a is optional
                 \stokens{0,1}       # token or tokens
                 (\sto)?             # to is optional
-                \s                  # whitespace
-                @?([\w .\-]+)*$     # user name or name (to be matched in a fuzzy way below)
-                ///, (res) ->       # `res` is an instance of Response. 
+                \s                  # 1 charachter of whitespace
+                @?([\w .\-]+)*      # user name or name (to be matched in a fuzzy way below)
+                \s*$                # 0 or more whitespace
+               ///, (res) ->       # `res` is an instance of Response. 
     
     sender = res.message.user.name
 
@@ -284,7 +285,7 @@ module.exports = (robot) ->
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       #else
       res.send "recipients = #{Util.inspect(recipients)}. recipients[0] = #{Util.inspect(recipients[0])}. " 
-      
+
       if recipients.length == 1
         recipient = recipients[0]['name']
 
@@ -307,8 +308,9 @@ module.exports = (robot) ->
                 (\sa)?              # a is optional
                 \stokens{0,1}       # token or tokens
                 (\sfrom)?           # from is optional
-                \s                  # whitespace
-                @?([\w .\-]+)*$     # user name or name (to be matched in a fuzzy way below)
+                \s                  # 1 charachter of whitespace
+                @?([\w .\-]+)*      # user name or name (to be matched in a fuzzy way below)
+                \s*$                # 0 or more whitespace
                 ///, (res) ->       # `res` is an instance of Response. 
     
     sender = res.message.user.name # the user name of the person who is revoking a token from someone else
@@ -345,6 +347,7 @@ module.exports = (robot) ->
                 (\sof)?          # "of" is optional
                 \s               # whitespace
                 @?([\w .\-]+)*   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
+                \s*$             # 0 or more whitespace
                 ///i, (res) ->
 
     # for debugging: 
