@@ -184,9 +184,9 @@ class TokenNetwork
     result += "\n"
 
     if num_tokens_given > 0
-      result += "#{name} has given " + num_tokens_given + "token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:\n"
+      result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:\n"
       for own name, number of @tally(tokens_given_by_this_person)
-        result += "\t#{name}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+        result += "    - #{name}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
       result += "#{name} has not given any tokens to other people. "
     result += "\n"
@@ -198,7 +198,7 @@ class TokenNetwork
     if num_tokens_received > 0
       result += "#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people:\n"
       for own name, number of @tally(tokens_received_by_this_person)
-        result += "\t#{name}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+        result += "    - #{name}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
       result += "#{name} has not received any tokens from other people."
 
