@@ -239,8 +239,8 @@ module.exports = (robot) ->
   robot.respond /test/ig, (res) -> 
     res.send "responding to `test`"
 
-  robot.respond /test bot name/, (res) -> 
-    res.send "the bot name is #{bot_name}"
+  robot.respond /what is your name\?/, (res) -> 
+    res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} command`."
 
   robot.hear /badger/i, (res) ->
     res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS!123"
