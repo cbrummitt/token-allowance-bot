@@ -279,6 +279,7 @@ module.exports = (robot) ->
       #if not (recipients.length >= 1) # I don't think this will every occur.
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       #else
+      res.send "recipients = #{recipients}"
       if recipients.length == 1
         recipient = recipients[0]['name']
 
