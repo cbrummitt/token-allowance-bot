@@ -76,12 +76,13 @@ class TokenNetwork
 
   #### Methods ####
 
+  # TODO: remove this command `freeze_tokens` once we migrate to using the environment variable TOKENS_CAN_BE_TRANSFERRED
   freeze_tokens: (allow_tokens_to_be_sent_or_received) -> 
     @tokens_can_be_given = allow_tokens_to_be_sent_or_received
     @tokens_can_be_revoked = allow_tokens_to_be_sent_or_received
 
   give_token: (sender, recipient) -> 
-    # `give_token` checks whether tokens can be given. It returns a message to send to the chat channel.
+    # `give_token` gives a token from the sender to recipient. It returns a message to send to the chat channel.
     
     if not @tokens_can_be_given
       return "Sorry #{sender}, tokens can no longer be given nor revoked."
@@ -136,6 +137,7 @@ class TokenNetwork
         else
           return "#{sender}: #{recipient} does not have any tokens from you, so you cannot revoke a token from #{recipient}."
 
+  # TODO: currently we're not using these functions. We're showing the same response every time.
   receive_token_response: ->
     @receive_token_responses[Math.floor(Math.random() * @receive_token_responses.length)]
 
@@ -159,7 +161,7 @@ class TokenNetwork
   status: (name) -> 
     # return the number of tokens remaining, number of tokens, and number of tokens received (including whom).
     # Example:
-    # @name has 2 of tokens remaining to give to others. 
+    # @name has 2 tokens remaining to give to others. 
     # @name has given tokens to the following people: 
     #   @user_4 (1 token)
     #   @user_8 (2 tokens) 
@@ -244,6 +246,9 @@ module.exports = (robot) ->
     res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS!123"
 
 
+  ###
+    Give and revoke commands 
+  ###
 
   ## respond to `give a token @user_name`
   robot.respond ///
@@ -313,6 +318,10 @@ module.exports = (robot) ->
           res.send "The command `revoke a token` fired. The sender is #{sender}. The recipient is #{recipient}."
         message = tokenBot.revoke_token sender, recipient
         res.send message
+
+  ###
+    Status commands 
+  ###
 
   # respond to "status (of) @user"
   robot.respond ///            
