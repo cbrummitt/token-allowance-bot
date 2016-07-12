@@ -329,7 +329,8 @@ module.exports = (robot) ->
                 (\sof)?          # "of" is optional
                 \s               # whitespace
                 @?([\w .\-]+)*   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
-                ///, (res) ->
+                ///i, (res) ->
+
     # for debugging: 
 
     name = res.match[2]
@@ -340,10 +341,20 @@ module.exports = (robot) ->
       res.send "Sorry, I couldn't understand the name you provided, which was #{name}."
     else
       users = robot.brain.usersForFuzzyName(name.trim()) # the second capture group is the user name
-      if not (users.length >= 1)
-        res.send "Sorry, I didn't understand that user name #{name}."
-      else
+
+      res.send "`name.trim()` = #{name.trim()}"
+      res.send "The list of users provided by `robot.brain.usersForFuzzyName(name.trim())` is #{users}"
+      res.send "The output of `robot.brain.userForName(name.trim())` is #{robot.brain.userForName(name.trim())}"
+      res.send "The output of `robot.brain.userForId(name.trim())` is #{robot.brain.userForId(name.trim())}"
+
+      # if not (users.length >= 1)
+      #   res.send "Sorry, I didn't understand that user name #{name}."
+      # else
+      #   user = users[0]
+      #   res.send tokenBot.status user
+      if users.length == 1
         user = users[0]
+        res.send "User = #{user}. User['name'] = #{user['name']}. User['id'] = #{user['id']}."
         res.send tokenBot.status user
 
   # Listen for the command `status` without any user name provided.
