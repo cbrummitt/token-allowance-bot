@@ -43,7 +43,7 @@
 
 # TODO: Do I need to use the save command to get persistence of the data? 
 # Currently the data disappears when I `git heroku push` new code.
-# See the source code at  https://github.com/github/hubot/blob/master/src/brain.coffee
+# See the source code at https://github.com/github/hubot/blob/master/src/brain.coffee
 
 
 
@@ -276,9 +276,10 @@ module.exports = (robot) ->
       ## TODO: does this handle errors with the name not a username? 
       ## TODO: what does this command do if I give it "/give token xxx" where "xxx" isn't the name of a user?
       
-      if not (recipients.length >= 1) # I don't think this will every occur.
-        res.send "Sorry, I didn't understand that user name #{res.match[4]}."
-      else
+      #if not (recipients.length >= 1) # I don't think this will every occur.
+      #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
+      #else
+      if recipients.length == 1
         recipient = recipients[0]['name']
 
         if verbose
@@ -314,9 +315,10 @@ module.exports = (robot) ->
       ## TODO: does this handle errors with the name not a username? 
       ## TODO: what does this command do if I give it "/revoke token xxx" where "xxx" isn't the name of a user?
       
-      if not (recipients.length >= 1) # I don't think this will every occur.
-        res.send "Sorry, I didn't understand that user name #{res.match[4]}."
-      else
+      #if not (recipients.length >= 1) # I don't think this will every occur.
+      #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
+      #else
+      if recipients.length == 1
         recipient = recipients[0]['name']
 
         res.send "The command `revoke a token` fired. The sender is #{sender}. The recipient is #{recipient}."
