@@ -289,6 +289,9 @@ module.exports = (robot) ->
       res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
       res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
 
+      res.send "robot.brain.userForName(res.match[4].trim()) = #{robot.brain.userForName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.userForName(res.match[4].trim()))}"
+      res.send "robot.brain.usersForRawFuzzyName(res.match[4].trim()) = #{robot.brain.usersForRawFuzzyName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.usersForRawFuzzyName(res.match[4].trim()))}"
+
       if recipients.length == 1
         recipient = recipients[0]['name']
 
