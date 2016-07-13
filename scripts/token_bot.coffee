@@ -65,8 +65,8 @@ class TokenNetwork
     # variable that determines whether tokens can be given right now
     # TDOO: write a method that will turn this off and display a message in #general telling everyone that tokens can no longer be given?
     # TODO: make these environment variables ` ... = process.env.HUBOT_CAN_TRANSFER_TOKENS or true`
-    @tokens_can_be_given = true
-    @tokens_can_be_revoked = true
+    #@tokens_can_be_given = true
+    #@tokens_can_be_revoked = true
 
     # list of responses to display when someone receives or gives a token
     @receive_token_responses = ["received a token!", "was thanked with a token!"]
@@ -86,19 +86,21 @@ class TokenNetwork
   #### Methods ####
 
   # TODO: remove this command `freeze_tokens` once we migrate to using the environment variable TOKENS_CAN_BE_TRANSFERRED
-  freeze_tokens: (allow_tokens_to_be_sent_or_received) -> 
-    @tokens_can_be_given = allow_tokens_to_be_sent_or_received
-    @tokens_can_be_revoked = allow_tokens_to_be_sent_or_received
+  #freeze_tokens: (allow_tokens_to_be_sent_or_received) -> 
+  #  @tokens_can_be_given = allow_tokens_to_be_sent_or_received
+  #  @tokens_can_be_revoked = allow_tokens_to_be_sent_or_received
 
   give_token: (sender, recipient) -> 
     # `give_token` gives a token from the sender to recipient. It returns a message to send to the chat channel.
     
-    if not @tokens_can_be_given
+    if not process.env.TOKENS_CAN_BE_TRANSFERRED #@tokens_can_be_given
       return "Sorry #{sender}, tokens can no longer be given nor revoked."
     else
       # check whether @cacheTokens[sender] exists and if not set it to []
       if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
         @tokens_given[sender] = []
+        #robot.brain.set sender, 'sent', ['test']
+        #return "robot.brain.get sender, 'sent' = #{robot.brain.get sender, 'sent', ['test']}"
 
       if @tokens_received[recipient]? == false
         @tokens_received[recipient] = []
@@ -123,7 +125,7 @@ class TokenNetwork
     # note that if the sender has given >1 token to recipient, this will remove just one of those tokens from the recipient.
     
     # first check whether @tokens_can_be_revoked == false; if so, then return with a message.
-    if not @tokens_can_be_revoked
+    if not process.env.TOKENS_CAN_BE_TRANSFERRED #@tokens_can_be_revoked
       return "Sorry #{sender}, tokens can no longer be given nor revoked."
     else  
       # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
