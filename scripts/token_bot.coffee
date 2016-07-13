@@ -248,10 +248,10 @@ module.exports = (robot) ->
 
   # whether tokens can be given or received
   # defaults to true
-  tokens_can_be_given_or_revoked = process.env.TOKENS_CAN_BE_TRANSFERRED or true
+  #tokens_can_be_given_or_revoked = process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
   # environment variables
-  allow_self = process.env.TOKEN_ALLOW_SELF or false # whether someone can give a token to himself
+  allow_self = process.env.TOKEN_ALLOW_SELF #or false # whether someone can give a token to himself
 
   # three responses for testing purposes only (will remove these later)
   robot.respond /test/ig, (res) -> 
@@ -281,7 +281,7 @@ module.exports = (robot) ->
     
     sender = res.message.user.name
 
-    if not tokens_can_be_given_or_revoked
+    if not process.env.TOKENS_CAN_BE_TRANSFERRED
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to give a token but tokens cannot be given now."
     else 
@@ -334,7 +334,7 @@ module.exports = (robot) ->
     
     sender = res.message.user.name # the user name of the person who is revoking a token from someone else
 
-    if not tokens_can_be_given_or_revoked
+    if not process.env.TOKENS_CAN_BE_TRANSFERRED
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to revoke a token but tokens cannot be given now."
     else 
