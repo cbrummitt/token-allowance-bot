@@ -281,7 +281,7 @@ module.exports = (robot) ->
     
     sender = res.message.user.name
 
-    if not process.env.TOKENS_CAN_BE_TRANSFERRED
+    if process.env.TOKENS_CAN_BE_TRANSFERRED == false or process.env.TOKENS_CAN_BE_TRANSFERRED == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to give a token but tokens cannot be given now."
     else 
