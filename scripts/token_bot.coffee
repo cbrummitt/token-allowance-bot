@@ -279,6 +279,7 @@ module.exports = (robot) ->
 
     if not tokens_can_be_given_or_revoked
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
+      robot.logger.info "#{sender} tried to give a token but tokens cannot be given now."
     else 
       # figure out who the recipient is 
       recipients = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name of the recipient
@@ -331,6 +332,7 @@ module.exports = (robot) ->
 
     if not tokens_can_be_given_or_revoked
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
+      robot.logger.info "#{sender} tried to revoke a token but tokens cannot be given now."
     else 
       # figure out who the recipient (person losing a token) is 
       recipients = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name of the recipient
