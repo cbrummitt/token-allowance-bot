@@ -259,10 +259,10 @@ module.exports = (robot) ->
   bot_name = process.env.HUBOT_ROCKETCHAT_BOTNAME
 
   # whether tokens can be given or received. defaults to true
-  tokens_can_be_given_or_revoked = stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) or true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
+  tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
   # whether people can give tokens to themself. defaults to false.
-  allow_self = stringToBool(process.env.TOKEN_ALLOW_SELF) or false
+  allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
   # environment variables
 
   # three responses for testing purposes only (will remove these later)
