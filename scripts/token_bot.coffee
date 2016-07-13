@@ -251,7 +251,6 @@ module.exports = (robot) ->
   #tokens_can_be_given_or_revoked = process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
   # environment variables
-  allow_self = process.env.TOKEN_ALLOW_SELF #or false # whether someone can give a token to himself
 
   # three responses for testing purposes only (will remove these later)
   robot.respond /test/ig, (res) -> 
@@ -281,7 +280,7 @@ module.exports = (robot) ->
     
     sender = res.message.user.name
 
-    if process.env.TOKENS_CAN_BE_TRANSFERRED == false or process.env.TOKENS_CAN_BE_TRANSFERRED == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
+    if process.env.TOKENS_CAN_BE_TRANSFERRED == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to give a token but tokens cannot be given now."
     else 
@@ -307,14 +306,14 @@ module.exports = (robot) ->
       if recipients.length == 1
         recipient = recipients[0]['name']
 
-        if allow_self is true or res.message.user.name != recipient
+        if (process.env.TOKEN_ALLOW_SELF == "true" or process.env.TOKEN_ALLOW_SELF == true) or res.message.user.name != recipient
           robot.logger.info "#{sender} sent a token to #{recipient}"
           message = tokenBot.give_token sender, recipient
           res.send message
           #karma.increment subject
           #msg.send "#{subject} #{karma.incrementResponse()} (Karma: #{karma.get(subject)})"
         else
-          # allow_self is false and res.message.user.name == recipient, 
+          # process.env.TOKEN_ALLOW_SELF is false and res.message.user.name == recipient, 
           # so return a random message saying that you can't give a token to yourself
           res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
           robot.logger.info "#{sender} tried to give himself/herself a token"
