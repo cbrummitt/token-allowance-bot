@@ -7,6 +7,7 @@
 # Configuration:
 #   TOKEN_ALLOW_SELF
 #   TOKENS_CAN_BE_TRANSFERRED
+#   TOKENS_ENDOWED_TO_EACH_USER
 #
 # Commands:
 #   hubot give (a) token (to) @user_name - gives a token to @user_name. 'a' and 'to' are optional.
@@ -16,6 +17,7 @@
 # Environment variables:
 #   TOKEN_ALLOW_SELF = false
 #   TOKENS_CAN_BE_TRANSFERRED = true
+#   TOKENS_ENDOWED_TO_EACH_USER = 5
 #
 # Author:
 #   cbrummitt
@@ -60,7 +62,7 @@ class TokenNetwork
     
     # each user can give at most this many tokens to others
     # TODO: make this an environment variable? See `allow_self = process.env.KARMA_ALLOW_SELF or "true"` in the karma bot
-    @max_tokens_per_user = 5 
+    @max_tokens_per_user = process.env.TOKENS_ENDOWED_TO_EACH_USER or 5 
 
     # variable that determines whether tokens can be given right now
     # TDOO: write a method that will turn this off and display a message in #general telling everyone that tokens can no longer be given?
@@ -235,6 +237,16 @@ class TokenNetwork
 # for inspecting an object
 Util = require "util"
 
+stringToBool = (str) -> 
+  if not str?
+    return null
+  else if str.match(/^(true|1|yes)$/i) != null
+    return true
+  else if str.match(/^(false|0|no)$/i) != null
+    return false
+  else
+    return null
+
 
 # the script must export a function. `robot` is an instance of the bot.
 # we export a function of one variable, the `robot`, which `.hear`s messages and then does stuff
@@ -246,10 +258,11 @@ module.exports = (robot) ->
   # name of the bot 
   bot_name = process.env.HUBOT_ROCKETCHAT_BOTNAME
 
-  # whether tokens can be given or received
-  # defaults to true
-  #tokens_can_be_given_or_revoked = process.env.TOKENS_CAN_BE_TRANSFERRED #or true
+  # whether tokens can be given or received. defaults to true
+  tokens_can_be_given_or_revoked = stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) or true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
+  # whether people can give tokens to themself. defaults to false.
+  allow_self = stringToBool(process.env.TOKEN_ALLOW_SELF) or false
   # environment variables
 
   # three responses for testing purposes only (will remove these later)
@@ -280,7 +293,7 @@ module.exports = (robot) ->
     
     sender = res.message.user.name
 
-    if process.env.TOKENS_CAN_BE_TRANSFERRED == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
+    if not tokens_can_be_given_or_revoked # == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to give a token but tokens cannot be given now."
     else 
@@ -295,7 +308,7 @@ module.exports = (robot) ->
 
       res.send "\n************ BEGIN information for debugging ************"
       res.send "The command `give a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
-      res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}"
+      res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}. The value of tokens_can_be_given_or_revoked is #{tokens_can_be_given_or_revoked}."
       res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
       res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
 
@@ -306,14 +319,14 @@ module.exports = (robot) ->
       if recipients.length == 1
         recipient = recipients[0]['name']
 
-        if (process.env.TOKEN_ALLOW_SELF == "true" or process.env.TOKEN_ALLOW_SELF == true) or res.message.user.name != recipient
+        if allow_self #stringToBool(process.env.TOKEN_ALLOW_SELF) #(process.env.TOKEN_ALLOW_SELF == "true" or process.env.TOKEN_ALLOW_SELF == true) or res.message.user.name != recipient
           robot.logger.info "#{sender} sent a token to #{recipient}"
           message = tokenBot.give_token sender, recipient
           res.send message
           #karma.increment subject
           #msg.send "#{subject} #{karma.incrementResponse()} (Karma: #{karma.get(subject)})"
         else
-          # process.env.TOKEN_ALLOW_SELF is false and res.message.user.name == recipient, 
+          # allow_self is false and res.message.user.name == recipient, 
           # so return a random message saying that you can't give a token to yourself
           res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
           robot.logger.info "#{sender} tried to give himself/herself a token"
@@ -334,7 +347,7 @@ module.exports = (robot) ->
     
     sender = res.message.user.name # the user name of the person who is revoking a token from someone else
 
-    if process.env.TOKENS_CAN_BE_TRANSFERRED == false or process.env.TOKENS_CAN_BE_TRANSFERRED == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
+    if not tokens_can_be_given_or_revoked #stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) # == false or process.env.TOKENS_CAN_BE_TRANSFERRED == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to revoke a token but tokens cannot be given now."
     else 
@@ -345,7 +358,7 @@ module.exports = (robot) ->
       
       res.send "\n************ BEGIN information for debugging ************"
       res.send "The command `revoke a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
-      res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}"
+      res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}. The value of tokens_can_be_given_or_revoked is #{tokens_can_be_given_or_revoked}."
       res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
       res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
       res.send "************ BEGIN information for debugging ************\n"
