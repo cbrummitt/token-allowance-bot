@@ -348,6 +348,7 @@ module.exports = (robot) ->
         recipient = recipients[0]['name']
 
         message = tokenBot.revoke_token sender, recipient
+        robot.logger.info "#{sender} gave a token to #{recipient}"
         res.send message
       else
         res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
