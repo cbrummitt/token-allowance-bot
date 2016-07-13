@@ -302,6 +302,7 @@ module.exports = (robot) ->
         recipient = recipients[0]['name']
 
         if allow_self is true or res.message.user.name != recipient
+          robot.logger.info "#{sender} sent a token to #{recipient}"
           message = tokenBot.give_token sender, recipient
           res.send message
           #karma.increment subject
@@ -310,6 +311,7 @@ module.exports = (robot) ->
           # allow_self is false and res.message.user.name == recipient, 
           # so return a random message saying that you can't give a token to yourself
           res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
+          robot.logger.info "#{sender} tried to give himself/herself a token"
       else
         res.send "Sorry #{sender}, I didn't understand to whom you're trying to give a token."
 
@@ -348,7 +350,7 @@ module.exports = (robot) ->
         recipient = recipients[0]['name']
 
         message = tokenBot.revoke_token sender, recipient
-        robot.logger.info "#{sender} gave a token to #{recipient}"
+        robot.logger.info "#{sender} revoked a token from #{recipient}"
         res.send message
       else
         res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
@@ -408,6 +410,7 @@ module.exports = (robot) ->
     user = robot.brain.usersForFuzzyName(res.message.user.name)
     res.send "#{Util.inspect(user)}"
 
+  # show all users and their user names (and email addresses if they've provided one)
   robot.respond /show users$/i, (msg) ->
     response = ""
 
