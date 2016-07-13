@@ -296,6 +296,7 @@ module.exports = (robot) ->
 
       res.send "\n************ BEGIN information for debugging ************"
       res.send "The command `give a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
+      res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}"
       res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
       res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
 
@@ -345,6 +346,7 @@ module.exports = (robot) ->
       
       res.send "\n************ BEGIN information for debugging ************"
       res.send "The command `revoke a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
+      res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}"
       res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
       res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
       res.send "************ BEGIN information for debugging ************\n"
