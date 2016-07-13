@@ -212,6 +212,8 @@ class TokenNetwork
     else
       result += "#{name} has not received any tokens from other people."
 
+    result += "\n\n Debugging: \n tokens_given_by_this_person = #{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
+
     return result
 
 
@@ -396,8 +398,7 @@ module.exports = (robot) ->
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
   robot.respond /status$/, (res) ->
     # for debugging: 
-    if verbose 
-      res.send "the command `status` (without a user name provided) fired"
+    res.send "the command `status` (without a user name provided) fired"
     res.send tokenBot.status res.message.user.name
 
 
