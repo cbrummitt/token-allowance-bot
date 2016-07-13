@@ -74,9 +74,13 @@ class TokenNetwork
 
     # if the brain was already on, then set the cache to the dictionary @robot.brain.data.tokens_given
     # the fat arrow `=>` binds the current value of `this` (i.e., `@`) on the spot
+
+    # do we want to use this snippet? https://github.com/github/hubot/issues/880#issuecomment-81386478
     @robot.brain.on 'loaded', =>
       if @robot.brain.data.tokens_given
         @tokens_given = @robot.brain.data.tokens_given
+      if @robot.brain.data.tokens_received
+        @tokens_received = @robot.brain.data.tokens_received
 
 
   #### Methods ####
@@ -285,12 +289,14 @@ module.exports = (robot) ->
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       #else
 
+      res.send "\n************ BEGIN information for debugging ************"
       res.send "The command `give a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
       res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
       res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
 
       res.send "robot.brain.userForName(res.match[4].trim()) = #{robot.brain.userForName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.userForName(res.match[4].trim()))}"
       res.send "robot.brain.usersForRawFuzzyName(res.match[4].trim()) = #{robot.brain.usersForRawFuzzyName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.usersForRawFuzzyName(res.match[4].trim()))}"
+      res.send "************ END information for debugging ************\n"
 
       if recipients.length == 1
         recipient = recipients[0]['name']
@@ -329,9 +335,11 @@ module.exports = (robot) ->
       ## TODO: does this handle errors with the name not a username? 
       ## TODO: what does this command do if I give it "/revoke token xxx" where "xxx" isn't the name of a user?
       
+      res.send "\n************ BEGIN information for debugging ************"
       res.send "The command `revoke a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
       res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
       res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
+      res.send "************ BEGIN information for debugging ************\n"
 
       #if not (recipients.length >= 1) # I don't think this will every occur.
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
@@ -368,7 +376,7 @@ module.exports = (robot) ->
     else
       users = robot.brain.usersForFuzzyName(name.trim()) # the second capture group is the user name
 
-      res.send "Util.inspect(users) = #{Util.inspect(users)}" 
+      res.send "Util.inspect(users) = #{Util.inspect(users)}\n" 
       # if not (users.length >= 1)
       #   res.send "Sorry, I didn't understand that user name #{name}."
       # else
