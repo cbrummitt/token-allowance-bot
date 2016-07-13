@@ -118,7 +118,7 @@ class TokenNetwork
 
       return "#{sender} gave one token to #{recipient}.\n#{recipient} has received tokens from the following: #{@tokens_received[recipient]}."
     else
-      return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `revoke @user_name`."
+      return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `token revoke a token from @user_name`."
 
   revoke_token: (sender, recipient) ->
     # `revoke_token` removes recipient from @tokens_given[sender] and removes sender from @tokens_received[recipient] 
@@ -237,6 +237,8 @@ class TokenNetwork
 # for inspecting an object
 Util = require "util"
 
+# helper function that converts a string to a Boolean
+# for using the Boolean environment variables TOKENS_CAN_BE_TRANSFERRED and TOKEN_ALLOW_SELF
 stringToBool = (str) -> 
   if not str?
     return null
@@ -272,8 +274,8 @@ module.exports = (robot) ->
   robot.respond /what is your name\?/, (res) -> 
     res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} command`."
 
-  robot.hear /badger/i, (res) ->
-    res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS!123"
+  # robot.hear /badger/i, (res) ->
+  #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS!123"
 
 
   ###
@@ -293,7 +295,7 @@ module.exports = (robot) ->
     
     sender = res.message.user.name
 
-    if not tokens_can_be_given_or_revoked # == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
+    if not tokens_can_be_given_or_revoked
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to give a token but tokens cannot be given now."
     else 
@@ -347,7 +349,7 @@ module.exports = (robot) ->
     
     sender = res.message.user.name # the user name of the person who is revoking a token from someone else
 
-    if not tokens_can_be_given_or_revoked #stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) # == false or process.env.TOKENS_CAN_BE_TRANSFERRED == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
+    if not tokens_can_be_given_or_revoked
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to revoke a token but tokens cannot be given now."
     else 
