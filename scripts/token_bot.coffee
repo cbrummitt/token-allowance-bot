@@ -92,61 +92,61 @@ class TokenNetwork
 
   give_token: (sender, recipient) -> 
     # `give_token` gives a token from the sender to recipient. It returns a message to send to the chat channel.
-    
-    if not process.env.TOKENS_CAN_BE_TRANSFERRED #@tokens_can_be_given
-      return "Sorry #{sender}, tokens can no longer be given nor revoked."
+    # we know that tokens can be given (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true') because that's handled by the response.
+
+    # check whether @cacheTokens[sender] exists and if not set it to []
+    if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
+      @tokens_given[sender] = []
+      #robot.brain.set sender, 'sent', ['test']
+      #return "robot.brain.get sender, 'sent' = #{robot.brain.get sender, 'sent', ['test']}"
+
+    if @tokens_received[recipient]? == false
+      @tokens_received[recipient] = []
+
+    # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
+    # note that this allows someone to send multiple tokens to the same user
+    if @tokens_given[sender].length < @max_tokens_per_user
+      # update @tokens_given 
+      @tokens_given[sender].push recipient
+      @robot.brain.data.tokens_given = @tokens_given
+
+      # update @tokens_received
+      @tokens_received[recipient].push sender
+      @robot.brain.data.tokens_received = @tokens_received
+
+      return "#{sender} gave one token to #{recipient}.\n#{recipient} has received tokens from the following: #{@tokens_received[recipient]}."
     else
-      # check whether @cacheTokens[sender] exists and if not set it to []
-      if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
-        @tokens_given[sender] = []
-        #robot.brain.set sender, 'sent', ['test']
-        #return "robot.brain.get sender, 'sent' = #{robot.brain.get sender, 'sent', ['test']}"
-
-      if @tokens_received[recipient]? == false
-        @tokens_received[recipient] = []
-
-      # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
-      # note that this allows someone to send multiple tokens to the same user
-      if @tokens_given[sender].length < @max_tokens_per_user
-        # update @tokens_given 
-        @tokens_given[sender].push recipient
-        @robot.brain.data.tokens_given = @tokens_given
-
-        # update @tokens_received
-        @tokens_received[recipient].push sender
-        @robot.brain.data.tokens_received = @tokens_received
-
-        return "#{sender} gave one token to #{recipient}.\n#{recipient} has received tokens from the following: #{@tokens_received[recipient]}."
-      else
-        return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `revoke @user_name`."
+      return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `revoke @user_name`."
 
   revoke_token: (sender, recipient) ->
     # `revoke_token` removes recipient from @tokens_given[sender] and removes sender from @tokens_received[recipient] 
     # note that if the sender has given >1 token to recipient, this will remove just one of those tokens from the recipient.
-    
-    # first check whether @tokens_can_be_revoked == false; if so, then return with a message.
-    if not process.env.TOKENS_CAN_BE_TRANSFERRED #@tokens_can_be_revoked
-      return "Sorry #{sender}, tokens can no longer be given nor revoked."
-    else  
-      # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
-      if not @tokens_given[sender]?
-        return "#{sender} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
-      else if not @tokens_received[recipient] # TODO: should this check whether recipient is in @tokens_given[sender]? right now this is checked by the `splice` code below 
-        return "#{recipient} has not received any tokens from anyone." #"#{sender} has not given any tokens to #{recipient}."
-      else # sender has sent >=1 token to someone, and recipieint has received >=1 token from someone
-        
-        # remove the first occurrence of recipient in the list @tokens_given[sender]
-        index = @tokens_given[sender].indexOf recipient
-        @tokens_given[sender].splice index, 1 if index isnt -1
+    # we know that tokens can be given (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true') because that's handled by the response.
 
-        # remove the first occurence of sender in the list @tokens_received[recipient]
-        index = @tokens_received[recipient].indexOf sender
-        @tokens_received[recipient].splice index, 1 if index isnt -1
+    # # first check whether @tokens_can_be_revoked == false; if so, then return with a message.
+    # if not process.env.TOKENS_CAN_BE_TRANSFERRED #@tokens_can_be_revoked
+    #   return "Sorry #{sender}, tokens can no longer be given nor revoked."
+    # else  
 
-        if index isnt -1
-          return "#{sender} revoked one token from #{recipient}."
-        else
-          return "#{sender}: #{recipient} does not have any tokens from you, so you cannot revoke a token from #{recipient}."
+    # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
+    if not @tokens_given[sender]?
+      return "#{sender} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
+    else if not @tokens_received[recipient] # TODO: should this check whether recipient is in @tokens_given[sender]? right now this is checked by the `splice` code below 
+      return "#{recipient} has not received any tokens from anyone." #"#{sender} has not given any tokens to #{recipient}."
+    else # sender has sent >=1 token to someone, and recipieint has received >=1 token from someone
+      
+      # remove the first occurrence of recipient in the list @tokens_given[sender]
+      index = @tokens_given[sender].indexOf recipient
+      @tokens_given[sender].splice index, 1 if index isnt -1
+
+      # remove the first occurence of sender in the list @tokens_received[recipient]
+      index = @tokens_received[recipient].indexOf sender
+      @tokens_received[recipient].splice index, 1 if index isnt -1
+
+      if index isnt -1
+        return "#{sender} revoked one token from #{recipient}."
+      else
+        return "#{sender}: #{recipient} does not have any tokens from you, so you cannot revoke a token from #{recipient}."
 
   # TODO: currently we're not using these functions. We're showing the same response every time.
   receive_token_response: ->
@@ -335,7 +335,7 @@ module.exports = (robot) ->
     
     sender = res.message.user.name # the user name of the person who is revoking a token from someone else
 
-    if not process.env.TOKENS_CAN_BE_TRANSFERRED
+    if process.env.TOKENS_CAN_BE_TRANSFERRED == false or process.env.TOKENS_CAN_BE_TRANSFERRED == "false" #not process.env.TOKENS_CAN_BE_TRANSFERRED
       res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to revoke a token but tokens cannot be given now."
     else 
