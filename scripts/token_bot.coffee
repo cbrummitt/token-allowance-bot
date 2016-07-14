@@ -117,7 +117,7 @@ class TokenNetwork
       @robot.brain.data.tokens_received = @tokens_received
 
       message = "#{sender} gave one token to #{recipient}. " 
-      tokens_remaining = @max_tokens_per_user - @tokens_given[name]
+      tokens_remaining = @max_tokens_per_user - @tokens_given[sender]
       message += "#{sender} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
 
       return message 
@@ -155,7 +155,7 @@ class TokenNetwork
 
       if index isnt -1
         message = "#{sender} revoked one token from #{recipient}. "
-        tokens_remaining = @max_tokens_per_user - @tokens_given[name]
+        tokens_remaining = @max_tokens_per_user - @tokens_given[sender]
         message += "#{sender} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
         return message 
       else
