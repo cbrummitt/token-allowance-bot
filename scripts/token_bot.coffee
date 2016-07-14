@@ -199,7 +199,7 @@ class TokenNetwork
     if num_tokens_given > 0
       result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:\n"
       for own name_peer, number of @tally(tokens_given_by_this_person)
-        result += "    - #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+        result += "    - to #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
       result += "#{name} has not given any tokens to other people. "
     result += "\n"
@@ -211,7 +211,7 @@ class TokenNetwork
     if num_tokens_received > 0
       result += "#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people:\n"
       for own name_peer, number of @tally(tokens_received_by_this_person)
-        result += "    - #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+        result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
       result += "#{name} has not received any tokens from other people."
 
@@ -407,7 +407,7 @@ module.exports = (robot) ->
                 status           # "status"
                 (?:\s+of)?       # "of" is optional
                 \s+              # whitespace
-                @?([\w .\-]+)*   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
+                @?([\w.\-]+)*   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
                 \s*$             # 0 or more whitespace
                 ///i, (res) ->
 
