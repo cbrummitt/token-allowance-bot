@@ -116,7 +116,12 @@ class TokenNetwork
       @tokens_received[recipient].push sender
       @robot.brain.data.tokens_received = @tokens_received
 
-      return "#{sender} gave one token to #{recipient}.\n#{recipient} has received tokens from the following: #{@tokens_received[recipient]}."
+      return 
+      message = "#{sender} gave one token to #{recipient}."
+      message += "\n#{recipient} has received tokens from the following: " # #{@tokens_received[recipient]}."
+      #for own name_peer, number of @tally(@tokens_received[recipient])
+      #  result += "#{name_peer} (#{number} token" + (if number != 1 then "s" else "") + ") "
+      result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(@tokens_received[recipient])).join(", ")
     else
       return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `token revoke a token from @user_name`."
 
