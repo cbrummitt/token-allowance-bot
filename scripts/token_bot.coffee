@@ -283,11 +283,11 @@ module.exports = (robot) ->
 
   ## respond to `give a token @user_name`
   robot.respond ///
-                (give|send)         # give or send
-                (\sa)?              # a is optional
-                \stokens{0,1}       # token or tokens
-                (\sto)?             # to is optional
-                \s                  # 1 charachter of whitespace
+                (?:give|send)         # give or send
+                (?:\s+a)?              # a is optional
+                (?:\s+tokens{0,1})?       # token or tokens
+                (?:\s+to)?             # to is optional
+                \s+                  # 1 charachter of whitespace
                 @?([\w .\-]+)*      # user name or name (to be matched in a fuzzy way below)
                 \s*$                # 0 or more whitespace
                ///, (res) ->       # `res` is an instance of Response. 
@@ -299,7 +299,8 @@ module.exports = (robot) ->
       robot.logger.info "#{sender} tried to give a token but tokens cannot be given now."
     else 
       # figure out who the recipient is 
-      recipients = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name of the recipient
+      recipient_name_raw = res.match[1]# the fourth capture group is the name of the recipient
+      recipients = robot.brain.usersForFuzzyName(recipient_name_raw.trim()) 
       ## TODO: does this handle errors with the name not a username? 
       ## TODO: what does this command do if I give it "/give token xxx" where "xxx" isn't the name of a user?
       
@@ -318,7 +319,7 @@ module.exports = (robot) ->
       # res.send "************ END information for debugging ************\n"
 
       if recipients.length == 1
-        recipient = recipients[0]['name']
+        recipient = recipients[0]['name'] # TODO: does this need to be the ID rather than name so that we are sure we don't have conflicting names?
 
         if allow_self #stringToBool(process.env.TOKEN_ALLOW_SELF) #(process.env.TOKEN_ALLOW_SELF == "true" or process.env.TOKEN_ALLOW_SELF == true) or res.message.user.name != recipient
           robot.logger.info "#{sender} sent a token to #{recipient}"
@@ -332,7 +333,7 @@ module.exports = (robot) ->
           res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
           robot.logger.info "#{sender} tried to give himself/herself a token"
       else
-        fail_message = "Sorry #{sender}, I didn't understand that person (#{res.match[4]}) to whom you're trying to give a token."
+        fail_message = "Sorry #{sender}, I didn't understand that person (#{recipient_name_raw}) to whom you're trying to give a token."
         fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol. "
         fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
         res.send fail_message
@@ -340,20 +341,20 @@ module.exports = (robot) ->
   # for now, send a response if people try to send or revoke tokens to/from multiple people
   robot.respond ///
                 (revoke|remove|give|send)
-                (\sa)?
-                \stokens{0,1}
-                (\sto|from)?
-                (?:\s@?([\w .\-]+)*){2,} # at least two user names
+                (\s+a)?
+                (\s+tokens{0,1})?
+                (\s+to|from)?
+                (?:\s+@?([\w .\-]+)*){2,} # at least two user names
                 \s*$///, (res) -> 
-    res.send "Please try to send and revoke one token at a time. Rather than using first and last names, please use user names, which do not have any spaces."
+    res.send "Please send or revoke only one token at a time. Rather than using first and last names, please use user names, which do not have any spaces."
 
   ## respond to `revoke (a) token (from) @user_name`
   robot.respond ///
-                (revoke|remove)     # revoke or remove
-                (\sa)?              # a is optional
-                \stokens{0,1}       # token or tokens
-                (\sfrom)?           # from is optional
-                \s                  # 1 charachter of whitespace
+                (?:revoke|remove)     # revoke or remove
+                (?:\s+a)?           # a is optional
+                (?:\s+tokens{0,1})?   # token or tokens
+                (?:\s+from)?          # from is optional
+                \s+                 # at least 1 charachter of whitespace
                 @?([\w .\-]+)*      # user name or name (to be matched in a fuzzy way below)
                 \s*$                # 0 or more whitespace
                 ///, (res) ->       # `res` is an instance of Response. 
@@ -365,7 +366,10 @@ module.exports = (robot) ->
       robot.logger.info "#{sender} tried to revoke a token but tokens cannot be given now."
     else 
       # figure out who the recipient (person losing a token) is 
-      recipients = robot.brain.usersForFuzzyName(res.match[4].trim()) # the fourth capture group is the name of the recipient
+      recipient_name_raw = res.match[1] # the first capture group is the name of the recipient
+
+      recipients = robot.brain.usersForFuzzyName(recipient_name_raw.trim()) 
+      
       ## TODO: does this handle errors with the name not a username? 
       ## TODO: what does this command do if I give it "/revoke token xxx" where "xxx" isn't the name of a user?
       
@@ -388,7 +392,7 @@ module.exports = (robot) ->
         res.send message
       else
         #res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
-        fail_message = "Sorry #{sender}, I didn't understand that person (#{res.match[4]}) from whom you're trying to revoke a token."
+        fail_message = "Sorry #{sender}, I didn't understand that person (#{recipient_name_raw}) from whom you're trying to revoke a token."
         fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol. "
         # we must know about that recipient in order to give them a token in the first place, so the commented-out message below isn't needed
         #fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
@@ -401,13 +405,13 @@ module.exports = (robot) ->
   # respond to "status (of) @user"
   robot.respond ///            
                 status           # "status"
-                (\sof)?          # "of" is optional
-                \s               # whitespace
+                (?:\s+of)?       # "of" is optional
+                \s+              # whitespace
                 @?([\w .\-]+)*   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
                 \s*$             # 0 or more whitespace
                 ///i, (res) ->
 
-    name = res.match[2]
+    name = res.match[1]
     
     #if not name?
     #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
