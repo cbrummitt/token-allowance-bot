@@ -133,7 +133,7 @@ class TokenNetwork
     # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
     if not @tokens_given[sender]?
       return "#{sender} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
-    else if not @tokens_received[recipient] # TODO: should this check whether recipient is in @tokens_given[sender]? right now this is checked by the `splice` code below 
+    else if not @tokens_received[recipient]
       return "#{recipient} has not received any tokens from anyone." #"#{sender} has not given any tokens to #{recipient}."
     else # sender has sent >=1 token to someone, and recipieint has received >=1 token from someone
       
@@ -186,7 +186,6 @@ class TokenNetwork
     # list of the people to whom `name` has given tokens
     tokens_given_by_this_person = if @tokens_given[name]? then @tokens_given[name] else []
     num_tokens_given = tokens_given_by_this_person.length
-
 
     # build up a string of results
     result = ""
@@ -333,7 +332,10 @@ module.exports = (robot) ->
           res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
           robot.logger.info "#{sender} tried to give himself/herself a token"
       else
-        res.send "Sorry #{sender}, I didn't understand to whom you're trying to give a token."
+        fail_message = "Sorry #{sender}, I didn't understand that person (#{res.match[4]}) to whom you're trying to give a token."
+        fail_message += "\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol. "
+        fail_message += "If that person hasn't said anything yet in the chat rooms, I do not know about that person, so I can't let you give that person a token until they have sent at least one message in any channel."
+        res.send fail_message
 
 
   ## respond to `revoke (a) token (from) @user_name`
