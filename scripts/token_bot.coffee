@@ -193,7 +193,7 @@ class TokenNetwork
     # number of tokens this person has left to give others
     tokens_remaining = @max_tokens_per_user - num_tokens_given
     result += "#{name} has " + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
-    result += "\n\n"
+    result += "\n"
 
     # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
@@ -202,7 +202,7 @@ class TokenNetwork
         result += "    - #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
       result += "#{name} has not given any tokens to other people. "
-    result += "\n\n"
+    result += "\n"
 
 
     # number of tokens `name` has received from others (and from whom)
@@ -215,7 +215,7 @@ class TokenNetwork
     else
       result += "#{name} has not received any tokens from other people."
 
-    result += "\n\n Debugging: \n tokens_given_by_this_person = #{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
+    #result += "\n\n Debugging: \n tokens_given_by_this_person = #{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
 
     return result
 
@@ -334,7 +334,7 @@ module.exports = (robot) ->
           robot.logger.info "#{sender} tried to give himself/herself a token"
       else
         fail_message = "Sorry #{sender}, I didn't understand that person (#{recipient_name_raw}) to whom you're trying to give a token."
-        fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol. "
+        fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as `token give a token to @user_name`. "
         fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
         res.send fail_message
 
@@ -393,7 +393,7 @@ module.exports = (robot) ->
       else
         #res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
         fail_message = "Sorry #{sender}, I didn't understand that person (#{recipient_name_raw}) from whom you're trying to revoke a token."
-        fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol. "
+        fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as , such as `token revoke a token from @user_name`. "
         # we must know about that recipient in order to give them a token in the first place, so the commented-out message below isn't needed
         #fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
         res.send fail_message
