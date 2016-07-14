@@ -337,6 +337,15 @@ module.exports = (robot) ->
         fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
         res.send fail_message
 
+  # for now, send a response if people try to send or revoke tokens to/from multiple people
+  robot.respond ///
+                (revoke|remove|give|send)
+                (\sa)?
+                \stokens{0,1}
+                (\sto|from)?
+                (?:\s@?([\w .\-]+)*){2,} # at least two user names
+                \s*$///, (res) -> 
+    res.send "Please try to send and revoke one token at a time. Rather than using first and last names, please use user names, which do not have any spaces."
 
   ## respond to `revoke (a) token (from) @user_name`
   robot.respond ///
@@ -360,12 +369,13 @@ module.exports = (robot) ->
       ## TODO: does this handle errors with the name not a username? 
       ## TODO: what does this command do if I give it "/revoke token xxx" where "xxx" isn't the name of a user?
       
-      res.send "\n************ BEGIN information for debugging ************"
-      res.send "The command `revoke a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
-      res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}. The value of tokens_can_be_given_or_revoked is #{tokens_can_be_given_or_revoked}."
-      res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
-      res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
-      res.send "************ BEGIN information for debugging ************\n"
+      # Debug messages:
+      # res.send "\n************ BEGIN information for debugging ************"
+      # res.send "The command `revoke a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
+      # res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}. The value of tokens_can_be_given_or_revoked is #{tokens_can_be_given_or_revoked}."
+      # res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
+      # res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
+      # res.send "************ BEGIN information for debugging ************\n"
 
       #if not (recipients.length >= 1) # I don't think this will every occur.
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
@@ -397,33 +407,23 @@ module.exports = (robot) ->
                 \s*$             # 0 or more whitespace
                 ///i, (res) ->
 
-    # for debugging: 
-
     name = res.match[2]
     
-    res.send "the command `status (of) @user` fired; the name provided is #{name}"
+    #if not name?
+    #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
+    #else
+    users = robot.brain.usersForFuzzyName(name.trim()) # the second capture group is the user name
 
-    if not name?
-      res.send "Sorry, I couldn't understand the name you provided (#{name})."
+
+    if users.length == 1
+      user = users[0]
+      res.send tokenBot.status user['name']
     else
-      users = robot.brain.usersForFuzzyName(name.trim()) # the second capture group is the user name
-
-      res.send "Util.inspect(users) = #{Util.inspect(users)}\n" 
-      # if not (users.length >= 1)
-      #   res.send "Sorry, I didn't understand that user name #{name}."
-      # else
-      #   user = users[0]
-      #   res.send tokenBot.status user
-      if users.length == 1
-        user = users[0]
-        #res.send "User = #{user}. User['name'] = #{user['name']}. User['id'] = #{user['id']}."
-        res.send tokenBot.status user['name']
+      res.send "Sorry, I couldn't understand the name you provided (#{name})."
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
-  robot.respond /status$/, (res) ->
-    # for debugging: 
-    res.send "the command `status` (without a user name provided) fired"
+  robot.respond /status\s*$/, (res) ->
     res.send tokenBot.status res.message.user.name
 
 
