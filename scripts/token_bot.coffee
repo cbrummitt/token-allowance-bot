@@ -198,8 +198,8 @@ class TokenNetwork
     # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
       result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:\n"
-      for own name, number of @tally(tokens_given_by_this_person)
-        result += "    - #{name}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+      for own name_peer, number of @tally(tokens_given_by_this_person)
+        result += "    - #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
       result += "#{name} has not given any tokens to other people. "
     result += "\n\n"
@@ -210,8 +210,8 @@ class TokenNetwork
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
       result += "#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people:\n"
-      for own name, number of @tally(tokens_received_by_this_person)
-        result += "    - #{name}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+      for own name_peer, number of @tally(tokens_received_by_this_person)
+        result += "    - #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
     else
       result += "#{name} has not received any tokens from other people."
 
@@ -333,8 +333,8 @@ module.exports = (robot) ->
           robot.logger.info "#{sender} tried to give himself/herself a token"
       else
         fail_message = "Sorry #{sender}, I didn't understand that person (#{res.match[4]}) to whom you're trying to give a token."
-        fail_message += "\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol. "
-        fail_message += "If that person hasn't said anything yet in the chat rooms, I do not know about that person, so I can't let you give that person a token until they have sent at least one message in any channel."
+        fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol. "
+        fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
         res.send fail_message
 
 
@@ -377,7 +377,12 @@ module.exports = (robot) ->
         robot.logger.info "#{sender} revoked a token from #{recipient}"
         res.send message
       else
-        res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
+        #res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
+        fail_message = "Sorry #{sender}, I didn't understand that person (#{res.match[4]}) from whom you're trying to revoke a token."
+        fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol. "
+        # we must know about that recipient in order to give them a token in the first place, so the commented-out message below isn't needed
+        #fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
+        res.send fail_message
 
   ###
     Status commands 
@@ -399,7 +404,7 @@ module.exports = (robot) ->
     res.send "the command `status (of) @user` fired; the name provided is #{name}"
 
     if not name?
-      res.send "Sorry, I couldn't understand the name you provided, which was #{name}."
+      res.send "Sorry, I couldn't understand the name you provided (#{name})."
     else
       users = robot.brain.usersForFuzzyName(name.trim()) # the second capture group is the user name
 
