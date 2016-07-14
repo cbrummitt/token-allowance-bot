@@ -116,7 +116,11 @@ class TokenNetwork
       @tokens_received[recipient].push sender
       @robot.brain.data.tokens_received = @tokens_received
 
-      return "#{sender} gave one token to #{recipient}."
+      message = "#{sender} gave one token to #{recipient}. " 
+      tokens_remaining = @max_tokens_per_user - @tokens_given[name]
+      message += "#{sender} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
+
+      return message 
       #message += "\n#{recipient} has received tokens from the following: " # #{@tokens_received[recipient]}."
       #for own name_peer, number of @tally(@tokens_received[recipient])
       #  result += "#{name_peer} (#{number} token" + (if number != 1 then "s" else "") + ") "
@@ -150,7 +154,10 @@ class TokenNetwork
       @tokens_received[recipient].splice index, 1 if index isnt -1
 
       if index isnt -1
-        return "#{sender} revoked one token from #{recipient}."
+        message = "#{sender} revoked one token from #{recipient}. "
+        tokens_remaining = @max_tokens_per_user - @tokens_given[name]
+        message += "#{sender} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
+        return message 
       else
         return "#{sender}: #{recipient} does not have any tokens from you, so you cannot revoke a token from #{recipient}."
 
