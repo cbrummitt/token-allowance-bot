@@ -202,7 +202,7 @@ class TokenNetwork
 
     # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
-      result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:\n"
+      result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people: "
       #for own name_peer, number of @tally(tokens_given_by_this_person)
       #  result += "    - to #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
       result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
@@ -215,7 +215,7 @@ class TokenNetwork
     tokens_received_by_this_person = if @tokens_received[name]? then @tokens_received[name] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
-      result += "#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people:\n"
+      result += "#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
       #for own name_peer, number of @tally(tokens_received_by_this_person)
       #  result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
       result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
