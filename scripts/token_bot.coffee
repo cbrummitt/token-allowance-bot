@@ -344,7 +344,7 @@ module.exports = (robot) ->
                 (\s+a)?
                 (\s+tokens{0,1})?
                 (\s+to|from)?
-                (?:\s+@?([\w .\-]+)*){2,} # at least two user names
+                (?:\s+@?([\w .\-]+)){2,} # at least two user names
                 \s*$///, (res) -> 
     res.send "Please send or revoke only one token at a time. Rather than using first and last names, please use user names, which do not have any spaces."
 
@@ -413,7 +413,6 @@ module.exports = (robot) ->
 
     name = res.match[1]
     
-    res.send "status of fired with name = #{name}"
     #if not name?
     #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
     #else
@@ -429,7 +428,6 @@ module.exports = (robot) ->
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
   robot.respond /\s*status\s*$/, (res) ->
-    res.send "status (no name) fired"
     res.send tokenBot.status res.message.user.name
 
 
