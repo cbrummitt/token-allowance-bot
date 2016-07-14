@@ -118,10 +118,10 @@ class TokenNetwork
 
       return 
       message = "#{sender} gave one token to #{recipient}."
-      message += "\n#{recipient} has received tokens from the following: " # #{@tokens_received[recipient]}."
+      #message += "\n#{recipient} has received tokens from the following: " # #{@tokens_received[recipient]}."
       #for own name_peer, number of @tally(@tokens_received[recipient])
       #  result += "#{name_peer} (#{number} token" + (if number != 1 then "s" else "") + ") "
-      result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(@tokens_received[recipient])).join(", ")
+      #result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(@tokens_received[recipient])).join(", ")
     else
       return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `token revoke a token from @user_name`."
 
@@ -203,8 +203,9 @@ class TokenNetwork
     # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
       result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people:\n"
-      for own name_peer, number of @tally(tokens_given_by_this_person)
-        result += "    - to #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+      #for own name_peer, number of @tally(tokens_given_by_this_person)
+      #  result += "    - to #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+      (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
     else
       result += "#{name} has not given any tokens to other people. "
     result += "\n"
@@ -215,8 +216,9 @@ class TokenNetwork
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
       result += "#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people:\n"
-      for own name_peer, number of @tally(tokens_received_by_this_person)
-        result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+      #for own name_peer, number of @tally(tokens_received_by_this_person)
+      #  result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+      (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
     else
       result += "#{name} has not received any tokens from other people."
 
