@@ -407,12 +407,13 @@ module.exports = (robot) ->
                 status           # "status"
                 (?:\s+of)?       # "of" is optional
                 \s+              # whitespace
-                @?([\w.\-]+)*   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
+                @?([\w.\-]+)   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
                 \s*$             # 0 or more whitespace
                 ///i, (res) ->
 
     name = res.match[1]
     
+    res.send "status of fired with name = #{name}"
     #if not name?
     #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
     #else
@@ -427,7 +428,8 @@ module.exports = (robot) ->
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
-  robot.respond /status\s*$/, (res) ->
+  robot.respond /\s*status\s*$/, (res) ->
+    res.send "status (no name) fired"
     res.send tokenBot.status res.message.user.name
 
 
