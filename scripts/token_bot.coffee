@@ -307,15 +307,15 @@ module.exports = (robot) ->
       #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
       #else
 
-      res.send "\n************ BEGIN information for debugging ************"
-      res.send "The command `give a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
-      res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}. The value of tokens_can_be_given_or_revoked is #{tokens_can_be_given_or_revoked}."
-      res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
-      res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
+      # res.send "\n************ BEGIN information for debugging ************"
+      # res.send "The command `give a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
+      # res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}. The value of tokens_can_be_given_or_revoked is #{tokens_can_be_given_or_revoked}."
+      # res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
+      # res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
 
-      res.send "robot.brain.userForName(res.match[4].trim()) = #{robot.brain.userForName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.userForName(res.match[4].trim()))}"
-      res.send "robot.brain.usersForRawFuzzyName(res.match[4].trim()) = #{robot.brain.usersForRawFuzzyName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.usersForRawFuzzyName(res.match[4].trim()))}"
-      res.send "************ END information for debugging ************\n"
+      # res.send "robot.brain.userForName(res.match[4].trim()) = #{robot.brain.userForName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.userForName(res.match[4].trim()))}"
+      # res.send "robot.brain.usersForRawFuzzyName(res.match[4].trim()) = #{robot.brain.usersForRawFuzzyName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.usersForRawFuzzyName(res.match[4].trim()))}"
+      # res.send "************ END information for debugging ************\n"
 
       if recipients.length == 1
         recipient = recipients[0]['name']
