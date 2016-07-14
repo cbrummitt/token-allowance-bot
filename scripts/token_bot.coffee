@@ -346,7 +346,7 @@ module.exports = (robot) ->
           res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
           robot.logger.info "#{sender} tried to give himself/herself a token"
       else
-        fail_message = "Sorry @#{sender}, I didn't understand that person (`#{recipient_name_raw}`) to whom you're trying to give a token."
+        fail_message = "Sorry @#{sender}, I didn't understand that person ( `#{recipient_name_raw}` ) to whom you're trying to give a token."
         fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as `token give a token to @user_name`. "
         fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
         res.send fail_message
@@ -395,7 +395,7 @@ module.exports = (robot) ->
         res.send message
       else
         #res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
-        fail_message = "Sorry @#{sender}, I didn't understand that person (`#{recipient_name_raw}`) from whom you're trying to revoke a token."
+        fail_message = "Sorry @#{sender}, I didn't understand that person ( `#{recipient_name_raw}` ) from whom you're trying to revoke a token."
         fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as , such as `token revoke a token from @user_name`. "
         # we must know about that recipient in order to give them a token in the first place, so the commented-out message below isn't needed
         #fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
@@ -437,7 +437,7 @@ module.exports = (robot) ->
       user = users[0]
       res.send tokenBot.status user['name']
     else
-      res.send "Sorry, I couldn't understand the name you provided (`#{name}`)."
+      res.send "Sorry, I couldn't understand the name you provided ( `#{name}` )."
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
