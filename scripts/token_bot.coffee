@@ -321,7 +321,7 @@ module.exports = (robot) ->
       if recipients.length == 1
         recipient = recipients[0]['name'] # TODO: does this need to be the ID rather than name so that we are sure we don't have conflicting names?
 
-        if allow_self #stringToBool(process.env.TOKEN_ALLOW_SELF) #(process.env.TOKEN_ALLOW_SELF == "true" or process.env.TOKEN_ALLOW_SELF == true) or res.message.user.name != recipient
+        if allow_self or res.message.user.name != recipient 
           robot.logger.info "#{sender} sent a token to #{recipient}"
           message = tokenBot.give_token sender, recipient
           res.send message
