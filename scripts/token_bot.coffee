@@ -288,7 +288,7 @@ module.exports = (robot) ->
                 (?:\s+tokens{0,1})?       # token or tokens
                 (?:\s+to)?             # to is optional
                 \s+                  # 1 charachter of whitespace
-                @?([\w .\-]+)*      # user name or name (to be matched in a fuzzy way below)
+                @?([\w.\-]+)*      # user name or name (to be matched in a fuzzy way below)
                 \s*$                # 0 or more whitespace
                ///, (res) ->       # `res` is an instance of Response. 
     
@@ -338,16 +338,6 @@ module.exports = (robot) ->
         fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
         res.send fail_message
 
-  # for now, send a response if people try to send or revoke tokens to/from multiple people
-  robot.respond ///
-                (revoke|remove|give|send)
-                (\s+a)?
-                (\s+tokens{0,1})?
-                (\s+to|from)?
-                (?:\s+@?([\w .\-]+)){2,} # at least two user names
-                \s*$///, (res) -> 
-    res.send "Please send or revoke only one token at a time. Rather than using first and last names, please use user names, which do not have any spaces."
-
   ## respond to `revoke (a) token (from) @user_name`
   robot.respond ///
                 (?:revoke|remove)     # revoke or remove
@@ -355,7 +345,7 @@ module.exports = (robot) ->
                 (?:\s+tokens{0,1})?   # token or tokens
                 (?:\s+from)?          # from is optional
                 \s+                 # at least 1 charachter of whitespace
-                @?([\w .\-]+)*      # user name or name (to be matched in a fuzzy way below)
+                @?([\w.\-]+)*      # user name or name (to be matched in a fuzzy way below)
                 \s*$                # 0 or more whitespace
                 ///, (res) ->       # `res` is an instance of Response. 
     
@@ -397,6 +387,17 @@ module.exports = (robot) ->
         # we must know about that recipient in order to give them a token in the first place, so the commented-out message below isn't needed
         #fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
         res.send fail_message
+
+  # for now, send a response if people try to send or revoke tokens to/from multiple people
+  robot.respond ///
+                (revoke|remove|give|send)
+                (\s+a)?
+                (\s+tokens{0,1})?
+                (\s+to|from)?
+                (?:\s+@?([\w.\-]+)){2,} # at least two user names
+                \s*$///, (res) -> 
+    res.send "Please send or revoke only one token at a time. Rather than using first and last names, please use user names, which do not have any spaces."
+
 
   ###
     Status commands 
