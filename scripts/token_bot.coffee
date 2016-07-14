@@ -116,8 +116,7 @@ class TokenNetwork
       @tokens_received[recipient].push sender
       @robot.brain.data.tokens_received = @tokens_received
 
-      return 
-      message = "#{sender} gave one token to #{recipient}."
+      return "#{sender} gave one token to #{recipient}."
       #message += "\n#{recipient} has received tokens from the following: " # #{@tokens_received[recipient]}."
       #for own name_peer, number of @tally(@tokens_received[recipient])
       #  result += "#{name_peer} (#{number} token" + (if number != 1 then "s" else "") + ") "
