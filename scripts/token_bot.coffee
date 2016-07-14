@@ -116,9 +116,9 @@ class TokenNetwork
       @tokens_received[recipient].push sender
       @robot.brain.data.tokens_received = @tokens_received
 
-      message = "#{sender} gave one token to #{recipient}. " 
+      message = "@#{sender} gave one token to @#{recipient}. " 
       tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-      message += "#{sender} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
+      message += "@#{sender} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
 
       return message 
       #message += "\n#{recipient} has received tokens from the following: " # #{@tokens_received[recipient]}."
@@ -126,7 +126,7 @@ class TokenNetwork
       #  result += "#{name_peer} (#{number} token" + (if number != 1 then "s" else "") + ") "
       #result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(@tokens_received[recipient])).join(", ")
     else
-      return "#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `token revoke a token from @user_name`."
+      return "@#{sender}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `token revoke a token from @user_name`."
 
   revoke_token: (sender, recipient) ->
     # `revoke_token` removes recipient from @tokens_given[sender] and removes sender from @tokens_received[recipient] 
@@ -140,9 +140,9 @@ class TokenNetwork
 
     # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
     if not @tokens_given[sender]?
-      return "#{sender} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
+      return "@#{sender} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
     else if not @tokens_received[recipient]
-      return "#{recipient} has not received any tokens from anyone." #"#{sender} has not given any tokens to #{recipient}."
+      return "@#{recipient} has not received any tokens from anyone." #"#{sender} has not given any tokens to #{recipient}."
     else # sender has sent >=1 token to someone, and recipieint has received >=1 token from someone
       
       # remove the first occurrence of recipient in the list @tokens_given[sender]
@@ -154,12 +154,12 @@ class TokenNetwork
       @tokens_received[recipient].splice index, 1 if index isnt -1
 
       if index isnt -1
-        message = "#{sender} revoked one token from #{recipient}. "
+        message = "@#{sender} revoked one token from @#{recipient}. "
         tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-        message += "#{sender} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
+        message += "@#{sender} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
         return message 
       else
-        return "#{sender}: #{recipient} does not have any tokens from you, so you cannot revoke a token from #{recipient}."
+        return "@#{sender}: @#{recipient} does not have any tokens from you, so you cannot revoke a token from @#{recipient}."
 
   # TODO: currently we're not using these functions. We're showing the same response every time.
   receive_token_response: ->
@@ -170,8 +170,8 @@ class TokenNetwork
 
   selfDeniedResponses: (name) ->
     @self_denied_responses = [
-      "Sorry #{name}. Tokens cannot be given to oneself.",
-      "I can't do that #{name}.",
+      "Sorry @#{name}. Tokens cannot be given to oneself.",
+      "I can't do that @#{name}.",
       "Tokens can only be given to other people."
     ]
 
@@ -203,17 +203,17 @@ class TokenNetwork
 
     # number of tokens this person has left to give others
     tokens_remaining = @max_tokens_per_user - num_tokens_given
-    result += "#{name} has " + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
+    result += "@#{name} has " + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
     result += "\n"
 
     # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
-      result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people: "
+      result += "@#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people: "
       #for own name_peer, number of @tally(tokens_given_by_this_person)
       #  result += "    - to #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
-      result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
+      result += ("@" + name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
     else
-      result += "#{name} has not given any tokens to other people. "
+      result += "@#{name} has not given any tokens to other people. "
     result += "\n"
 
 
@@ -221,12 +221,12 @@ class TokenNetwork
     tokens_received_by_this_person = if @tokens_received[name]? then @tokens_received[name] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
-      result += "#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
+      result += "@#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
       #for own name_peer, number of @tally(tokens_received_by_this_person)
       #  result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
-      result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
+      result += ("@" + name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
     else
-      result += "#{name} has not received any tokens from other people."
+      result += "@#{name} has not received any tokens from other people."
 
     #result += "\n\n Debugging: \n tokens_given_by_this_person = #{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
 
@@ -308,7 +308,7 @@ module.exports = (robot) ->
     sender = res.message.user.name
 
     if not tokens_can_be_given_or_revoked
-      res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
+      res.send "Sorry @#{sender}, tokens can no longer be given nor revoked."
       robot.logger.info "#{sender} tried to give a token but tokens cannot be given now."
     else 
       # figure out who the recipient is 
@@ -346,7 +346,7 @@ module.exports = (robot) ->
           res.send res.random tokenBot.selfDeniedResponses(res.message.user.name)
           robot.logger.info "#{sender} tried to give himself/herself a token"
       else
-        fail_message = "Sorry #{sender}, I didn't understand that person (#{recipient_name_raw}) to whom you're trying to give a token."
+        fail_message = "Sorry @#{sender}, I didn't understand that person (`#{recipient_name_raw}`) to whom you're trying to give a token."
         fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as `token give a token to @user_name`. "
         fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
         res.send fail_message
@@ -365,8 +365,8 @@ module.exports = (robot) ->
     sender = res.message.user.name # the user name of the person who is revoking a token from someone else
 
     if not tokens_can_be_given_or_revoked
-      res.send "Sorry #{sender}, tokens can no longer be given nor revoked."
-      robot.logger.info "#{sender} tried to revoke a token but tokens cannot be given now."
+      res.send "Sorry @#{sender}, tokens can no longer be given nor revoked."
+      robot.logger.info "@#{sender} tried to revoke a token but tokens cannot be given now."
     else 
       # figure out who the recipient (person losing a token) is 
       recipient_name_raw = res.match[1] # the first capture group is the name of the recipient
@@ -395,7 +395,7 @@ module.exports = (robot) ->
         res.send message
       else
         #res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
-        fail_message = "Sorry #{sender}, I didn't understand that person (#{recipient_name_raw}) from whom you're trying to revoke a token."
+        fail_message = "Sorry @#{sender}, I didn't understand that person (`#{recipient_name_raw}`) from whom you're trying to revoke a token."
         fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as , such as `token revoke a token from @user_name`. "
         # we must know about that recipient in order to give them a token in the first place, so the commented-out message below isn't needed
         #fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
@@ -437,7 +437,7 @@ module.exports = (robot) ->
       user = users[0]
       res.send tokenBot.status user['name']
     else
-      res.send "Sorry, I couldn't understand the name you provided (#{name})."
+      res.send "Sorry, I couldn't understand the name you provided (`#{name}`)."
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
@@ -457,11 +457,11 @@ module.exports = (robot) ->
     res.send "#{Util.inspect(user)}"
 
   # show all users and their user names (and email addresses if they've provided one)
-  robot.respond /show users$/i, (msg) ->
+  robot.respond /show (?:all )?users$/i, (msg) ->
     response = ""
 
     for own key, user of robot.brain.data.users
-      response += "ID: #{user.id}\t\tuser name:  #{user.name}"
+      response += "ID: #{user.id}\t\tuser name:  @#{user.name}"
       response += " <#{user.email_address}>" if user.email_address
       response += "\n"
     msg.send response
