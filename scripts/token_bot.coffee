@@ -13,6 +13,7 @@
 #   hubot give (a) token (to) @user_name - Gives a token to `@user_name`. 'a' and 'to' are optional.
 #   hubot revoke (a) token (from) @user_name` - Revokes a token from `@user_name`. 'a' and 'from' are optional.
 #   hubot token status (of) @user_name - Returns the status of `@user_name`'s tokens. 'of' is optional.
+#   hubot show (all) users - Returns a list of all the users that the bot knows about. 
 #
 # Author:
 #   cbrummitt
@@ -276,12 +277,6 @@ module.exports = (robot) ->
   allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
   # environment variables
 
-  # three responses for testing purposes only (will remove these later)
-  robot.respond /test/ig, (res) -> 
-    res.send "responding to `test`"
-
-  robot.respond /what is your name\?/, (res) -> 
-    res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} command`."
 
   # robot.hear /badger/i, (res) ->
   #   res.send "Badgers? BADGERS? WE DON'T NEED NO STINKIN BADGERS!123"
@@ -293,14 +288,14 @@ module.exports = (robot) ->
 
   ## respond to `give a token @user_name`
   robot.respond ///
-                (?:give|send)         # give or send
+                \b(?:give|send)\b         # give or send
                 (?:\s+a)?              # a is optional
                 (?:\s+tokens{0,1})?       # token or tokens
                 (?:\s+to)?             # to is optional
                 \s+                  # 1 charachter of whitespace
                 @?([\w.\-]+)*      # user name or name (to be matched in a fuzzy way below)
                 \s*$                # 0 or more whitespace
-               ///, (res) ->       # `res` is an instance of Response. 
+               ///i, (res) ->       # `res` is an instance of Response. 
     
     sender = res.message.user.name
 
@@ -350,14 +345,14 @@ module.exports = (robot) ->
 
   ## respond to `revoke (a) token (from) @user_name`
   robot.respond ///
-                (?:revoke|remove)     # revoke or remove
+                \b(?:revoke|remove)\b     # revoke or remove
                 (?:\s+a)?           # a is optional
                 (?:\s+tokens{0,1})?   # token or tokens
                 (?:\s+from)?          # from is optional
                 \s+                 # at least 1 charachter of whitespace
                 @?([\w.\-]+)*      # user name or name (to be matched in a fuzzy way below)
                 \s*$                # 0 or more whitespace
-                ///, (res) ->       # `res` is an instance of Response. 
+                ///i, (res) ->       # `res` is an instance of Response. 
     
     sender = res.message.user.name # the user name of the person who is revoking a token from someone else
 
@@ -400,7 +395,7 @@ module.exports = (robot) ->
 
   # send a response if people try to send or revoke tokens to/from multiple people
   robot.respond ///
-                (revoke|remove|give|send)
+                \b(revoke|remove|give|send)\b
                 (\s+a)?
                 (\s+tokens{0,1})?
                 (\s+to|from)?
@@ -438,7 +433,11 @@ module.exports = (robot) ->
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
-  robot.respond /\s*status\s*$/, (res) ->
+  robot.respond ///
+                \s*
+                status
+                \s*
+                ///i, (res) ->
     res.send tokenBot.status res.message.user.name
 
 
@@ -459,7 +458,21 @@ module.exports = (robot) ->
 
     for own key, user of robot.brain.data.users
       response += "ID: #{user.id}\t\tuser name:  @#{user.name}"
-      response += " <#{user.email_address}>" if user.email_address
+      #response += " <#{user.email_address}>" if user.email_address
       response += "\n"
     msg.send response
 
+  
+  ###
+    Help the user figure out how to use the bot
+  ###
+  robot.respond /what is your name\??/i, (res) -> 
+    res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} <command>`."
+
+  robot.hear /how do I \b(?:give|send)\b a token\??/i, (res) -> 
+    res.send "Use the command `#{bot_name} give a token to @user_name`."
+
+  robot.hear /how do I \b(?:revoke|get back)\b a token\??/i, (res) -> 
+    res.send "Use the command `#{bot_name} revoke a token from @user_name`."
+
+  
