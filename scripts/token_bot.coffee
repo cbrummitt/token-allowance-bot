@@ -464,7 +464,7 @@ module.exports = (robot) ->
     if Object.keys(tokenBot.tokens_given).length == 0
       res.send "No one has said anything yet, so I don't know of the existence of anyone yet!"
     else 
-      response = ("@" + name + " (" + tokenBot.max_tokens_per_user - recipients.length.toString() + " tokens)" for own name, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
+      response = ("@" + name + " (" + tokenBot.max_tokens_per_user.toString() - recipients.length.toString() + " tokens)" for own name, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
       if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
         res.send "Everyone has given out all their tokens."
       else
