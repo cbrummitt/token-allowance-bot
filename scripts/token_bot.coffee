@@ -10,8 +10,8 @@
 #   TOKENS_ENDOWED_TO_EACH_USER
 #
 # Commands:
-#   hubot give (a) token (to) @user_name - gives a token to @user_name. 'a' and 'to' are optional.
-#   hubot revoke (a) token (from) @user_name - revokes a token from @user_name. 'a' and 'from' are optional.
+#   `hubot give (a) token (to) @user_name` - gives a token to @user_name. 'a' and 'to' are optional.
+#   `hubot revoke (a) token (from) @user_name` - revokes a token from @user_name. 'a' and 'from' are optional.
 #   `hubot token status (of) @user_name` - check the status of @user_name's tokens (given and received). 'of' is optional.
 #
 # Author:
