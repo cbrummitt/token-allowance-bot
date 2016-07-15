@@ -14,7 +14,8 @@
 #   hubot revoke a token from @user_name` - Revokes a token from `@user_name`. 'a' and 'from' are optional.
 #   hubot token status of @user_name - Returns the status of `@user_name`'s tokens. 'of' is optional.
 #   hubot show all users - Returns a list of all the users that the bot knows about. 'all' is optional.
-#   `hubot who has tokens to give?` - Returns a list of all users who still have tokens to give out. Try to help these users so that they thank you with a token!
+#   hubot who has tokens to give? - Returns a list of all users who still have tokens to give out. Try to help these users so that they thank you with a token!
+#   hubot show users with tokens - Returns a list of all users who still have tokens to give out. Try to help these users so that they thank you with a token!
 #
 # Author:
 #   cbrummitt
@@ -467,7 +468,7 @@ module.exports = (robot) ->
       if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
         res.send "Everyone has given out all their tokens."
       else
-        res.send response
+        res.send "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
   
   ###
     Help the user figure out how to use the bot
