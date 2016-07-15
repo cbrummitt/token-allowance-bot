@@ -10,10 +10,11 @@
 #   TOKENS_ENDOWED_TO_EACH_USER
 #
 # Commands:
-#   hubot give (a) token (to) @user_name - Gives a token to `@user_name`. 'a' and 'to' are optional.
-#   hubot revoke (a) token (from) @user_name` - Revokes a token from `@user_name`. 'a' and 'from' are optional.
-#   hubot token status (of) @user_name - Returns the status of `@user_name`'s tokens. 'of' is optional.
-#   hubot show (all) users - Returns a list of all the users that the bot knows about. 
+#   hubot give a token to @user_name - Gives a token to `@user_name`. 'a' and 'to' are optional.
+#   hubot revoke a token from @user_name` - Revokes a token from `@user_name`. 'a' and 'from' are optional.
+#   hubot token status of @user_name - Returns the status of `@user_name`'s tokens. 'of' is optional.
+#   hubot show all users - Returns a list of all the users that the bot knows about. 'all' is optional.
+#   `hubot who has tokens to give?` - Returns a list of all users who still have tokens to give out. Try to help these users so that they thank you with a token!
 #
 # Author:
 #   cbrummitt
@@ -453,15 +454,39 @@ module.exports = (robot) ->
     res.send "#{Util.inspect(user)}"
 
   # show all users and their user names (and email addresses if they've provided one)
-  robot.respond /show (?:all )?users$/i, (msg) ->
+  robot.respond /show (?:all )?users$/i, (res) ->
+    res.send ("ID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
     response = ""
 
-    for own key, user of robot.brain.data.users
-      response += "ID: #{user.id}\t\tuser name:  @#{user.name}"
-      #response += " <#{user.email_address}>" if user.email_address
-      response += "\n"
-    msg.send response
+    # for own key, user of robot.brain.data.users
+    #   response += "ID: #{user.id}\t\tuser name:  @#{user.name}"
+    #   #response += " <#{user.email_address}>" if user.email_address
+    #   response += "\n"
+    # msg.send response
 
+  # show all users and their user names (and email addresses if they've provided one)
+  robot.respond ///
+                show the users with tokens
+                ///i, (res) ->
+                #\s*
+                # \b(show(?: the)? users 
+                # \b(with|(?:who|that)(?: still)? have)\b 
+                # tokens|
+                # who(?: still)? has tokens)
+                # (?: to \b(give|send)\b
+                # (?: out)?)
+                # \??
+ 
+    # check whether tokenBot.tokens_given is empty
+    res.send "`who has tokens to give` fired"
+    if Object.keys(tokenBot.tokens_given).length == 0
+      res.send "No one has said anything yet, so I don't know of the existence of anyone yet!"
+    else 
+      response = ("@" + name + " (" + recipients.length.toString() + " tokens)" for own name, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
+      if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
+        res.send "Everyone has given out all their tokens."
+      else
+        res.send response
   
   ###
     Help the user figure out how to use the bot
@@ -475,4 +500,4 @@ module.exports = (robot) ->
   robot.hear /how do I \b(?:revoke|get back)\b a token\??/i, (res) -> 
     res.send "Use the command `#{bot_name} revoke a token from @user_name`."
 
-  
+
