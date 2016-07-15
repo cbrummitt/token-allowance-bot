@@ -456,29 +456,10 @@ module.exports = (robot) ->
   # show all users and their user names (and email addresses if they've provided one)
   robot.respond /show (?:all )?users$/i, (res) ->
     res.send ("ID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
-    response = ""
-
-    # for own key, user of robot.brain.data.users
-    #   response += "ID: #{user.id}\t\tuser name:  @#{user.name}"
-    #   #response += " <#{user.email_address}>" if user.email_address
-    #   response += "\n"
-    # msg.send response
 
   # show all users and their user names (and email addresses if they've provided one)
-  robot.respond ///
-                show the users with tokens
-                ///i, (res) ->
-                #\s*
-                # \b(show(?: the)? users 
-                # \b(with|(?:who|that)(?: still)? have)\b 
-                # tokens|
-                # who(?: still)? has tokens)
-                # (?: to \b(give|send)\b
-                # (?: out)?)
-                # \??
- 
+  robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
     # check whether tokenBot.tokens_given is empty
-    res.send "`who has tokens to give` fired"
     if Object.keys(tokenBot.tokens_given).length == 0
       res.send "No one has said anything yet, so I don't know of the existence of anyone yet!"
     else 
