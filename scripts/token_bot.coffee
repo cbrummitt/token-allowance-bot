@@ -12,22 +12,21 @@
 # Commands:
 #   hubot give (a) token (to) @user_name - gives a token to @user_name. 'a' and 'to' are optional.
 #   hubot revoke (a) token (from) @user_name - revokes a token from @user_name. 'a' and 'from' are optional.
-#   hubot token status (of) @user_name - check the status of @user_name's tokens (given and received). 'of' is optional.
-#
-# Environment variables:
-#   TOKEN_ALLOW_SELF = false
-#   TOKENS_CAN_BE_TRANSFERRED = true
-#   TOKENS_ENDOWED_TO_EACH_USER = 5
+#   `hubot token status (of) @user_name` - check the status of @user_name's tokens (given and received). 'of' is optional.
 #
 # Author:
 #   cbrummitt
 
 
+# Environment variables:
+#   TOKEN_ALLOW_SELF = false
+#   TOKENS_CAN_BE_TRANSFERRED = true
+#   TOKENS_ENDOWED_TO_EACH_USER = 5
+
+
+
 ## TODO: Update the commands list above. 
 ## From the scripting documentation: 
-#####  At load time, Hubot looks at the Commands section of each scripts, and build a list of all commands. 
-##### The included help.coffee lets a user ask for help across all commands, or with a search. 
-##### Refer to the Hubot as hubot, even if your hubot is named something else. It will automatically be replaced with the correct name. This makes it easier to share scripts without having to update docs.
 
 
 #### Commands from karma bot: 
@@ -266,8 +265,6 @@ stringToBool = (str) ->
 # we export a function of one variable, the `robot`, which `.hear`s messages and then does stuff
 module.exports = (robot) ->
   tokenBot = new TokenNetwork robot
-
-  verbose = false
 
   # name of the bot 
   bot_name = process.env.HUBOT_ROCKETCHAT_BOTNAME
