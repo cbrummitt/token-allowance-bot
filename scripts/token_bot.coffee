@@ -230,12 +230,13 @@ class TokenNetwork
     tokens_received_by_this_person = if @tokens_received[id]? then @tokens_received[id] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
-      result += "#{name} has received " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
+      result += "**** tokens_received_by_this_person = #{Util.inspect tokens_received_by_this_person}\n"
+      result += "#{name} has " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
       #for own name_peer, number of @tally(tokens_received_by_this_person)
       #  result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
       result += ("@" + @robot.brain.userForId(id_peer).name + " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
     else
-      result += "#{name} has not received any tokens from other people."
+      result += "#{name} does not have any tokens from other people."
 
     #result += "\n\n Debugging: \n tokens_given_by_this_person = #{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
 
@@ -473,6 +474,18 @@ module.exports = (robot) ->
   robot.respond /show (?:all )?users$/i, (res) ->
     res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
+  # show user with tokens still to give out to others
+  robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
+    # check whether tokenBot.tokens_given is empty
+    if Object.keys(tokenBot.tokens_given).length == 0
+      res.send "No one has said anything yet, so I don't know of the existence of anyone yet!"
+    else 
+      response = ("@" + robot.brain.userForId(id).name + " (" + (tokenBot.max_tokens_per_user - recipients.length).toString() + " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") + ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
+      if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
+        res.send "Everyone has given out all their tokens."
+      else
+        res.send "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
+
   # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
   robot.hear /.*/i, (res) -> 
     sender_id = res.message.user.id
@@ -487,17 +500,20 @@ module.exports = (robot) ->
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
 
-  # show user with tokens still to give out to others
-  robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
-    # check whether tokenBot.tokens_given is empty
-    if Object.keys(tokenBot.tokens_given).length == 0
-      res.send "No one has said anything yet, so I don't know of the existence of anyone yet!"
-    else 
-      response = ("@" + @robot.brain.userForId(id).name + " (" + (tokenBot.max_tokens_per_user - recipients.length).toString() + " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") + ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
-      if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
-        res.send "Everyone has given out all their tokens."
-      else
-        res.send "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
+  robot.respond /clear your brain/i, (res) -> 
+    res.send "Before clearing: tokenBot.tokens_given = #{Util.inspect tokenBot.tokens_given}"
+    tokenBot.tokens_given = {}
+    res.send "After clearing: tokenBot.tokens_given = #{Util.inspect tokenBot.tokens_given}"
+    res.send "Before clearing: tokenBot.tokens_received = #{Util.inspect tokenBot.tokens_received}"
+    tokenBot.tokens_received = {}
+    res.send "After clearing: tokenBot.tokens_received = #{Util.inspect tokenBot.tokens_received}"
+
+    res.send "Before clearing: robot.brain.data.tokens_given = #{Util.inspect robot.brain.data.tokens_given}"
+    robot.brain.data.tokens_given = {}
+    res.send "After clearing: robot.brain.data.tokens_given = #{Util.inspect robot.brain.data.tokens_given}"
+    res.send "Before clearing: robot.brain.data.tokens_received = #{Util.inspect robot.brain.data.tokens_received}"
+    robot.brain.data.tokens_received = {}
+    res.send "After clearing: robot.brain.data.tokens_received = #{Util.inspect robot.brain.data.tokens_received}"
   
   ###
     Help the user figure out how to use the bot
