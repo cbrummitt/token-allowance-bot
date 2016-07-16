@@ -469,11 +469,9 @@ module.exports = (robot) ->
     # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
     if tokenBot.tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
       tokenBot.tokens_given[sender] = []
-      #robot.brain.set sender, 'sent', ['test']
-      #return "robot.brain.get sender, 'sent' = #{robot.brain.get sender, 'sent', ['test']}"
 
-    if tokenBot.tokens_received[recipient]? == false
-      tokenBot.tokens_received[recipient] = []
+    if tokenBot.tokens_received[sender]? == false
+      tokenBot.tokens_received[sender] = []
 
   robot.respond /show robot.brain.data.users/i, (res) -> 
     res.send "#{Util.inspect(robot.brain.data.users)}"
