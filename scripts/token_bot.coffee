@@ -501,20 +501,12 @@ module.exports = (robot) ->
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
 
   robot.respond /clear your brain/i, (res) -> 
-    res.send "Before clearing: tokenBot.tokens_given = #{Util.inspect tokenBot.tokens_given}"
     tokenBot.tokens_given = {}
-    res.send "After clearing: tokenBot.tokens_given = #{Util.inspect tokenBot.tokens_given}"
-    res.send "Before clearing: tokenBot.tokens_received = #{Util.inspect tokenBot.tokens_received}"
     tokenBot.tokens_received = {}
-    res.send "After clearing: tokenBot.tokens_received = #{Util.inspect tokenBot.tokens_received}"
-
-    res.send "Before clearing: robot.brain.data.tokens_given = #{Util.inspect robot.brain.data.tokens_given}"
     robot.brain.data.tokens_given = {}
-    res.send "After clearing: robot.brain.data.tokens_given = #{Util.inspect robot.brain.data.tokens_given}"
-    res.send "Before clearing: robot.brain.data.tokens_received = #{Util.inspect robot.brain.data.tokens_received}"
     robot.brain.data.tokens_received = {}
-    res.send "After clearing: robot.brain.data.tokens_received = #{Util.inspect robot.brain.data.tokens_received}"
-  
+    robot.brain.data.users = {}
+    
   ###
     Help the user figure out how to use the bot
   ###
