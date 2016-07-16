@@ -466,9 +466,11 @@ module.exports = (robot) ->
 
   robot.hear /.*/i, (res) -> 
     res.send "Someone said something!" 
-    
+
   robot.respond /show robot.brain.data.users/i, (res) -> 
     res.send "#{Util.inspect(robot.brain.data.users)}"
+    res.send "@tokens_given = #{Util.inspect(@tokens_given)}"
+    res.send "@tokens_received = #{Util.inspect(@tokens_received)}"
 
   # show all users and their user names (and email addresses if they've provided one)
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
