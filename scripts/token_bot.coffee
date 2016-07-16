@@ -65,8 +65,8 @@ class TokenNetwork
 
     #for user of 
     for own key, user of robot.brain.data.users
-      @tokens_given[user['name']] = 0
-      @tokens_received[user['name']] = 0
+      @tokens_given[user['name']] = []
+      @tokens_received[user['name']] = []
     
     # each user can give at most this many tokens to others
     # TODO: make this an environment variable? See `allow_self = process.env.KARMA_ALLOW_SELF or "true"` in the karma bot
@@ -464,8 +464,16 @@ module.exports = (robot) ->
   robot.respond /show (?:all )?users$/i, (res) ->
     res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
-  #robot.hear /.*/i, (res) -> 
-  #  res.send "Someone said something!" 
+  robot.hear /.*/i, (res) -> 
+    sender = res.message.user.name
+    # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
+    if tokenBot.tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
+      tokenBot.tokens_given[sender] = []
+      #robot.brain.set sender, 'sent', ['test']
+      #return "robot.brain.get sender, 'sent' = #{robot.brain.get sender, 'sent', ['test']}"
+
+    if tokenBot.tokens_received[recipient]? == false
+      tokenBot.tokens_received[recipient] = []
 
   robot.respond /show robot.brain.data.users/i, (res) -> 
     res.send "#{Util.inspect(robot.brain.data.users)}"
