@@ -58,9 +58,12 @@ class TokenNetwork
     #     sender : [recipient1, recipient2, ...]
     @tokens_given = {}
 
+
     # a dictionary of who has received tokens from whom. The data is in the form 
     #     recipient : [sender1, sender2, ...]
     @tokens_received = {}
+
+    #for user of 
     
     # each user can give at most this many tokens to others
     # TODO: make this an environment variable? See `allow_self = process.env.KARMA_ALLOW_SELF or "true"` in the karma bot
@@ -450,13 +453,13 @@ module.exports = (robot) ->
        res.reply "#{err}\n#{err.stack}"
 
   # inspect a user's user name
-  robot.respond /hi robot/i, (res) ->
+  robot.respond /inspect me/i, (res) ->
     user = robot.brain.usersForFuzzyName(res.message.user.name)
     res.send "#{Util.inspect(user)}"
 
-  # show all users and their user names (and email addresses if they've provided one)
+  # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
-    res.send ("ID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
+    res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
   # show all users and their user names (and email addresses if they've provided one)
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
@@ -464,7 +467,7 @@ module.exports = (robot) ->
     if Object.keys(tokenBot.tokens_given).length == 0
       res.send "No one has said anything yet, so I don't know of the existence of anyone yet!"
     else 
-      response = ("@" + name + " (" + (tokenBot.max_tokens_per_user - recipients.length).toString() + " tokens)" for own name, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
+      response = ("@" + name + " (" + (tokenBot.max_tokens_per_user - recipients.length).toString() + " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") + ")" for own name, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
       if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
         res.send "Everyone has given out all their tokens."
       else
