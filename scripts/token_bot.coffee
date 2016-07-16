@@ -64,6 +64,9 @@ class TokenNetwork
     @tokens_received = {}
 
     #for user of 
+    for own key, user of robot.brain.data.users
+      @tokens_given[user['name']] = 0
+      @tokens_received[user['name']] = 0
     
     # each user can give at most this many tokens to others
     # TODO: make this an environment variable? See `allow_self = process.env.KARMA_ALLOW_SELF or "true"` in the karma bot
@@ -460,6 +463,12 @@ module.exports = (robot) ->
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
     res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
+
+  robot.hear /.*/i, (res) -> 
+    res.send "Someone said something!" 
+    
+  robot.respond /show robot.brain.data.users/i, (res) -> 
+    res.send "#{Util.inspect(robot.brain.data.users)}"
 
   # show all users and their user names (and email addresses if they've provided one)
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
