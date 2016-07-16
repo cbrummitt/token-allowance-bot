@@ -464,9 +464,9 @@ module.exports = (robot) ->
   robot.respond /show (?:all )?users$/i, (res) ->
     res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
+  # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
   robot.hear /.*/i, (res) -> 
     sender = res.message.user.name
-    # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
     if tokenBot.tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
       tokenBot.tokens_given[sender] = []
 
@@ -478,7 +478,7 @@ module.exports = (robot) ->
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
 
-  # show all users and their user names (and email addresses if they've provided one)
+  # show user with tokens still to give out to others
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
     # check whether tokenBot.tokens_given is empty
     if Object.keys(tokenBot.tokens_given).length == 0
