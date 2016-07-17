@@ -472,21 +472,20 @@ module.exports = (robot) ->
 
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
-    res.send "Here are all the users I know about: "
-    res.send ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
+    res.sendDirect "Here are all the users I know about: " + ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
     #res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
   # show user with tokens still to give out to others
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
     # check whether tokenBot.tokens_given is empty
     if Object.keys(tokenBot.tokens_given).length == 0
-      res.send "No one has said anything yet, so I don't know of the existence of anyone yet!"
+      res.sendDirect "No one has said anything yet, so I don't know of the existence of anyone yet!"
     else 
       response = ("@" + robot.brain.userForId(id).name + " (" + (tokenBot.max_tokens_per_user - recipients.length).toString() + " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") + ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
       if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
-        res.send "Everyone has given out all their tokens."
+        res.sendDirect "Everyone has given out all their tokens."
       else
-        res.send "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
+        res.sendDirect "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
 
   # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
   robot.hear /.*/i, (res) -> 
@@ -521,7 +520,7 @@ module.exports = (robot) ->
   robot.hear /how do I \b(?:revoke|get back)\b a token\??/i, (res) -> 
     res.send "Use the command `#{bot_name} revoke a token from @user_name`."
 
-  robot.hear /I like pie/i, (res) ->
-      res.emote "makes a freshly baked pie"
-      res.reply "makes a freshly baked pie"
+  # robot.hear /I like pie/i, (res) ->
+  #     res.emote "makes a freshly baked pie"
+  #     res.reply "makes a freshly baked pie"
 
