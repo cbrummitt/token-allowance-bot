@@ -470,22 +470,25 @@ module.exports = (robot) ->
     user = robot.brain.userForId(res.message.user.id)
     res.send "#{Util.inspect(user)}"
 
+  robot.respond /DM me/i, (res) ->
+    res.sendDirect "This is a DM"
+
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
-    res.sendDirect "Here are all the users I know about: " + ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
+    res.send "Here are all the users I know about: " + ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
     #res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
   # show user with tokens still to give out to others
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
     # check whether tokenBot.tokens_given is empty
     if Object.keys(tokenBot.tokens_given).length == 0
-      res.sendDirect "No one has said anything yet, so I don't know of the existence of anyone yet!"
+      res.send "No one has said anything yet, so I don't know of the existence of anyone yet!"
     else 
       response = ("@" + robot.brain.userForId(id).name + " (" + (tokenBot.max_tokens_per_user - recipients.length).toString() + " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") + ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
       if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
-        res.sendDirect "Everyone has given out all their tokens."
+        res.send "Everyone has given out all their tokens."
       else
-        res.sendDirect "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
+        res.send "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
 
   # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
   robot.hear /.*/i, (res) -> 
