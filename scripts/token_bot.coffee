@@ -521,4 +521,6 @@ module.exports = (robot) ->
   robot.hear /how do I \b(?:revoke|get back)\b a token\??/i, (res) -> 
     res.send "Use the command `#{bot_name} revoke a token from @user_name`."
 
+  robot.hear /I like pie/i, (res) ->
+      res.emote "makes a freshly baked pie"
 
