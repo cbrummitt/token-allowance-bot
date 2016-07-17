@@ -10,8 +10,8 @@
 #   TOKENS_ENDOWED_TO_EACH_USER
 #
 # Commands:
-#   hubot give a token to @user_name - Gives a token to `@user_name`. 'a' and 'to' are optional.
-#   hubot revoke a token from @user_name` - Revokes a token from `@user_name`. 'a' and 'from' are optional.
+#   hubot give a token to @user_name - Gives a token to `@user_name`. The words 'token', 'a' and 'to' are optional.
+#   hubot revoke a token from @user_name` - Revokes a token from `@user_name`. The words 'token', 'a' and 'from' are optional.
 #   hubot token status of @user_name - Returns the status of `@user_name`'s tokens. 'of' is optional.
 #   hubot show all users - Returns a list of all the users that the bot knows about. 'all' is optional.
 #   hubot who has tokens to give? - Returns a list of all users who still have tokens to give out. Try to help these users so that they thank you with a token!
@@ -288,7 +288,7 @@ module.exports = (robot) ->
   tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
   # whether people can give tokens to themself. defaults to false.
-  allow_self = true #if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
+  allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
   
 
   ###
@@ -472,7 +472,9 @@ module.exports = (robot) ->
 
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
-    res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
+    res.send "Here are all the users I know about: "
+    res.send ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
+    #res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
   # show user with tokens still to give out to others
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
