@@ -10,7 +10,7 @@ Users can also `revoke` a token. There are a couple reasons why someone may revo
 
 Users can also ask the bot to show the `status` of a user, and they can ask for a `leaderboard` of who has received the most tokens. 
 
-The administrator of the bot can "freeze" the giving and revoking of tokens using the environment variable `TOKENS_CAN_BE_TRANSFERRED`. Details on how to do that, and what the other environment variables are, are given in the section [Technical information](#Technical information).
+The administrator of the bot can "freeze" the giving and revoking of tokens using the environment variable `TOKENS_CAN_BE_TRANSFERRED`. Details on how to do that, and what the other environment variables are, are given in the section [Technical information](#technical-information).
 
 The bot was developed for a randomized controlled trial on social networks and entrepreneurship called [The Adansonia Project][adansonia]. At the end of the experiment, each token is a lottery ticket for a prize. Thus, the `token` bot can create incentives for people to help one another.
 
