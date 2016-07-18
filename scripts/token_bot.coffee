@@ -470,8 +470,8 @@ module.exports = (robot) ->
     user = robot.brain.userForId(res.message.user.id)
     res.send "#{Util.inspect(user)}"
 
-  # robot.respond /DM me/i, (res) ->
-  #   res.sendDirect "This is a DM"
+  robot.respond /DM me/i, (res) ->
+    res.sendDirect "This is a DM"
 
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
