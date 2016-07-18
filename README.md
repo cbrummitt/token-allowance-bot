@@ -37,7 +37,7 @@ Did `@user` help you? Then `/give` a token to `@user` to thank them!
 /give a token to @user
 /give @user                    # equivalent to the previous command
 ```
-You can give someone more tokens to thank them even more by using the above command multiple times.
+Want to thank `@user` *even more*? Then give them more tokens! You can give someone more than one token by using the above command multiple times.
 
 Changed your mind? Or someone else has helped you even more and you've run out of tokens to give them? Then `/revoke` a token from `user`:
 ```
