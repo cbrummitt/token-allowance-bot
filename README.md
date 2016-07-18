@@ -4,7 +4,7 @@
 
 ## Summary
 
-The bot keeps track of acknowledgment or thanks given from one user to another. Each unit of acknowledgment is called a "token". Users can send one token at a time to other users.
+The bot keeps track of acknowledgment or thanks given from one user to another. Each unit of acknowledgment is called a **token**. Users can send one token at a time to other users.
 
 Users can also revoke a token. There are a couple reasons why someone may revoke a token. They may decide that the person was not helping as much as hoped. Or they may want to give that token to someone else who has been more helpful. 
 
