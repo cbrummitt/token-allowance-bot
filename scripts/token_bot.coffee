@@ -503,6 +503,7 @@ module.exports = (robot) ->
     res.send "#{Util.inspect(robot.brain.data.users)}"
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
+    res.send "robot.brain.data._private = #{Util.inspect(robot.brain.data._private)}"
 
   robot.respond /clear your brain/i, (res) -> 
     tokenBot.tokens_given = {}
