@@ -107,18 +107,22 @@ it's suggested that you search for a dedicated guide focused on your OS.
 
 #### Configuration on Heroku 
 
-If you're using [Heroku] to deploy the bot, set the environment variables using the following commands:
+To use [Heroku][heroku] to deploy the bot, first follow [these instructions][heroku-hubot]. Then set the environment variables using the following commands in a terminal:
 
 ```
 heroku config:set TOKEN_ALLOW_SELF=false
 heroku config:set TOKENS_CAN_BE_TRANSFERRED=true
 heroku config:set TOKENS_ENDOWED_TO_EACH_USER=5
 heroku config:set HUBOT_HEROKU_KEEPALIVE_URL=<url-for-your-token-bot>
-```
-where `<url-for-your-token-bot>` is a URL such as `https://token-bot.herokuapp.com/`.
 heroku config:set HUBOT_ALIAS=/
+```
+where `<url-for-your-token-bot>` is a URL such as `https://token-bot.herokuapp.com/`. If you later want to freeze the giving and revoking of tokens, then run 
+```
+heroku config:set TOKENS_CAN_BE_TRANSFERRED=true
+```
 
 [heroku]: http://www.heroku.com
+[heroku-hubot]: https://hubot.github.com/docs/deploying/heroku/
 
 ### Adapters
 
