@@ -500,7 +500,7 @@ module.exports = (robot) ->
 
 
   # show leaderboard, show leader board
-  robot.respond /\s*(?:show)?\s+leader ?board\s*/i, (res) ->
+  robot.respond /\s*(?:show)?\s+leaders? ?board\s*/i, (res) ->
     res.sendPrivate tokenBot.leaderboard leaderboard_length
 
   # who has the most tokens? 
@@ -570,7 +570,7 @@ module.exports = (robot) ->
     #res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
   # show user with tokens still to give out to others
-  robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
+  robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens?|who(?: still)? has tokens?)(?: to give(?: out)?)?\??\s*/i, (res) ->
     # check whether tokenBot.tokens_given is empty
     if Object.keys(tokenBot.tokens_given).length == 0
       res.sendPrivate "No one has said anything yet, so I don't know of the existence of anyone yet!"
