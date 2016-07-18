@@ -281,7 +281,7 @@ class TokenNetwork
          return 0
 
     # build up a string `str` 
-    str = 'Users ranked by number of tokens given to them by others:\n'
+    str = 'These #{num_users} users have currently been thanked the most:\n'
     limit = num_users #5
     for i in [0...Math.min(limit, user_num_tokens_received.length)]
       username = user_num_tokens_received[i][0]
