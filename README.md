@@ -61,7 +61,7 @@ The reply from the `@token` bot will be a direct message that looks just like th
 Got time to spare and want to find people to help? Use the following command to see a list of all people who still tokens available to give to others:
 
 ```
-/show user with tokens
+/show users with tokens
 /who has tokens?         # equivalent to the previous command
 ```
 The `@token` bot then replies in a direct message with a list of who still has tokens to give out: 
