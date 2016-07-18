@@ -281,14 +281,14 @@ class TokenNetwork
          return 0
 
     # build up a string `str` 
-    str = "These #{num_users} have currently been thanked the most:\n"
-    limit = num_users #5
-    for i in [0...Math.min(limit, user_num_tokens_received.length)]
+    limit = Math.min(num_users, user_num_tokens_received.length) #5
+    str = "These #{limit} users have currently been thanked the most:\n"
+    for i in [0...limit]
       username = user_num_tokens_received[i][0]
       points = user_num_tokens_received[i][1]
       point_label = if points == 1 then "token" else "tokens"
       leader = "" #if i == 0 then "All hail the supreme token holder!" else "" # label the one with the most
-      newline = if i < Math.min(limit, user_num_tokens_received.length) - 1 then '\n' else ''
+      newline = if i < limit - 1 then '\n' else ''
       str += "#{i+1}. @#{username} (#{points} " + point_label + ") " + leader + newline
     return str
 
