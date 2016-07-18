@@ -80,6 +80,9 @@ These 3 users have currently been thanked the most:
 3. @A.Einstein (1 tokens) 
 ```
 
+### Help - show a list of all commands
+
+Enter the command `token help` to show a list of all commands.
 
 ## Technical information 
 
@@ -93,11 +96,11 @@ deployed on [Heroku][heroku].
 
 ### Running token Locally
 
-You can test your hubot by running the following, however some plugins will not
+You can test the token bot by running the following, however some plugins will not
 behave as expected unless the [environment variables](#configuration) they rely
 upon have been set.
 
-You can start token locally by running:
+Start token locally by running:
 
     % bin/hubot
 
@@ -106,7 +109,7 @@ You'll see some start up output and a prompt:
     token> [Mon Jul 18 2016 12:10:53 GMT-0500 (CDT)] INFO hubot-redis-brain: Using default redis on localhost:6379
     token>
 
-Then you can interact with token by typing `token help`.
+See a list of commands by typing `token help`.
 
     token> token help
     token give a token to @user_name - Gives a token to `@user_name`. The words 'token', 'a' and 'to' are optional.
