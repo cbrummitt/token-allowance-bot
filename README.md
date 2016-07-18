@@ -19,6 +19,17 @@ The bot was developed for a randomized controlled trial on social networks and e
 
 ## Usage 
 
+## Alias 
+The bot responds to commands that begin with its name `token`:
+```
+token <command>
+```
+You can also set an alias for the bot, as described in the [Configuration](#configuration) section. For example, if `/` is an alias for the bot's name `token`, then you can also write commands as
+```
+/<command>
+```
+Examples are given below.
+
 ### Giving and revoking tokens 
 
 Did `@user` help you? Then `/give` a token to `@user` to thank them!
@@ -33,8 +44,6 @@ Changed your mind? Or someone else has helped you even more and you've run out o
 /revoke a token from @user
 /revoke @user                  # equivalent to the above
 ```
-
-(The `/` is an alias for the bot's name, `token`, so you can also write all these commands as `token give a token to @user`.)
 
 ### Status
 
@@ -124,9 +133,10 @@ See a list of commands by typing `token help`.
 
 The following environment variables can optionally be set: 
 
-* `TOKEN_ALLOW_SELF` (if not set, the default is `false`)
-* `TOKENS_CAN_BE_TRANSFERRED` (if not set, the default is `true`)
-* `TOKENS_ENDOWED_TO_EACH_USER`  (if not set, the default is 5)
+* `TOKEN_ALLOW_SELF` -- whether people can give tokens to themselves. If not set, the default is `false`.
+* `TOKENS_CAN_BE_TRANSFERRED` -- whether tokens can be given and revoked. If not set, the default is `true`. Set this to false if you want to prevent people from giving and revoking tokens.
+* `TOKENS_ENDOWED_TO_EACH_USER` -- the number of tokens that each user gets initially. If not set, the default is 5.
+* `HUBOT_ALIAS` -- an alias that the bot will respond to when listening for commands. For example, set this variable to '/'.
 
 How to set environment variables will be specific to your operating system.
 Rather than recreate the various methods and best practices in achieving this,
