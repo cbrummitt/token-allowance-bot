@@ -30,7 +30,7 @@ You can also set an alias for the bot, as described in the [Configuration](#conf
 ```
 Example of commands are given below.
 
-You can change whether the bot listens for commands in all public channels by changing an environment variable, as explained below [in the configuration section](#create-a-bot-user-in-Rocket.Chat)
+(You can change whether the bot listens for commands in all public channels by changing an environment variable, as explained below [in the configuration section](#create-a-bot-user-in-Rocket.Chat).)
 
 You can also enter commands in a direct message with `@token`, the bot. That way, other people don't need to see your command. When you enter a command in a direct message, you don't need to write `token` (nor an alias such as `/`) at the beginning of the command.
 
