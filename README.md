@@ -4,7 +4,7 @@
 
 ## Summary
 
-The bot keeps track of acknowledgment given from one user to another. Each unit of acknowledgment is called a **token**. Users can `give` one token at a time to other users.
+The bot keeps track of acknowledgment given from one user to another. Each unit of acknowledgment is called a **token**. Everyone starts out with the same number of tokens. Users can `give` one token at a time to other users.
 
 Users can also `revoke` a token. There are a couple reasons why someone may revoke a token. One may decide that the person was not helping as much as hoped. Or one may want to give that token to someone else who has been more helpful. 
 
@@ -26,6 +26,7 @@ Did `@user` help you? Then `/give` a token to `@user` to thank them!
 /give a token to @user
 /give @user                    # equivalent to the previous command
 ```
+You can give someone more than one token to thank them even more.
 
 Changed your mind? Or someone else has helped you even more and you've run out of tokens to give them? Then `/revoke` a token from `user`:
 ```
@@ -41,13 +42,20 @@ Want to check how many tokens you have left in your "pocket", how many you've gi
 ```
 /status
 ```
+The `@token` bot will then send you a direct message that looks like this:
+```
+@charlie has 2 tokens remaining to give to others. 
+@charlie has given 3 tokens to the following people: @UsainBolt (2), @A.Einstein (1)
+@charlie has 2 tokens from the following people: @UsainBolt (2)
+```
 
 You can also use this command to check the status of any other user:
 ```
-/status @user
+/status @A.Einstein
 ```
+The reply from the `@token` bot will be a direct message that looks just like the example given above of a response to the command `/status`.
 
-### Who has tokens to give out?
+### Who still has tokens to give out?
 
 Got time to spare and want to find people to help? Use the following command to see a list of all people who still tokens available to give to others:
 
@@ -55,10 +63,21 @@ Got time to spare and want to find people to help? Use the following command to 
 /show user with tokens
 /who has tokens?         # equivalent to the previous command
 ```
+The `@token` bot then replies in a direct message with a list of who still has tokens to give out: 
+```
+The following users still have tokens to give. Try to help these users so that they thank you with a token!
+@A.Einstein (4 tokens), @UsainBolt (3 tokens)
+```
 
 ### Leaderboard 
 
-Who has been given the most tokens? See who's on top with the `/leaderboard` command. Control how large the leaderboard is using the command `/show top 5 list` or `/show top eight`.
+Who has been given the most tokens? See who's on top with the `/leaderboard` command, which shows the top 10 users in descending order of the number of tokens received. Control how large the leaderboard is using the command `/show top 5 list` or `/show top eight`. The bot responds with a direct message that looks like:
+```
+These 3 users have currently been thanked the most:
+1. @UsainBolt (2 tokens) 
+2. @charlie (2 tokens) 
+3. @A.Einstein (1 tokens) 
+```
 
 
 ## Technical information 
