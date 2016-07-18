@@ -26,7 +26,7 @@ Did `@user` help you? Then `/give` a token to `@user` to thank them!
 /give a token to @user
 /give @user                    # equivalent to the previous command
 ```
-You can give someone more than one token to thank them even more.
+You can give someone more tokens to thank them even more by using the above command multiple times.
 
 Changed your mind? Or someone else has helped you even more and you've run out of tokens to give them? Then `/revoke` a token from `user`:
 ```
@@ -48,6 +48,7 @@ The `@token` bot will then send you a direct message that looks like this:
 @charlie has given 3 tokens to the following people: @UsainBolt (2), @A.Einstein (1)
 @charlie has 2 tokens from the following people: @UsainBolt (2)
 ```
+(The response is a direct message because it contains mentions of many other users, and we don't want those users to be bothered by these responses.)
 
 You can also use this command to check the status of any other user:
 ```
