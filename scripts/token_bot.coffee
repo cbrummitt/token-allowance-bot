@@ -398,7 +398,7 @@ module.exports = (robot) ->
 
   ## respond to `revoke (a) token (from) @user_name`
   robot.respond ///
-                \b(?:revoke|remove|rescind|cancel|void)\b  # revoke or remove or rescind or cancel or void
+                \b(?:revoke|remove|rescind|cancel|void|retract|withdraw|take back|get back)\b  # revoke or remove or rescind or cancel or void
                 (?:\s+a)?           # a is optional
                 (?:\s+tokens{0,1})?   # token or tokens
                 (?:\s+from)?          # from is optional
