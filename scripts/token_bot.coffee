@@ -69,7 +69,6 @@ class TokenNetwork
       @tokens_received[user['id']] = []
     
     # each user can give at most this many tokens to others
-    # TODO: make this an environment variable? See `allow_self = process.env.KARMA_ALLOW_SELF or "true"` in the karma bot
     @max_tokens_per_user = process.env.TOKENS_ENDOWED_TO_EACH_USER or 5 
 
     # variable that determines whether tokens can be given right now
@@ -178,8 +177,8 @@ class TokenNetwork
 
   selfDeniedResponses: (name) ->
     @self_denied_responses = [
-      "Sorry @#{name}. Tokens cannot be given to oneself.",
-      "I can't do that @#{name}. Tokens cannot be given to oneself.",
+      "Sorry #{name}. Tokens cannot be given to oneself.",
+      "I can't do that #{name}. Tokens cannot be given to oneself.",
       "Tokens can only be given to other people."
     ]
 
@@ -242,6 +241,43 @@ class TokenNetwork
 
     return result
 
+  leaderboard: (num_users) -> 
+    user_num_tokens_received = ([@robot.brain.userForId(user_id).name, received_list.length] for own user_id, received_list of @tokens_received)
+
+    if user_num_tokens_received.length == 0
+      return "No one has received any tokens."
+
+
+
+    # users = robot.brain.data._private
+    # tuples = []
+    # for username, score of users
+    #   tuples.push([username, score])
+
+    # if tuples.length == 0
+    #   return "The lack of karma is too damn high!"
+
+    # sort by the number of tokens received (in decreasing order)
+    user_num_tokens_received.sort (a, b) ->
+      if a[1] > b[1]
+         return -1
+      else if a[1] < b[1]
+         return 1
+      else
+         return 0
+
+    # build up a string `str` 
+    str = ''
+    limit = num_users #5
+    for i in [0...Math.min(limit, user_num_tokens_received.length)]
+      username = user_num_tokens_received[i][0]
+      points = user_num_tokens_received[i][1]
+      point_label = if points == 1 then "token" else "tokens"
+      leader = "" #if i == 0 then "All hail the supreme token holder!" else "" # label the one with the most
+      newline = if i < Math.min(limit, user_num_tokens_received.length) - 1 then '\n' else ''
+      str += "#{i+1}. @#{username} (#{points} " + point_label + ") " + leader + newline
+    return str
+
 
 ######################################################################################################
 ######################################################################################################
@@ -272,6 +308,7 @@ stringToBool = (str) ->
     return null
 
 
+
 # the script must export a function. `robot` is an instance of the bot.
 # we export a function of one variable, the `robot`, which `.hear`s messages and then does stuff
 module.exports = (robot) ->
@@ -288,8 +325,10 @@ module.exports = (robot) ->
   tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
   # whether people can give tokens to themself. defaults to false.
-  allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
+  allow_self = true#if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
   
+  # default length for the leaderboard showing the people with the most tokens
+  leaderboard_length = 10
 
   ###
     Give and revoke commands 
@@ -423,7 +462,7 @@ module.exports = (robot) ->
 
 
   ###
-    Status commands 
+    Status and leaderboard commands 
   ###
 
   # respond to "status (of) @user"
@@ -459,6 +498,52 @@ module.exports = (robot) ->
     res.send tokenBot.status res.message.user.id
 
 
+  # show leaderboard, show leader board
+  robot.respond /(?:show)?\s+leader ?board\s*/i, (res) ->
+    res.send tokenBot.leaderboard leaderboard_length
+
+  # show top 10 list
+  robot.respond ///
+                (?:show)?
+                \s+
+                (?:the\s+)?
+                top
+                \s+
+                ([0-9a-z]+)
+                \s+
+                list
+                ///i, (res) ->
+    number_input = res.match[1]
+
+
+    # try to parse the input as a base-10 integer
+    number_parseInt = parseInt(number_input, 10)
+
+    # if we can successfully parse number_input as a base-10 integer, then send the result of tokenBot.leaderboard
+    if not isNaN(number_parseInt)
+      if number_parseInt > 0
+        res.send tokenBot.leaderboard number_parseInt
+      else
+        res.send "Please provide a positive integer; for example, use the command `#{bot_name} show top 5 list`."
+    else
+      # it's not an integer, so try to interpret an English word for a number
+      switch number_input
+        when "one" then res.send tokenBot.leaderboard 1
+        when "two" then res.send tokenBot.leaderboard 2
+        when "three" then res.send tokenBot.leaderboard 3
+        when "four" then res.send tokenBot.leaderboard 4
+        when "five" then res.send tokenBot.leaderboard 5
+        when "six" then res.send tokenBot.leaderboard 6
+        when "seven" then res.send tokenBot.leaderboard 7
+        when "eight" then res.send tokenBot.leaderboard 8
+        when "nine" then res.send tokenBot.leaderboard 9
+        when "ten" then res.send tokenBot.leaderboard 10
+        else res.send "Sorry, I didn't understand the number you provided (` #{number_input} `). Use the command `#{bot_name} show leaderboard` to show the top #{leaderboard_length} list, or use `#{bot_name} show top n list` (where `n` is an integer) to show the `n` people who have received the most tokens."
+
+  ###
+    Miscellaneous commands
+  ###
+
   # log all errors 
   robot.error (err, res) ->
     robot.logger.error "#{err}\n#{err.stack}"
@@ -471,7 +556,7 @@ module.exports = (robot) ->
     res.send "#{Util.inspect(user)}"
 
   robot.respond /DM me/i, (res) ->
-    res.sendDirect "This is a DM"
+    res.sendPrivate "This is a DM"
 
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
@@ -503,7 +588,6 @@ module.exports = (robot) ->
     res.send "#{Util.inspect(robot.brain.data.users)}"
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
-    res.send "robot.brain.data._private = #{Util.inspect(robot.brain.data._private)}"
 
   robot.respond /clear your brain/i, (res) -> 
     tokenBot.tokens_given = {}
