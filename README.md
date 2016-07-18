@@ -42,7 +42,7 @@ Did `@UsainBolt` help you become a better sprinter? Then `/give` a token to `@Us
 ```
 The bot responds in the same channel with the message that looks like
 ```
-@Charlie gave one token to @UsainBolt. @Charlie now has 2 tokens remaining to give to others.
+@Charlie gave one token to @UsainBolt. @Charlie now has 1 token remaining to give to others.
 ```
 You can also simply write `/give @UsainBolt` to give `@UsainBolt` a token.
 
@@ -54,7 +54,7 @@ Changed your mind? Or someone else has helped you even more and you've run out o
 ```
 The bot responds in that channel with the message 
 ```
-@charlie revoked one token from @fernando.vega-redondo. @charlie now has 1 token remaining to give to others.
+@charlie revoked one token from @UsainBolt. @charlie now has 2 token remaining to give to others.
 ```
 Alternatively, simply write `/revoke @UsainBolt`.
 
