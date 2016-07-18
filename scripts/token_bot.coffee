@@ -115,6 +115,13 @@ class TokenNetwork
     if @tokens_received[recipient]? == false
       @tokens_received[recipient] = []
 
+
+    # also initialize to an empty list the recipient's list of tokens given and the sender's list of tokens received
+    if @tokens_given[recipient]? == false
+      @tokens_given[recipient] = []
+    if @tokens_received[sender]? == false
+      @tokens_received[sender] = []
+
     # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
     # note that this allows someone to send multiple tokens to the same user
     if @tokens_given[sender].length < @max_tokens_per_user
