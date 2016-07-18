@@ -16,6 +16,8 @@
 #   hubot show all users - Returns a list of all the users that the bot knows about. 'all' is optional.
 #   hubot who has tokens to give? - Returns a list of all users who still have tokens to give out. Try to help these users so that they thank you with a token!
 #   hubot show users with tokens - Returns a list of all users who still have tokens to give out. Try to help these users so that they thank you with a token!
+#   hubot show leaderboard - Returns the top 10 users with the most tokens.
+#   hubot show top n list - Returns the top n users with the most tokens, where n is a positive integer.
 #
 # Author:
 #   cbrummitt
@@ -499,27 +501,32 @@ module.exports = (robot) ->
 
 
   # show leaderboard, show leader board
-  robot.respond /(?:show)?\s+leader ?board\s*/i, (res) ->
+  robot.respond /\s*(?:show)?\s+leader ?board\s*/i, (res) ->
     res.send tokenBot.leaderboard leaderboard_length
 
-  # show top 10 list
-  robot.respond ///
-                (?:show)?
-                \s+
-                (?:the\s+)?
-                top
-                \s+
-                ([0-9a-z]+)
-                \s+
-                list
-                ///i, (res) ->
-    number_input = res.match[1]
+  # who has the most tokens? 
+  robot.respond /\s*who \b(has|holds)\b the most tokens\??\s*/i, (res) ->
+    res.send tokenBot.leaderboard leaderboard_length
 
+  # show top n list
+  robot.respond ///
+                (?:show)?         # "show" is optional
+                \s+               # whitespace
+                (?:the\s+)?       # "the" is optional
+                top               # "top" is required
+                \s+               # whitespace
+                ([0-9a-z]+)       # length of leaderboard, such as "5" or "five"
+                \s+               # whitespace
+                \b(list|users|people)\b  # "list" or "users" or "people" is required
+                ///i, (res) ->
+    # grab the length of the leaderboard (the first capturing group)
+    number_input = res.match[1]
 
     # try to parse the input as a base-10 integer
     number_parseInt = parseInt(number_input, 10)
 
-    # if we can successfully parse number_input as a base-10 integer, then send the result of tokenBot.leaderboard
+    # if we can successfully parse number_input as a base-10 integer, 
+    # then send the result of tokenBot.leaderboard
     if not isNaN(number_parseInt)
       if number_parseInt > 0
         res.send tokenBot.leaderboard number_parseInt
