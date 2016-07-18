@@ -19,8 +19,8 @@ The bot was developed for a randomized controlled trial on social networks and e
 
 ## Usage 
 
-### Alias 
-The bot responds to commands that begin with its name `token`:
+### Format of commands
+The bot responds to commands in public channels that begin with its name `token`:
 ```
 token <command>
 ```
@@ -28,22 +28,35 @@ You can also set an alias for the bot, as described in the [Configuration](#conf
 ```
 /<command>
 ```
-Examples are given below.
+Example of commands are given below.
+
+You can change whether the bot listens for commands in all public channels by changing an environment variable, as explained below [in the configuration section](#create-a-bot-user-in-Rocket.Chat)
+
+You can also enter commands in a direct message with `@token`, the bot. That way, other people don't need to see your command. When you enter a command in a direct message, you don't need to write `token` (nor an alias such as `/`) at the beginning of the command.
 
 ### Giving and revoking tokens 
 
-Did `@user` help you? Then `/give` a token to `@user` to thank them!
+Did `@UsainBolt` help you become a better sprinter? Then `/give` a token to `@UsainBolt` to thank him!
 ```
-/give a token to @user
-/give @user                    # equivalent to the previous command
+/give a token to @UsainBolt
 ```
-Want to thank `@user` *even more*? Then give them more tokens! You can give someone more than one token by using the above command multiple times.
+The bot responds in the same channel with the message that looks like
+```
+@Charlie gave one token to @UsainBolt. @Charlie now has 2 tokens remaining to give to others.
+```
+You can also simply write `/give @UsainBolt` to give `@UsainBolt` a token.
 
-Changed your mind? Or someone else has helped you even more and you've run out of tokens to give them? Then `/revoke` a token from `user`:
+Want to thank `@UsainBolt` *even more* for all the gold medals you're winning thanks to him? Then give him more tokens! You can give someone more than one token by using the above command multiple times.
+
+Changed your mind? Or someone else has helped you even more and you've run out of tokens to give them? Then `/revoke` a token from `@UsainBolt`:
 ```
-/revoke a token from @user
-/revoke @user                  # equivalent to the above
+/revoke a token from @UsainBolt
 ```
+The bot responds in that channel with the message 
+```
+@charlie revoked one token from @fernando.vega-redondo. @charlie now has 1 token remaining to give to others.
+```
+Alternatively, simply write `/revoke @UsainBolt`.
 
 ### Status
 
@@ -130,6 +143,20 @@ See a list of commands by typing `token help`.
     ...
 
 ### Configuration
+
+#### Create a bot user in Rocket.Chat
+
+First create a bot in your Rocket.Chat instance. The administrator can do this as follows: click on "Administration", then clicking on “+” button, and then choose “Bots” under the pull-down menu “Role”.
+
+Then log into your Heroku account in a terminal and set the following environment variables:
+
+* `heroku config:set ROCKETCHAT_URL="https://<your-rocket-chat-instance-name>.rocket.chat"`
+* `heroku config:set ROCKETCHAT_ROOM="general"`
+* `heroku config:set LISTEN_ON_ALL_PUBLIC=true`
+* `heroku config:set ROCKETCHAT_USER=token`
+* `heroku config:set ROCKETCHAT_PASSWORD=<your-password-for-the-bot>`
+
+#### Environment variables 
 
 The following environment variables can optionally be set: 
 
