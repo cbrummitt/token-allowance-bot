@@ -1,10 +1,57 @@
 # token
 
-token is a chat bot for acknowledging peers' contributions. The bot keeps track of acknowledgment or thanks given from one user to another. Each unit of acknowledgment is called a "token". Users can send tokens one at a time to other users. They can also revoke or rescind a token. Finally, users can ask the bot to show the status of a user and show the leaderboard of who has received the most tokens. 
+`token` is a chat bot for acknowledging peers for helping you. The bot keeps track of acknowledgment or thanks given from one user to another. Each unit of acknowledgment is called a "token". Users can send one token at a time to other users. They can also revoke a token. Finally, users can ask the bot to show the status of a user and to show the leaderboard of who has received the most tokens. 
 
-token is built on the [Hubot][hubot] framework.
+The bot was developed for a randomized controlled trial on social networks and entrepreneurship called [The Adansonia Project][adansonia]. At the end of the experiment, each token is a lottery ticket for a prize. Thus, the `token` bot creates incentives for people to help one another.
+
+token is built on the [Hubot][hubot] framework. Technical details are in the section "Technical information".
 
 [hubot]: http://hubot.github.com
+[adansonia]: https://adansonia.net/
+
+## Usage 
+
+### Giving and revoking tokens 
+
+Did `@user` help you? Then `/give` a token to `@user` to thank them!
+```
+/give a token to @user
+/give @user                    # equivalent to the previous command
+```
+
+Changed your mind? Or someone else has helped you even more and you've run out of tokens to give them? Then `/revoke` a token from `user`:
+```
+/revoke a token from @user
+/revoke @user                  # equivalent to the above
+```
+
+(The `/` is an alias for the bot's name, `token`, so you can also write all these commands as `token give a token to @user`.)
+
+### Status
+
+Want to check how many tokens you have left in your "pocket", how many you've given out (and to whom), and how many you've received (and from whom)? Then use the `/status` command: 
+```
+/status
+```
+
+You can also use this command to check the status of any other user:
+```
+/status @user
+```
+
+### Who has tokens to give out?
+
+Got time to spare and want to find people to help? Use the following command to see a list of all people who still tokens available to give to others:
+
+```
+/show user with tokens
+/who has tokens?         # equivalent to the previous command
+```
+
+### Leaderboard 
+
+Who has been given the most tokens? See who's on top with the `/leaderboard` command. Control how large the leaderboard is using the command `/show top 5 list` or `/show top eight`.
+
 
 ## Technical information 
 
