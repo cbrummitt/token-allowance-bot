@@ -19,7 +19,7 @@ The bot was developed for a randomized controlled trial on social networks and e
 
 ## Usage 
 
-## Alias 
+### Alias 
 The bot responds to commands that begin with its name `token`:
 ```
 token <command>
