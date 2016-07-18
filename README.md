@@ -1,6 +1,6 @@
 # token bot
 
-`token` is a chat bot for acknowledging and thanking peers for helping you. It can be used to award prizes to people who have helped others. It was built on the [Hubot][hubot] framework.
+`token` is a chat bot for acknowledging and thanking peers. It can be used to award prizes to people who have helped others. It was built on the [Hubot][hubot] framework.
 
 ## Summary
 
