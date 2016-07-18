@@ -500,7 +500,7 @@ module.exports = (robot) ->
 
 
   # show leaderboard, show leader board
-  robot.respond /\s*(?:show)?\s+leaders? ?board\s*/i, (res) ->
+  robot.respond /\s*(?:show )?\s*leaders? ?board\s*/i, (res) ->
     res.sendPrivate tokenBot.leaderboard leaderboard_length
 
   # who has the most tokens? 
