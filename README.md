@@ -84,9 +84,8 @@ Got time to spare and want to find people to help? Use the following command to 
 
 ```
 /show users with tokens
-/who has tokens?         # equivalent to the previous command
 ```
-The `@token` bot then replies in a direct message with a list of who still has tokens to give out: 
+(Alternatively, you can write `/who has tokens?`.) The `@token` bot then replies in a direct message with a list of who still has tokens to give out: 
 ```
 The following users still have tokens to give. Try to help these users so that they thank you with a token!
 @A.Einstein (4 tokens), @UsainBolt (3 tokens)
