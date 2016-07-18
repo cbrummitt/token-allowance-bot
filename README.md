@@ -93,12 +93,22 @@ The following users still have tokens to give. Try to help these users so that t
 
 ### Leaderboard 
 
-Who has been given the most tokens? See who's on top with the `/leaderboard` command, which shows the top 10 users in descending order of the number of tokens received. Control how large the leaderboard is using the command `/show top 5 list` or `/show top eight`. The bot responds with a direct message that looks like:
+Who has been given the most tokens? See who's on top with the `/leaderboard` command, which shows the top 10 users in descending order of the number of tokens received:
 ```
 These 3 users have currently been thanked the most:
 1. @UsainBolt (2 tokens) 
 2. @charlie (2 tokens) 
-3. @A.Einstein (1 tokens) 
+3. @A.Einstein (1 token)
+4. @A.Smith (1 token)
+5. @Galileo (1 token)
+```
+
+Control how large the leaderboard is using the command `/show top 5 list` or `/show top eight`. The bot responds with a direct message that looks like:
+```
+These 3 users have currently been thanked the most:
+1. @UsainBolt (2 tokens) 
+2. @charlie (2 tokens) 
+3. @A.Einstein (1 token) 
 ```
 
 ### Help - show a list of all commands
