@@ -231,7 +231,6 @@ class TokenNetwork
     tokens_received_by_this_person = if @tokens_received[id]? then @tokens_received[id] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
-      result += "**** tokens_received_by_this_person = #{Util.inspect tokens_received_by_this_person}\n"
       result += "#{name} has " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
       #for own name_peer, number of @tally(tokens_received_by_this_person)
       #  result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
@@ -486,9 +485,9 @@ module.exports = (robot) ->
 
     if users.length == 1
       user = users[0]
-      res.send tokenBot.status user['id']
+      res.sendPrivate tokenBot.status user['id']
     else
-      res.send "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
+      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
@@ -497,16 +496,16 @@ module.exports = (robot) ->
                 status
                 \s*
                 $///i, (res) ->
-    res.send tokenBot.status res.message.user.id
+    res.sendPrivate tokenBot.status res.message.user.id
 
 
   # show leaderboard, show leader board
   robot.respond /\s*(?:show)?\s+leader ?board\s*/i, (res) ->
-    res.send tokenBot.leaderboard leaderboard_length
+    res.sendPrivate tokenBot.leaderboard leaderboard_length
 
   # who has the most tokens? 
   robot.respond /\s*who \b(has|holds)\b the most tokens\??\s*/i, (res) ->
-    res.send tokenBot.leaderboard leaderboard_length
+    res.sendPrivate tokenBot.leaderboard leaderboard_length
 
   # show top n list
   robot.respond ///
@@ -529,23 +528,23 @@ module.exports = (robot) ->
     # then send the result of tokenBot.leaderboard
     if not isNaN(number_parseInt)
       if number_parseInt > 0
-        res.send tokenBot.leaderboard number_parseInt
+        res.sendPrivate tokenBot.leaderboard number_parseInt
       else
-        res.send "Please provide a positive integer; for example, use the command `#{bot_name} show top 5 list`."
+        res.sendPrivate "Please provide a positive integer; for example, use the command `#{bot_name} show top 5 list`."
     else
       # it's not an integer, so try to interpret an English word for a number
       switch number_input
-        when "one" then res.send tokenBot.leaderboard 1
-        when "two" then res.send tokenBot.leaderboard 2
-        when "three" then res.send tokenBot.leaderboard 3
-        when "four" then res.send tokenBot.leaderboard 4
-        when "five" then res.send tokenBot.leaderboard 5
-        when "six" then res.send tokenBot.leaderboard 6
-        when "seven" then res.send tokenBot.leaderboard 7
-        when "eight" then res.send tokenBot.leaderboard 8
-        when "nine" then res.send tokenBot.leaderboard 9
-        when "ten" then res.send tokenBot.leaderboard 10
-        else res.send "Sorry, I didn't understand the number you provided (` #{number_input} `). Use the command `#{bot_name} show leaderboard` to show the top #{leaderboard_length} list, or use `#{bot_name} show top n list` (where `n` is an integer) to show the `n` people who have received the most tokens."
+        when "one" then res.sendPrivate tokenBot.leaderboard 1
+        when "two" then res.sendPrivate tokenBot.leaderboard 2
+        when "three" then res.sendPrivate tokenBot.leaderboard 3
+        when "four" then res.sendPrivate tokenBot.leaderboard 4
+        when "five" then res.sendPrivate tokenBot.leaderboard 5
+        when "six" then res.sendPrivate tokenBot.leaderboard 6
+        when "seven" then res.sendPrivate tokenBot.leaderboard 7
+        when "eight" then res.sendPrivate tokenBot.leaderboard 8
+        when "nine" then res.sendPrivate tokenBot.leaderboard 9
+        when "ten" then res.sendPrivate tokenBot.leaderboard 10
+        else res.sendPrivate "Sorry, I didn't understand the number you provided (` #{number_input} `). Use the command `#{bot_name} show leaderboard` to show the top #{leaderboard_length} list, or use `#{bot_name} show top n list` (where `n` is an integer) to show the `n` people who have received the most tokens."
 
   ###
     Miscellaneous commands
@@ -567,20 +566,20 @@ module.exports = (robot) ->
 
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
-    res.send "Here are all the users I know about: " + ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
+    res.sendPrivate "Here are all the users I know about: " + ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
     #res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
   # show user with tokens still to give out to others
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens|who(?: still)? has tokens)(?: to give(?: out)?)?\??\s*/i, (res) ->
     # check whether tokenBot.tokens_given is empty
     if Object.keys(tokenBot.tokens_given).length == 0
-      res.send "No one has said anything yet, so I don't know of the existence of anyone yet!"
+      res.sendPrivate "No one has said anything yet, so I don't know of the existence of anyone yet!"
     else 
       response = ("@" + robot.brain.userForId(id).name + " (" + (tokenBot.max_tokens_per_user - recipients.length).toString() + " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") + ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
       if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
-        res.send "Everyone has given out all their tokens."
+        res.sendPrivate "Everyone has given out all their tokens."
       else
-        res.send "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
+        res.sendPrivate "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
 
   # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
   robot.hear /.*/i, (res) -> 
