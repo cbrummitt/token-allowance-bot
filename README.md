@@ -151,7 +151,34 @@ See a list of commands by typing `token help`.
     token help - Displays all of the help commands that token knows about.
     ...
 
-### Configuration
+## Configuration
+
+### Environment variables 
+
+The following environment variables can optionally be set: 
+
+* `TOKEN_ALLOW_SELF` -- whether people can give tokens to themselves. If not set, the default is `false`.
+* `TOKENS_CAN_BE_TRANSFERRED` -- whether tokens can be given and revoked. If not set, the default is `true`. Set this to false if you want to prevent people from giving and revoking tokens.
+* `TOKENS_ENDOWED_TO_EACH_USER` -- the number of tokens that each user gets initially. If not set, the default is 5.
+* `HUBOT_ALIAS` -- an alias that the bot will respond to when listening for commands. For example, set this variable to '/'.
+
+Examples of how to set these are given below for the case of using Heroku to deploy the bot.
+
+### Deploy on Heroku 
+
+To use [Heroku][heroku] to deploy the bot, first follow [these instructions][heroku-hubot]. Then set the environment variables using the following commands in a terminal:
+```
+heroku config:set TOKEN_ALLOW_SELF=false
+heroku config:set TOKENS_CAN_BE_TRANSFERRED=true
+heroku config:set TOKENS_ENDOWED_TO_EACH_USER=5
+heroku config:set HUBOT_HEROKU_KEEPALIVE_URL=<url-for-your-token-bot>
+heroku config:set HUBOT_ALIAS=/
+```
+
+where `<url-for-your-token-bot>` is a URL such as `https://token-bot.herokuapp.com/`. If you later want to freeze the giving and revoking of tokens, then run 
+```
+heroku config:set TOKENS_CAN_BE_TRANSFERRED=true
+```
 
 #### Create a bot user in Rocket.Chat
 
@@ -165,34 +192,7 @@ Then log into your Heroku account in a terminal and set the following environmen
 * `heroku config:set ROCKETCHAT_USER=token`
 * `heroku config:set ROCKETCHAT_PASSWORD=<your-password-for-the-bot>`
 
-#### Environment variables 
-
-The following environment variables can optionally be set: 
-
-* `TOKEN_ALLOW_SELF` -- whether people can give tokens to themselves. If not set, the default is `false`.
-* `TOKENS_CAN_BE_TRANSFERRED` -- whether tokens can be given and revoked. If not set, the default is `true`. Set this to false if you want to prevent people from giving and revoking tokens.
-* `TOKENS_ENDOWED_TO_EACH_USER` -- the number of tokens that each user gets initially. If not set, the default is 5.
-* `HUBOT_ALIAS` -- an alias that the bot will respond to when listening for commands. For example, set this variable to '/'.
-
-How to set environment variables will be specific to your operating system.
-Rather than recreate the various methods and best practices in achieving this,
-it's suggested that you search for a dedicated guide focused on your OS.
-
-#### Configuration on Heroku 
-
-To use [Heroku][heroku] to deploy the bot, first follow [these instructions][heroku-hubot]. Then set the environment variables using the following commands in a terminal:
-
-```
-heroku config:set TOKEN_ALLOW_SELF=false
-heroku config:set TOKENS_CAN_BE_TRANSFERRED=true
-heroku config:set TOKENS_ENDOWED_TO_EACH_USER=5
-heroku config:set HUBOT_HEROKU_KEEPALIVE_URL=<url-for-your-token-bot>
-heroku config:set HUBOT_ALIAS=/
-```
-where `<url-for-your-token-bot>` is a URL such as `https://token-bot.herokuapp.com/`. If you later want to freeze the giving and revoking of tokens, then run 
-```
-heroku config:set TOKENS_CAN_BE_TRANSFERRED=true
-```
+#### Keep a Heroku bot alive
 
 If you're using the free plan at Heroku, you may want to use this [keep alive script][keep-alive] to keep your bot alive for 18 hour periods each day.
 
