@@ -1,18 +1,18 @@
 # token
 
-`token` is a chat bot for acknowledging peers for helping you and for giving prizes to people who have helped others. It was built on the [Hubot][hubot] framework.
+`token` is a chat bot for acknowledging and thanking peers for helping you. It can be used to award prizes to people who have helped others. It was built on the [Hubot][hubot] framework.
 
 ## Summary
 
-The bot keeps track of acknowledgment or thanks given from one user to another. Each unit of acknowledgment is called a **token**. Users can send one token at a time to other users.
+The bot keeps track of acknowledgment given from one user to another. Each unit of acknowledgment is called a **token**. Users can `give` one token at a time to other users.
 
-Users can also revoke a token. There are a couple reasons why someone may revoke a token. They may decide that the person was not helping as much as hoped. Or they may want to give that token to someone else who has been more helpful. 
+Users can also `revoke` a token. There are a couple reasons why someone may revoke a token. One may decide that the person was not helping as much as hoped. Or one may want to give that token to someone else who has been more helpful. 
 
-Finally, users can ask the bot to show the status of a user, and they can ask for a leaderboard of who has received the most tokens. 
+Users can also ask the bot to show the `status` of a user, and they can ask for a `leaderboard` of who has received the most tokens. 
 
-The administrator of the bot can "freeze" the giving and revoking of tokens using the environment variable `TOKENS_CAN_BE_TRANSFERRED`. More details are in the section "Technical information".
+The administrator of the bot can "freeze" the giving and revoking of tokens using the environment variable `TOKENS_CAN_BE_TRANSFERRED`. Details on how to do that, and what the other environment variables are, are given in the section "Technical information".
 
-The bot was developed for a randomized controlled trial on social networks and entrepreneurship called [The Adansonia Project][adansonia]. At the end of the experiment, each token is a lottery ticket for a prize. Thus, the `token` bot creates incentives for people to help one another.
+The bot was developed for a randomized controlled trial on social networks and entrepreneurship called [The Adansonia Project][adansonia]. At the end of the experiment, each token is a lottery ticket for a prize. Thus, the `token` bot can create incentives for people to help one another.
 
 [hubot]: http://hubot.github.com
 [adansonia]: https://adansonia.net/
