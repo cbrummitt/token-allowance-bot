@@ -1,10 +1,18 @@
 # token
 
-`token` is a chat bot for acknowledging peers for helping you. The bot keeps track of acknowledgment or thanks given from one user to another. Each unit of acknowledgment is called a "token". Users can send one token at a time to other users. They can also revoke a token. Finally, users can ask the bot to show the status of a user and to show the leaderboard of who has received the most tokens. 
+`token` is a chat bot for acknowledging peers for helping you and for giving prizes to people who have helped others. It was built on the [Hubot][hubot] framework.
+
+## Summary
+
+The bot keeps track of acknowledgment or thanks given from one user to another. Each unit of acknowledgment is called a "token". Users can send one token at a time to other users.
+
+Users can also revoke a token. There are a couple reasons why someone may revoke a token. They may decide that the person was not helping as much as hoped. Or they may want to give that token to someone else who has been more helpful. 
+
+Finally, users can ask the bot to show the status of a user, and they can ask for a leaderboard of who has received the most tokens. 
+
+The administrator of the bot can "freeze" the giving and revoking of tokens using the environment variable `TOKENS_CAN_BE_TRANSFERRED`. More details are in the section "Technical information".
 
 The bot was developed for a randomized controlled trial on social networks and entrepreneurship called [The Adansonia Project][adansonia]. At the end of the experiment, each token is a lottery ticket for a prize. Thus, the `token` bot creates incentives for people to help one another.
-
-token is built on the [Hubot][hubot] framework. Technical details are in the section "Technical information".
 
 [hubot]: http://hubot.github.com
 [adansonia]: https://adansonia.net/
@@ -96,6 +104,21 @@ The following environment variables can optionally be set:
 How to set environment variables will be specific to your operating system.
 Rather than recreate the various methods and best practices in achieving this,
 it's suggested that you search for a dedicated guide focused on your OS.
+
+#### Configuration on Heroku 
+
+If you're using [Heroku] to deploy the bot, set the environment variables using the following commands:
+
+```
+heroku config:set TOKEN_ALLOW_SELF=false
+heroku config:set TOKENS_CAN_BE_TRANSFERRED=true
+heroku config:set TOKENS_ENDOWED_TO_EACH_USER=5
+heroku config:set HUBOT_HEROKU_KEEPALIVE_URL=<url-for-your-token-bot>
+```
+where `<url-for-your-token-bot>` is a URL such as `https://token-bot.herokuapp.com/`.
+heroku config:set HUBOT_ALIAS=/
+
+[heroku]: http://www.heroku.com
 
 ### Adapters
 
