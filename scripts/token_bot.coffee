@@ -106,17 +106,12 @@ class TokenNetwork
     sender_name = "@" + @robot.brain.userForId(sender).name
     recipient_name = "@" + @robot.brain.userForId(recipient).name
       
-    # check whether @cacheTokens[sender] exists and if not set it to []
+    # check whether @tokens_given[sender], @tokens_received[recipient], @tokens_given[recipient], @tokens_received[sender]
+    # exist and if not set each one to []
     if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
       @tokens_given[sender] = []
-      #robot.brain.set sender, 'sent', ['test']
-      #return "robot.brain.get sender, 'sent' = #{robot.brain.get sender, 'sent', ['test']}"
-
     if @tokens_received[recipient]? == false
       @tokens_received[recipient] = []
-
-
-    # also initialize to an empty list the recipient's list of tokens given and the sender's list of tokens received
     if @tokens_given[recipient]? == false
       @tokens_given[recipient] = []
     if @tokens_received[sender]? == false
@@ -150,10 +145,21 @@ class TokenNetwork
     # note that if the sender has given >1 token to recipient, this will remove just one of those tokens from the recipient.
     # we know that tokens can be given (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true') because that's handled by the response.
 
+    # check whether @tokens_given[sender], @tokens_received[recipient], @tokens_given[recipient], @tokens_received[sender]
+    # exist and if not set each one to []
+    if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
+      @tokens_given[sender] = []
+    if @tokens_received[recipient]? == false
+      @tokens_received[recipient] = []
+    if @tokens_given[recipient]? == false
+      @tokens_given[recipient] = []
+    if @tokens_received[sender]? == false
+      @tokens_received[sender] = []
+
     # get the names of these users
     sender_name = "@" + @robot.brain.userForId(sender).name
     recipient_name = "@" + @robot.brain.userForId(recipient).name
-    
+
     # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
     if not @tokens_given[sender]?
       return "@#{sender_name} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
