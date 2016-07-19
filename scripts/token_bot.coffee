@@ -374,7 +374,7 @@ module.exports = (robot) ->
   tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
   # whether people can give tokens to themself. defaults to false.
-  allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
+  allow_self = true #if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
   
   # default length for the leaderboard showing the people with the most tokens
   leaderboard_length = 10
@@ -418,13 +418,9 @@ module.exports = (robot) ->
     sender_id = res.message.user.id
 
     # is the message a DM to the bot?
+    # a message is a direct message if the message's room contains the sender_id 
+    # (because the room ID is a concatenation of the IDs of the sender and recipients)
     is_direct_message = (res.message.room.indexOf(sender_id) > -1)
-
-    res.send "is_direct_message = #{is_direct_message}"
-
-    # debug to figure out when a room is a DM
-    res.send "res.message = #{Util.inspect res.message}"
-    res.send "Sender: {id: #{sender_id}, name: #{sender_name}}"
 
     #determine whether the user is trying to give a token or revoke a token
     if res.match[1].search(give_regex) != -1
@@ -469,8 +465,7 @@ module.exports = (robot) ->
     recipient_name = "@" + recipient.name
     recipient_id = recipient.id
 
-    res.send "recipient: {id: #{recipient_id}, name: #{recipient_name}}"
-
+    
     # check whether the sender is trying to give a token to himself/herself and allow_self is false
     # if so, return a random message saying that you can't give a token to yourself
     if not allow_self and res.message.user.id == recipient_id
@@ -489,10 +484,19 @@ module.exports = (robot) ->
       log_message = "{action: " + (if give_bool then "give" else "revoke") + ", "
       log_message += "sender: {id: #{sender_id}, name: #{sender_name}}, "
       log_message += "recipient: {id: #{recipient_id}, name: #{recipient_name}}, "
+      log_message += "is_direct_message: #{is_direct_message}, "
       log_message += "numtokens: #{num_tokens_to_transfer}}"
       robot.logger.info log_message
       message = tokenBot.give_or_revoke_token sender_id, recipient_id, num_tokens_to_transfer, give_bool
       res.send message
+
+      # if the command was givne in a direct message to the bot, 
+      # then send a direct message to the recipient to notify them
+      res.send "recipient: {id: #{recipient_id}, name: #{recipient_name}}"
+      res.send "res.envelope = #{Util.inspect res.envelope}"
+      res.send "res.envelope.user.name = #{res.envelope.user.name}"
+      if is_direct_message
+        robot.adapter.chatdriver.sendMessageByRoomId ("Psst. This action was done privately. " + message), robot.adapter.chatdriver.getDirectMessageRoomId(recipient_id).room
     else
       fail_message = "I didn't understand how many tokens you want to " + action_string + "."
       fail_message += " If you don't provide a number, I assume you want to " + action_string + " one token."
