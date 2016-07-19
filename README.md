@@ -44,7 +44,7 @@ The bot responds in the same channel with the message that looks like
 ```
 @Charlie gave one token to @UsainBolt. @Charlie now has 1 token remaining to give to others.
 ```
-You can also simply write `/give @UsainBolt` to give `@UsainBolt` a token.
+You can also simply write `/give @UsainBolt` to give a token to `@UsainBolt`.
 
 Want to thank `@UsainBolt` *even more* for all the gold medals you're winning thanks to him? Then give him more tokens! You can give someone more than one token by using the above command multiple times.
 
