@@ -437,7 +437,7 @@ module.exports = (robot) ->
     # if so, send a message and return
     if not tokens_can_be_given_or_revoked
       res.send "Sorry #{sender_name}, tokens can no longer be given nor revoked."
-      robot.logger.info ("#{Util.inspect(res.message.user)} tried to " + 
+      robot.logger.info ("User {id: #{sender_id}, name: #{sender_name}} tried to " + 
                           action_string + 
                           " a token but tokens cannot be given now.")
       return
@@ -464,7 +464,7 @@ module.exports = (robot) ->
     # if so, return a random message saying that you can't give a token to yourself
     if not allow_self and res.message.user.id == recipient_id
       res.send res.random tokenBot.selfDeniedResponses(sender_name)
-      robot.logger.info "#{Util.inspect(sender)} tried to give himself/herself a token"
+      robot.logger.info "User {id: #{sender_id}, name: #{sender_name}} tried to give himself/herself a token"
       return
 
     # figure out how many tokens they want to give or revoke
@@ -475,10 +475,10 @@ module.exports = (robot) ->
       else fuzzy_string_to_nonnegative_int res.match[2]
 
     if num_tokens_to_transfer? and not isNaN num_tokens_to_transfer
-      log_message = "action: " + if give_bool then "give" else "revoke" + ", "
-      log_message += "sender: #{Util.inspect(sender)}, "
-      log_message += "recipient: #{Util.inspect(recipient)}, "
-      log_message += "numtokens: #{num_tokens_to_transfer}"
+      log_message = "{action: " + (if give_bool then "give" else "revoke") + ", "
+      log_message += "sender: {id: #{sender_id}, name: #{sender_name}}, "
+      log_message += "recipient: {id: #{recipient_id}, name: #{recipient_name}}, "
+      log_message += "numtokens: #{num_tokens_to_transfer}}"
       robot.logger.info log_message
       message = tokenBot.give_or_revoke_token sender_id, recipient_id, num_tokens_to_transfer, give_bool
       res.send message
