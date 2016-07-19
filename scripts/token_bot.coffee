@@ -496,7 +496,9 @@ module.exports = (robot) ->
       res.send "res.envelope = #{Util.inspect res.envelope}"
       res.send "res.envelope.user.name = #{res.envelope.user.name}"
       if is_direct_message
-        robot.adapter.chatdriver.sendMessageByRoomId ("Psst. This action was done privately. " + message), robot.adapter.chatdriver.getDirectMessageRoomId(recipient_id).room
+        direct_message = ("Psst. This action was done privately. " + message)
+        res.send "Attempting to send the following DM: #{direct_message}"
+        robot.adapter.chatdriver.sendMessageByRoomId direct_message, robot.adapter.chatdriver.getDirectMessageRoomId(recipient_id).room
     else
       fail_message = "I didn't understand how many tokens you want to " + action_string + "."
       fail_message += " If you don't provide a number, I assume you want to " + action_string + " one token."
