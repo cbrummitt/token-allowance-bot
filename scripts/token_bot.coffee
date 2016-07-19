@@ -336,7 +336,7 @@ interpret_alphabetic_number = (str) ->
 # zero|no|none|one|a|an|two|a couple of|a pair of|three|a few|four|five|a handful|several|
 # six|a half dozen|seven|eight|nine|ten|eleven|twelve|a dozen|thirteen|a baker's dozen"""
 alphabetic_number_alternatives = """
-zero|no|none|one|a|an|two|three|a few|four|five|several|
+zero|no|none|one|a|an|two|three|four|five|several|
 six|seven|eight|nine|ten|eleven|twelve|thirteen|some"""
 
 fuzzy_string_to_nonnegative_int = (str) -> 
