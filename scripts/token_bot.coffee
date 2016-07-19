@@ -340,7 +340,7 @@ zero|no|none|one|a|an|two|three|a few|four|five|several|
 six|seven|eight|nine|ten|eleven|twelve|thirteen|some"""
 
 fuzzy_string_to_nonnegative_int = (str) -> 
-  if str.search(/[0-9]+/i) != -1
+  if str.trim().search(/[0-9]+/i) != -1
     return parseInt(str, 10)
   else if str.search(/[a-z ]+/i) != -1
     return interpret_alphabetic_number str.trim()
@@ -539,20 +539,36 @@ module.exports = (robot) ->
     res.sendPrivate tokenBot.leaderboard leaderboard_length
 
   # show top n list
-  robot.respond ///
-                (?:show)?         # "show" is optional
-                \s+               # whitespace
-                (?:the\s+)?       # "the" is optional
-                top               # "top" is required
-                \s+               # whitespace
-                ([0-9a-z]+)       # length of leaderboard, such as "5" or "five"
-                (?:\s+\b(list|users|people)?\b)?  # "list" or "users" or "people" is optional
-                ///i, (res) ->
+  show_top_n_regex_string = "" +
+    "(?:show)?" +         # "show" is optional
+    "\\s+" +               # whitespace
+    "(?:the\s+)?" +       # "the" is optional
+    "top" +               # "top" is required
+    "\\s+" +               # whitespace
+    "(" + number_regex_string + ")" +       # length of leaderboard, such as "5" or "five"
+    "(?:\\s+\\b(list|users|people)?\\b)?"  # "list" or "users" or "people" is optional
+
+  show_top_n_regex = new RegExp(show_top_n_regex_string, "i")
+  # robot.respond ///
+  #               (?:show)?         # "show" is optional
+  #               \s+               # whitespace
+  #               (?:the\s+)?       # "the" is optional
+  #               top               # "top" is required
+  #               \s+               # whitespace
+  #               ([0-9a-z]+)       # length of leaderboard, such as "5" or "five"
+  #               (?:\s+\b(list|users|people)?\b)?  # "list" or "users" or "people" is optional
+  #               ///i, (res) ->
+  robot.respond show_top_n_regex, (res) -> 
     # grab the length of the leaderboard (the first capturing group)
     number_input = res.match[1]
 
+    number_parseInt = switch
+      when number_input == "" or not number_input? then leaderboard_length # default value
+      when number_input == "all" then robot.brain.data.users.length
+      else fuzzy_string_to_nonnegative_int number_input
+
     # try to parse the input as a base-10 integer
-    number_parseInt = parseInt(number_input, 10) # TODO: use the new function above for parsing a nonnegative number
+    #number_parseInt = parseInt(number_input, 10) # TODO: use the new function above for parsing a nonnegative number
 
     # if we can successfully parse number_input as a base-10 integer, 
     # then send the result of tokenBot.leaderboard
