@@ -417,6 +417,11 @@ module.exports = (robot) ->
     sender_name = "@" + res.message.user.name
     sender_id = res.message.user.id
 
+    # is the message a DM to the bot?
+    is_direct_message = (res.message.room.indexOf(sender_id) > -1)
+
+    res.send "is_direct_message = #{is_direct_message}"
+
     # debug to figure out when a room is a DM
     res.send "res.message = #{Util.inspect res.message}"
     res.send "Sender: {id: #{sender_id}, name: #{sender_name}}"
@@ -636,6 +641,7 @@ module.exports = (robot) ->
   ###
   robot.respond /what is your name\??/i, (res) -> 
     res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} <command>`."
+    res.send "My ID is #{Util.inspect robot.brain.usersForFuzzyName(bot_name.trim())}"
 
   robot.hear /how do I \b(?:give|send)\b a token\??/i, (res) -> 
     res.send "Use the command `#{bot_name} give a token to @user_name`."
