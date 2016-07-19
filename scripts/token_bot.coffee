@@ -198,8 +198,12 @@ class TokenNetwork
     return count
 
 
-  status: (id) -> 
+  status: (id, self_bool) -> 
     # return the number of tokens remaining, number of tokens, and number of tokens received (including whom).
+    # Inputs: 
+    #  1. id is the ID of the user for which we'll return the status; 
+    #  2. self_bool is a boolean variable for whether the person writing 
+    #     this command is the same as the one for which we're returning the status
     # Example:
     # @name has 2 tokens remaining to give to others. 
     # @name has given tokens to the following people: 
@@ -209,7 +213,7 @@ class TokenNetwork
     #   @user_4 (1 token)
     #   @user_5 (1 token)
 
-    name = "@" + @robot.brain.userForId(id).name
+    name = if self_bool then "You" else "@" + @robot.brain.userForId(id).name
 
     # list of the people to whom `name` has given tokens
     tokens_given_by_this_person = if @tokens_given[id]? then @tokens_given[id] else []
@@ -220,30 +224,32 @@ class TokenNetwork
 
     # number of tokens this person has left to give others
     tokens_remaining = @max_tokens_per_user - num_tokens_given
-    result += "#{name} has " + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
+
+    has_have = if self_bool then "have " else "has "
+    result += "#{name} " + has_have + (if tokens_remaining == @max_tokens_per_user then "all " else "") + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
     result += "\n"
 
     # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
-      result += "#{name} has given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people: "
+      result += "#{name} " + has_have + "given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people: "
       #for own name_peer, number of @tally(tokens_given_by_this_person)
       #  result += "    - to #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
       result += ("@" + @robot.brain.userForId(id_peer).name + " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
-    else
-      result += "#{name} has not given any tokens to other people. "
-    result += "\n"
+    # else
+    #   result += "#{name} has not given any tokens to other people. "
+      result += "\n"
 
 
     # number of tokens `name` has received from others (and from whom)
     tokens_received_by_this_person = if @tokens_received[id]? then @tokens_received[id] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
-      result += "#{name} has " + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
+      result += "#{name} " + has_have + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
       #for own name_peer, number of @tally(tokens_received_by_this_person)
       #  result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
       result += ("@" + @robot.brain.userForId(id_peer).name + " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
     else
-      result += "#{name} does not have any tokens from other people."
+      result += "#{name} " + (if self_bool then "do" else "does") + " not have any tokens from other people."
 
     #result += "\n\n Debugging: \n tokens_given_by_this_person = #{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
 
@@ -300,7 +306,7 @@ class TokenNetwork
 ######################################################################################################
 ######################################################################################################
 
-# for inspecting an object
+# for inspecting an object usting Util.inspect
 Util = require "util"
 
 # helper function that converts a string to a Boolean
@@ -368,7 +374,7 @@ module.exports = (robot) ->
   tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
   # whether people can give tokens to themself. defaults to false.
-  allow_self = true #if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
+  allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
   
   # default length for the leaderboard showing the people with the most tokens
   leaderboard_length = 10
@@ -406,20 +412,10 @@ module.exports = (robot) ->
 
   give_revoke_regex = new RegExp(give_revoke_regex_string, "i")
 
-  #give_revoke_regex = new RegExp("\b(?:give|send)\b(?:\s+a)?(?:\s+tokens{0,1})?(?:\s+to)?\s+@?([\w.\-]+)*s*$", "i")
-  #give_revoke_regex = new RegExp("\\b(give|send|revoke)\\b (b)(c)?","i")
-
   robot.respond give_revoke_regex, (res) ->  # `res` is an instance of Response. 
     sender = res.message.user
     sender_name = "@" + res.message.user.name
     sender_id = res.message.user.id
-
-    # res.send "sender = #{Util.inspect sender}"
-    # res.send "give/revoke fired"
-    # res.send "res.match = #{res.match}"
-    # res.send "res.match[1] = #{res.match[1]}"
-    # res.send "res.match[2] = #{res.match[2]}"
-    # res.send "res.match[2] = #{res.match[3]}"
 
     #determine whether the user is trying to give a token or revoke a token
     if res.match[1].search(give_regex) != -1
@@ -516,7 +512,9 @@ module.exports = (robot) ->
 
     if users.length == 1
       user = users[0]
-      res.sendPrivate tokenBot.status user['id']
+      # whether the person writing the command is the one we're getting the status of
+      self_bool = (user['id'] == res.message.user.id)
+      res.sendPrivate tokenBot.status user['id'], self_bool
     else
       res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
 
@@ -527,7 +525,7 @@ module.exports = (robot) ->
                 status
                 \s*
                 $///i, (res) ->
-    res.sendPrivate tokenBot.status res.message.user.id
+    res.sendPrivate tokenBot.status res.message.user.id, true
 
 
   # show leaderboard, show leader board
@@ -558,9 +556,6 @@ module.exports = (robot) ->
       when number_input == "" or not number_input? then leaderboard_length # default value
       when number_input == "all" then robot.brain.data.users.length
       else fuzzy_string_to_nonnegative_int number_input
-
-    # try to parse the input as a base-10 integer
-    #number_parseInt = parseInt(number_input, 10) # TODO: use the new function above for parsing a nonnegative number
 
     # if we can successfully parse number_input as a base-10 integer, 
     # then send the result of tokenBot.leaderboard
