@@ -177,92 +177,6 @@ class TokenNetwork
             return message 
 
 
-  give_token: (sender, recipient) -> 
-    # `give_token` gives a token from the sender to recipient. It returns a message to send to the chat channel. 
-    # The inputs `sender` and `recipient` are user ID's. 
-    # we know that tokens can be given (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true') because that's handled by the response.
-    
-    # get the names of these users
-    sender_name = "@" + @robot.brain.userForId(sender).name
-    recipient_name = "@" + @robot.brain.userForId(recipient).name
-      
-    # check whether @tokens_given[sender], @tokens_received[recipient], @tokens_given[recipient], @tokens_received[sender]
-    # exist and if not set each one to []
-    if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
-      @tokens_given[sender] = []
-    if @tokens_received[recipient]? == false
-      @tokens_received[recipient] = []
-    if @tokens_given[recipient]? == false
-      @tokens_given[recipient] = []
-    if @tokens_received[sender]? == false
-      @tokens_received[sender] = []
-
-    # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
-    # note that this allows someone to send multiple tokens to the same user
-    if @tokens_given[sender].length < @max_tokens_per_user
-      # update @tokens_given 
-      @tokens_given[sender].push recipient
-      @robot.brain.data.tokens_given = @tokens_given
-
-      # update @tokens_received
-      @tokens_received[recipient].push sender
-      @robot.brain.data.tokens_received = @tokens_received
-
-      message = "#{sender_name} gave one token to #{recipient_name}. " 
-      tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-      message += "#{sender_name} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
-
-      return message 
-      #message += "\n#{recipient} has received tokens from the following: " # #{@tokens_received[recipient]}."
-      #for own name_peer, number of @tally(@tokens_received[recipient])
-      #  result += "#{name_peer} (#{number} token" + (if number != 1 then "s" else "") + ") "
-      #result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(@tokens_received[recipient])).join(", ")
-    else
-      return "#{sender_name}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `token revoke a token from @user_name`."
-
-  revoke_token: (sender, recipient) ->
-    # `revoke_token` removes recipient from @tokens_given[sender] and removes sender from @tokens_received[recipient] 
-    # note that if the sender has given >1 token to recipient, this will remove just one of those tokens from the recipient.
-    # we know that tokens can be given (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true') because that's handled by the response.
-
-    # check whether @tokens_given[sender], @tokens_received[recipient], @tokens_given[recipient], @tokens_received[sender]
-    # exist and if not set each one to []
-    if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
-      @tokens_given[sender] = []
-    if @tokens_received[recipient]? == false
-      @tokens_received[recipient] = []
-    if @tokens_given[recipient]? == false
-      @tokens_given[recipient] = []
-    if @tokens_received[sender]? == false
-      @tokens_received[sender] = []
-
-    # get the names of these users
-    sender_name = "@" + @robot.brain.userForId(sender).name
-    recipient_name = "@" + @robot.brain.userForId(recipient).name
-
-    # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
-    if not @tokens_given[sender]?
-      return "@#{sender_name} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
-    else if not @tokens_received[recipient]
-      return "@#{recipient_name} has not received any tokens from anyone." #"#{sender} has not given any tokens to #{recipient}."
-    else # sender has sent >=1 token to someone, and recipieint has received >=1 token from someone
-      
-      # remove the first occurrence of recipient in the list @tokens_given[sender]
-      index = @tokens_given[sender].indexOf recipient
-      @tokens_given[sender].splice index, 1 if index isnt -1
-
-      # remove the first occurence of sender in the list @tokens_received[recipient]
-      index = @tokens_received[recipient].indexOf sender
-      @tokens_received[recipient].splice index, 1 if index isnt -1
-
-      if index isnt -1
-        message = "#{sender_name} revoked one token from #{recipient_name}. "
-        tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-        message += "#{sender_name} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
-        return message 
-      else
-        return "#{sender_name}: #{recipient_name} does not have any tokens from you, so you cannot revoke a token from #{recipient_name}."
-
   # TODO: currently we're not using these functions. We're showing the same response every time.
   receive_token_response: ->
     @receive_token_responses[Math.floor(Math.random() * @receive_token_responses.length)]
@@ -500,12 +414,12 @@ module.exports = (robot) ->
     sender_name = "@" + res.message.user.name
     sender_id = res.message.user.id
 
-    res.send "sender = #{Util.inspect sender}"
-    res.send "give/revoke fired"
-    res.send "res.match = #{res.match}"
-    res.send "res.match[1] = #{res.match[1]}"
-    res.send "res.match[2] = #{res.match[2]}"
-    res.send "res.match[2] = #{res.match[3]}"
+    # res.send "sender = #{Util.inspect sender}"
+    # res.send "give/revoke fired"
+    # res.send "res.match = #{res.match}"
+    # res.send "res.match[1] = #{res.match[1]}"
+    # res.send "res.match[2] = #{res.match[2]}"
+    # res.send "res.match[2] = #{res.match[3]}"
 
     #determine whether the user is trying to give a token or revoke a token
     if res.match[1].search(give_regex) != -1
@@ -578,135 +492,6 @@ module.exports = (robot) ->
       fail_message += " I also understand numbers like 1, 2, 3 and some alphabetic numbers like one, two, three."
       res.send fail_message
     return
-
-
-
-  # ## respond to `give a token @user_name`
-  # robot.respond ///
-  #               \b(?:give|send)\b         # give or send
-  #               (?:\s+a)?              # a is optional
-  #               (?:\s+tokens{0,1})?       # token or tokens
-  #               (?:\s+to)?             # to is optional
-  #               \s+                  # 1 charachter of whitespace
-  #               @?([\w.\-]+)*      # user name or name (to be matched in a fuzzy way below)
-  #               \s*$                # 0 or more whitespace
-  #              ///i, (res) ->       # `res` is an instance of Response. 
-    
-  #   sender = res.message.user
-  #   sender_name = "@" + res.message.user.name
-  #   sender_id = res.message.user.id
-
-  #   if not tokens_can_be_given_or_revoked
-  #     res.send "Sorry #{sender_name}, tokens can no longer be given nor revoked."
-  #     robot.logger.info "#{Util.inspect(res.message.user)} tried to give a token but tokens cannot be given now."
-  #   else 
-  #     # figure out who the recipient is 
-  #     recipient_name_raw = res.match[1]# the fourth capture group is the name of the recipient
-  #     recipients = robot.brain.usersForFuzzyName(recipient_name_raw.trim()) 
-  #     ## TODO: does this handle errors with the name not a username? 
-  #     ## TODO: what does this command do if I give it "/give token xxx" where "xxx" isn't the name of a user?
-      
-  #     #if not (recipients.length >= 1) # I don't think this will every occur.
-  #     #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
-  #     #else
-
-  #     # res.send "\n************ BEGIN information for debugging ************"
-  #     # res.send "The command `give a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
-  #     # res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}. The value of tokens_can_be_given_or_revoked is #{tokens_can_be_given_or_revoked}."
-  #     # res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
-  #     # res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
-
-  #     # res.send "robot.brain.userForName(res.match[4].trim()) = #{robot.brain.userForName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.userForName(res.match[4].trim()))}"
-  #     # res.send "robot.brain.usersForRawFuzzyName(res.match[4].trim()) = #{robot.brain.usersForRawFuzzyName(res.match[4].trim())}. Contents: #{Util.inspect(robot.brain.usersForRawFuzzyName(res.match[4].trim()))}"
-  #     # res.send "************ END information for debugging ************\n"
-
-  #     if recipients.length == 1
-  #       recipient_name = "@" + recipients[0]['name'] # TODO: does this need to be the ID rather than name so that we are sure we don't have conflicting names?
-  #       recipient_id = recipients[0]['id']
-  #       recipient = recipients[0]
-
-  #       if allow_self or res.message.user.id != recipient_id
-  #         robot.logger.info "#{Util.inspect(sender)} sent a token to #{Util.inspect(recipient)}"
-  #         message = tokenBot.give_token sender_id, recipient_id
-  #         res.send message
-  #         #karma.increment subject
-  #         #msg.send "#{subject} #{karma.incrementResponse()} (Karma: #{karma.get(subject)})"
-  #       else
-  #         # allow_self is false and res.message.user.name == recipient, 
-  #         # so return a random message saying that you can't give a token to yourself
-  #         res.send res.random tokenBot.selfDeniedResponses(sender_name)
-  #         robot.logger.info "#{Util.inspect(sender)} tried to give himself/herself a token"
-  #     else
-  #       fail_message = "Sorry #{sender_name}, I didn't understand that person ( `#{recipient_name_raw}` ) to whom you're trying to give a token."
-  #       fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as `token give a token to @user_name`. "
-  #       fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
-  #       res.send fail_message
-
-  # ## respond to `revoke (a) token (from) @user_name`
-  # robot.respond ///
-  #               \b(?:revoke|remove|rescind|cancel|void|retract|withdraw|take back|get back)\b  # revoke or remove or rescind or cancel or void
-  #               (?:\s+a)?           # a is optional
-  #               (?:\s+tokens{0,1})?   # token or tokens
-  #               (?:\s+from)?          # from is optional
-  #               \s+                 # at least 1 charachter of whitespace
-  #               @?([\w.\-]+)*      # user name or name (to be matched in a fuzzy way below)
-  #               \s*$                # 0 or more whitespace
-  #               ///i, (res) ->       # `res` is an instance of Response. 
-    
-  #   sender = res.message.user
-  #   sender_name = "@" + res.message.user.name
-  #   sender_id = res.message.user.id
-
-  #   if not tokens_can_be_given_or_revoked
-  #     res.send "Sorry #{sender_name}, tokens can no longer be given nor revoked."
-  #     robot.logger.info "#{Util.inspect(sender)} tried to revoke a token but tokens cannot be given now."
-  #   else 
-  #     # figure out who the recipient (person losing a token) is 
-  #     recipient_name_raw = res.match[1] # the first capture group is the name of the recipient
-
-  #     recipients = robot.brain.usersForFuzzyName(recipient_name_raw.trim()) 
-      
-  #     ## TODO: does this handle errors with the name not a username? 
-  #     ## TODO: what does this command do if I give it "/revoke token xxx" where "xxx" isn't the name of a user?
-      
-  #     # Debug messages:
-  #     # res.send "\n************ BEGIN information for debugging ************"
-  #     # res.send "The command `revoke a token` fired. The sender is #{sender}. res.match[4] = #{res.match[4]}."
-  #     # res.send "The value of process.env.TOKENS_CAN_BE_TRANSFERRED is #{process.env.TOKENS_CAN_BE_TRANSFERRED}. The value of tokens_can_be_given_or_revoked is #{tokens_can_be_given_or_revoked}."
-  #     # res.send "robot.brain.usersForFuzzyName(res.match[4].trim()) = recipients = #{recipients}"
-  #     # res.send "Util.inspect(recipients) = #{Util.inspect(recipients)}. Util.inspect(recipients[0]) = #{Util.inspect(recipients[0])}. " 
-  #     # res.send "************ BEGIN information for debugging ************\n"
-
-  #     #if not (recipients.length >= 1) # I don't think this will every occur.
-  #     #  res.send "Sorry, I didn't understand that user name #{res.match[4]}."
-  #     #else
-  #     if recipients.length == 1
-  #       recipient = recipients[0]
-  #       recipient_name = "@" + recipient['name']
-  #       recipient_id = recipient['id']
-
-
-  #       message = tokenBot.revoke_token sender_id, recipient_id
-  #       robot.logger.info "#{Util.inspect(sender)} revoked a token from #{Util.inspect(recipient)}"
-  #       res.send message
-  #     else
-  #       #res.send "Sorry #{sender}, I didn't understand from whom you're trying to revoke a token."
-  #       fail_message = "Sorry #{sender_name}, I didn't understand that person ( `#{recipient_name_raw}` ) from whom you're trying to revoke a token."
-  #       fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as , such as `token revoke a token from @user_name`. "
-  #       # we must know about that recipient in order to give them a token in the first place, so the commented-out message below isn't needed
-  #       #fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
-  #       res.send fail_message
-
-  # # send a response if people try to send or revoke tokens to/from multiple people
-  # robot.respond ///
-  #               \b(revoke|remove|give|send)\b
-  #               (\s+a)?
-  #               (\s+tokens{0,1})?
-  #               (\s+to|from)?
-  #               (?:\s+(?!from|to)@?([\w.\-]+)){2,} # at least two user names; this part cannot match `to` nor `from`
-  #               \s*$///, (res) -> 
-  #   res.send "Please send or revoke only one token at a time. Rather than using first and last names, please use user names, which do not have any spaces."
-
 
   ###
     Status and leaderboard commands 
