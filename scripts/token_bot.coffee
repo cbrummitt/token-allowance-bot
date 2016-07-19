@@ -417,6 +417,10 @@ module.exports = (robot) ->
     sender_name = "@" + res.message.user.name
     sender_id = res.message.user.id
 
+    # debug to figure out when a room is a DM
+    res.send "res.message = #{Util.inspect res.message}"
+    res.send "Sender: {id: #{sender_id}, name: #{sender_name}}"
+
     #determine whether the user is trying to give a token or revoke a token
     if res.match[1].search(give_regex) != -1
       give_bool = true
@@ -459,6 +463,8 @@ module.exports = (robot) ->
     recipient = recipients[0]
     recipient_name = "@" + recipient.name
     recipient_id = recipient.id
+
+    res.send "recipient: {id: #{recipient_id}, name: #{recipient_name}}"
 
     # check whether the sender is trying to give a token to himself/herself and allow_self is false
     # if so, return a random message saying that you can't give a token to yourself
