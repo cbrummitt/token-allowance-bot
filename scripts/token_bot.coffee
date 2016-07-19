@@ -547,17 +547,9 @@ module.exports = (robot) ->
     "\\s+" +               # whitespace
     "(" + number_regex_string + ")" +       # length of leaderboard, such as "5" or "five"
     "(?:\\s+\\b(list|users|people)?\\b)?"  # "list" or "users" or "people" is optional
-
+  
   show_top_n_regex = new RegExp(show_top_n_regex_string, "i")
-  # robot.respond ///
-  #               (?:show)?         # "show" is optional
-  #               \s+               # whitespace
-  #               (?:the\s+)?       # "the" is optional
-  #               top               # "top" is required
-  #               \s+               # whitespace
-  #               ([0-9a-z]+)       # length of leaderboard, such as "5" or "five"
-  #               (?:\s+\b(list|users|people)?\b)?  # "list" or "users" or "people" is optional
-  #               ///i, (res) ->
+
   robot.respond show_top_n_regex, (res) -> 
     # grab the length of the leaderboard (the first capturing group)
     number_input = res.match[1]
@@ -584,18 +576,6 @@ module.exports = (robot) ->
         res.sendPrivate "Sorry, I didn't understand the number you provided (` #{number_input} `). Use the command `#{bot_name} show leaderboard` to show the top #{leaderboard_length} list, or use `#{bot_name} show top n list` (where `n` is an integer) to show the `n` people who have received the most tokens."
       else
         res.sendPrivate tokenBot.leaderboard number_interpreted
-      # switch number_input
-      #   when "one" then res.sendPrivate tokenBot.leaderboard 1
-      #   when "two" then res.sendPrivate tokenBot.leaderboard 2
-      #   when "three" then res.sendPrivate tokenBot.leaderboard 3
-      #   when "four" then res.sendPrivate tokenBot.leaderboard 4
-      #   when "five" then res.sendPrivate tokenBot.leaderboard 5
-      #   when "six" then res.sendPrivate tokenBot.leaderboard 6
-      #   when "seven" then res.sendPrivate tokenBot.leaderboard 7
-      #   when "eight" then res.sendPrivate tokenBot.leaderboard 8
-      #   when "nine" then res.sendPrivate tokenBot.leaderboard 9
-      #   when "ten" then res.sendPrivate tokenBot.leaderboard 10
-      #   else res.sendPrivate "Sorry, I didn't understand the number you provided (` #{number_input} `). Use the command `#{bot_name} show leaderboard` to show the top #{leaderboard_length} list, or use `#{bot_name} show top n list` (where `n` is an integer) to show the `n` people who have received the most tokens."
 
   ###
     Miscellaneous commands
