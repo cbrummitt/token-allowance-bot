@@ -546,8 +546,7 @@ module.exports = (robot) ->
                 top               # "top" is required
                 \s+               # whitespace
                 ([0-9a-z]+)       # length of leaderboard, such as "5" or "five"
-                \s+               # whitespace
-                \b(list|users|people)\b  # "list" or "users" or "people" is required
+                (?:\s+\b(list|users|people)?\b)?  # "list" or "users" or "people" is optional
                 ///i, (res) ->
     # grab the length of the leaderboard (the first capturing group)
     number_input = res.match[1]
