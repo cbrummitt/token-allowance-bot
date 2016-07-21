@@ -478,6 +478,7 @@ module.exports = (robot) ->
 
       # msg.envelope.user.id = recipient_id
       # msg.sendDirect "test"
+<<<<<<< HEAD
       if is_direct_message
         direct_message = ("Psst. This action was done privately. " + message)
         #res.send "Attempting to send the following DM: #{direct_message}"
@@ -492,6 +493,16 @@ module.exports = (robot) ->
 
         robot.logger.info direct_message
         robot.logger.info ("room_id of the DM: " + room_id)
+=======
+      if false # is_direct_message
+        direct_message = ("Psst. This action was done privately. " + message)
+        res.send "Attempting to send the following DM: #{direct_message}"
+        res.send "recipient_id = #{recipient_id}"
+        res.send "recipient_name = #{recipient_name}"
+        res.send "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name) = #{Util.inspect robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name)}"
+        #res.send "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_id).room = #{robot.adapter.chatdriver.getDirectMessageRoomId(recipient).room}"
+        #robot.adapter.chatdriver.sendMessageByRoomId direct_message, robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name).room
+>>>>>>> 410bc1e6cf7118024375eb4374d36144fbd446da
     else
       fail_message = "I didn't understand how many tokens you want to " + action_string + "."
       fail_message += " If you don't provide a number, I assume you want to " + action_string + " one token."
