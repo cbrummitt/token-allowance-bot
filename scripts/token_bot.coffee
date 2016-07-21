@@ -500,7 +500,7 @@ module.exports = (robot) ->
         #room_id = [recipient_id, bot_id].sort().join('')
         robot.logger.info direct_message
         robot.logger.info ("room_id of the DM: " + room_id)
-        robot.sendMessageByRoomId message, direct_msg_room_id
+        robot.sendDirectToUsername recipient_name, message
     else
       fail_message = "I didn't understand how many tokens you want to " + action_string + "."
       fail_message += " If you don't provide a number, I assume you want to " + action_string + " one token."
