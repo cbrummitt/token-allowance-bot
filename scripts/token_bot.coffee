@@ -498,7 +498,7 @@ module.exports = (robot) ->
 
       # msg.envelope.user.id = recipient_id
       # msg.sendDirect "test"
-      if true #is_direct_message
+      if false # is_direct_message
         direct_message = ("Psst. This action was done privately. " + message)
         res.send "Attempting to send the following DM: #{direct_message}"
         res.send "recipient_id = #{recipient_id}"
