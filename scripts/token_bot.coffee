@@ -349,6 +349,12 @@ module.exports = (robot) ->
   # name of the bot 
   bot_name = process.env.HUBOT_ROCKETCHAT_BOTNAME or "token"
   bot_alias = process.env.HUBOT_ALIAS or "/"
+  bot_user = robot.brain.usersForFuzzyName(bot_name)[0]
+  if bot_user? 
+    bot_id = bot_user.id
+  else
+    bot_id = ""
+
 
   # whether tokens can be given or received. defaults to true
   tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
@@ -488,7 +494,9 @@ module.exports = (robot) ->
         #robot.adapter.chatdriver.sendMessageByRoomId direct_message, robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name).room
         
         # room for the direct message
-        room_id = [recipient_id, sender_id].sort().join('')
+        # TODO: Need to find out how to get the user ID of the bot
+        robot.logger.info "bot_id = #{bot_id}"
+        room_id = [recipient_id, bot_id].sort().join('')
 
         robot.logger.info direct_message
         robot.logger.info ("room_id of the DM: " + room_id)
@@ -627,6 +635,8 @@ module.exports = (robot) ->
     res.send "#{Util.inspect(robot.brain.data.users)}"
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
+    res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
+    # res.send "JSON.stringify robot.brain = #{ JSON.stringify robot.brain }" # this gives a  TypeError: Converting circular structure to JSON
 
   robot.respond /clear your brain/i, (res) -> 
     tokenBot.tokens_given = {}
