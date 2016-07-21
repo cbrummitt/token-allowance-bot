@@ -10,17 +10,21 @@
 #   TOKENS_ENDOWED_TO_EACH_USER
 #
 # Commands:
-#   hubot give a token to @user_name - Gives a token to `@user_name`. The words 'token', 'a' and 'to' are optional.
-#   hubot revoke a token from @user_name` - Revokes a token from `@user_name`. The words 'token', 'a' and 'from' are optional.
-#   hubot token status of @user_name - Returns the status of `@user_name`'s tokens. 'of' is optional.
-#   hubot show all users - Returns a list of all the users that the bot knows about. 'all' is optional.
+#   hubot give @user_name - Gives one token to `@user_name`.
+#   hubot give a token to @user_name - Gives a token to `@user_name`.
+#   hubot revoke @user_name - Revokes a token from `@user_name`.
+#   hubot revoke a token from @user_name - Revokes a token from `@user_name`.
+#   hubot status @user_name - Returns the status of `@user_name`'s tokens.
+#   hubot status of @user_name - Returns the status of `@user_name`'s tokens.
+#   hubot show users - Returns a list of all the users that the bot knows about.
+#   hubot who has tokens - Returns a list of all users who still have tokens to give out.
 #   hubot who has tokens to give? - Returns a list of all users who still have tokens to give out. Try to help these users so that they thank you with a token!
 #   hubot show users with tokens - Returns a list of all users who still have tokens to give out. Try to help these users so that they thank you with a token!
-#   hubot show leaderboard - Returns the top 10 users with the most tokens.
+#   hubot leaderboard - Returns the top 10 users with the most tokens.
 #   hubot show top n list - Returns the top n users with the most tokens, where n is a positive integer.
 #
 # Author:
-#   cbrummitt
+#   Charlie Brummitt <brummitt@gmail.com> Github:cbrummitt
 
 
 # Environment variables:
