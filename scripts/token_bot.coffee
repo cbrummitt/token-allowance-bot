@@ -490,15 +490,22 @@ module.exports = (robot) ->
       message = tokenBot.give_or_revoke_token sender_id, recipient_id, num_tokens_to_transfer, give_bool
       res.send message
 
-      # if the command was givne in a direct message to the bot, 
+      # if the command was given in a direct message to the bot, 
       # then send a direct message to the recipient to notify them
-      res.send "recipient: {id: #{recipient_id}, name: #{recipient_name}}"
-      res.send "res.envelope = #{Util.inspect res.envelope}"
-      res.send "res.envelope.user.name = #{res.envelope.user.name}"
-      if is_direct_message
+      # res.send "recipient: {id: #{recipient_id}, name: #{recipient_name}}"
+      # res.send "res.envelope = #{Util.inspect res.envelope}"
+      # res.send "res.envelope.user.name = #{res.envelope.user.name}"
+
+      # msg.envelope.user.id = recipient_id
+      # msg.sendDirect "test"
+      if true #is_direct_message
         direct_message = ("Psst. This action was done privately. " + message)
         res.send "Attempting to send the following DM: #{direct_message}"
-        robot.adapter.chatdriver.sendMessageByRoomId direct_message, robot.adapter.chatdriver.getDirectMessageRoomId(recipient_id).room
+        res.send "recipient_id = #{recipient_id}"
+        res.send "recipient_name = #{recipient_name}"
+        res.send "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name) = #{Util.inspect robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name)}"
+        #res.send "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_id).room = #{robot.adapter.chatdriver.getDirectMessageRoomId(recipient).room}"
+        #robot.adapter.chatdriver.sendMessageByRoomId direct_message, robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name).room
     else
       fail_message = "I didn't understand how many tokens you want to " + action_string + "."
       fail_message += " If you don't provide a number, I assume you want to " + action_string + " one token."
