@@ -33,30 +33,6 @@
 #   TOKENS_ENDOWED_TO_EACH_USER = 5
 
 
-
-## TODO: Update the commands list above. 
-## From the scripting documentation: 
-
-
-#### Commands from karma bot: 
-#   <thing>++ - give thing some karma
-#   <thing>-- - take away some of thing's karma
-#   hubot karma <thing> - check thing's karma (if <thing> is omitted, show the top 5)
-#   hubot karma empty <thing> - empty a thing's karma
-#   hubot karma best - show the top 5
-#   hubot karma worst - show the bottom 5
-
-
-# TODO: Other features we might want
-# a command to show a leader board list of people with the most tokens received?
-# find people who have tokens to give?
-
-# TODO: Do I need to use the save command to get persistence of the data? 
-# Currently the data disappears when I `git heroku push` new code.
-# See the source code at https://github.com/github/hubot/blob/master/src/brain.coffee
-
-
-
 class TokenNetwork
   #### Constructor ####
   constructor: (@robot) -> 
