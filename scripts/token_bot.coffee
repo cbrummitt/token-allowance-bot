@@ -360,7 +360,7 @@ module.exports = (robot) ->
   tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
   # whether people can give tokens to themself. defaults to false.
-  allow_self = true #if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
+  allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
   
   # default length for the leaderboard showing the people with the most tokens
   leaderboard_length = 10
@@ -484,7 +484,9 @@ module.exports = (robot) ->
 
       # msg.envelope.user.id = recipient_id
       # msg.sendDirect "test"
-      if is_direct_message
+      
+      # This isn't working yet ...
+      if false #is_direct_message
         direct_message = ("Psst. This action was done privately. " + message)
         #res.send "Attempting to send the following DM: #{direct_message}"
         #res.send "recipient_id = #{recipient_id}"
