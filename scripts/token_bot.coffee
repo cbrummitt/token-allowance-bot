@@ -496,10 +496,11 @@ module.exports = (robot) ->
         # room for the direct message
         # TODO: Need to find out how to get the user ID of the bot
         robot.logger.info "bot_id = #{bot_id}"
-        room_id = [recipient_id, bot_id].sort().join('')
-
+        direct_msg_room_id = getDirectMessageRoomId recipient_name
+        #room_id = [recipient_id, bot_id].sort().join('')
         robot.logger.info direct_message
         robot.logger.info ("room_id of the DM: " + room_id)
+        robot.sendMessageByRoomId message, direct_msg_room_id
     else
       fail_message = "I didn't understand how many tokens you want to " + action_string + "."
       fail_message += " If you don't provide a number, I assume you want to " + action_string + " one token."
