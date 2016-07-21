@@ -488,7 +488,7 @@ module.exports = (robot) ->
         #robot.adapter.chatdriver.sendMessageByRoomId direct_message, robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name).room
         
         # room for the direct message
-        room_id = [me._id, to._id].sort().join('')
+        room_id = [sender_id, recipient_id].sort().join('')
 
         robot.logger.info direct_message
         robot.logger.info ("room_id of the DM: " + room_id)
