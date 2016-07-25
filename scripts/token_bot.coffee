@@ -102,7 +102,7 @@ class TokenNetwork
       # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
       # note that this allows someone to send multiple tokens to the same user
       if @tokens_given[sender].length >= @max_tokens_per_user
-        return "#{sender_name}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `token revoke a token from @user_name`."
+        return "#{sender_name}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `/revoke @user_name`."
       else 
         # compute the number of tokens this user can give
         num_tokens_to_give = Math.min(num_tokens_to_transfer, @max_tokens_per_user - @tokens_given[sender].length)
@@ -441,7 +441,7 @@ module.exports = (robot) ->
     # if not, send a failure message and return
     if recipients.length != 1
       fail_message = "Sorry #{sender_name}, I didn't understand that person ( `#{recipient_name_raw}` ) to whom you're trying to give a token."
-      fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as `token give a token to @user_name`. "
+      fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as `/give @user_name`. "
       fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
       res.send fail_message
       return
@@ -484,7 +484,7 @@ module.exports = (robot) ->
 
       # msg.envelope.user.id = recipient_id
       # msg.sendDirect "test"
-      
+
       # This isn't working yet ...
       if false #is_direct_message
         direct_message = ("Psst. This action was done privately. " + message)
@@ -656,10 +656,10 @@ module.exports = (robot) ->
     res.send "My ID is #{Util.inspect robot.brain.usersForFuzzyName(bot_name.trim())}"
 
   robot.hear /how do I \b(?:give|send)\b a token\??/i, (res) -> 
-    res.send "Use the command `#{bot_name} give a token to @user_name`."
+    res.send "Use the command `/give @user_name`."
 
   robot.hear /how do I \b(?:revoke|get back)\b a token\??/i, (res) -> 
-    res.send "Use the command `#{bot_name} revoke a token from @user_name`."
+    res.send "Use the command `/revoke @user_name`."
 
   # robot.hear /I like pie/i, (res) ->
   #     res.emote "makes a freshly baked pie"
