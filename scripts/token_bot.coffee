@@ -36,17 +36,16 @@
 class TokenNetwork
   #### Constructor ####
   constructor: (@robot) -> 
-    
     # a dictionary of whose tokens have been given to whom. The data is in the form 
     #     sender : [recipient1, recipient2, ...]
     @tokens_given = {}
+
 
     # a dictionary of who has received tokens from whom. The data is in the form 
     #     recipient : [sender1, sender2, ...]
     @tokens_received = {}
 
-    # Initialize @tokens_given and @tokens_given to a diciontary containing 
-    # `idnumber : []` for each user, where idnumber is the id of a user.
+    #for user of 
     for own key, user of robot.brain.data.users
       @tokens_given[user['id']] = []
       @tokens_received[user['id']] = []
@@ -54,18 +53,21 @@ class TokenNetwork
     # each user can give at most this many tokens to others
     @max_tokens_per_user = process.env.TOKENS_ENDOWED_TO_EACH_USER or 5 
 
-    # TDOO: write a method that will turn this off and display a message in 
-    # #general telling everyone that tokens can no longer be given?
+    # variable that determines whether tokens can be given right now
+    # TDOO: write a method that will turn this off and display a message in #general telling everyone that tokens can no longer be given?
+    # TODO: make these environment variables ` ... = process.env.HUBOT_CAN_TRANSFER_TOKENS or true`
+    #@tokens_can_be_given = true
+    #@tokens_can_be_revoked = true
 
     # list of responses to display when someone receives or gives a token
     # TODO: send messages like these? 
     @receive_token_responses = ["received a token!", "was thanked with a token!"]
     @revoke_token_responses = ["lost a token :(", "had a token revoked"]
 
-    # If the brain was already on, then set the cache to the dictionary @robot.brain.data.tokens_given
+    # if the brain was already on, then set the cache to the dictionary @robot.brain.data.tokens_given
     # the fat arrow `=>` binds the current value of `this` (i.e., `@`) on the spot
-    # TODO: do we want to use this snippet? 
-    # https://github.com/github/hubot/issues/880#issuecomment-81386478
+
+    # TODO: do we want to use this snippet? https://github.com/github/hubot/issues/880#issuecomment-81386478
     @robot.brain.on 'loaded', =>
       if @robot.brain.data.tokens_given
         @tokens_given = @robot.brain.data.tokens_given
@@ -76,21 +78,17 @@ class TokenNetwork
   #### Methods ####
 
   give_or_revoke_token: (sender, recipient, num_tokens_to_transfer, give_bool) -> 
-    # Either give or revoke a token. The person doing the giving/revoking is 
-    # the user `sender` (a user ID); the person receiving a token or having a
-    # token revoked is the `recipient` (a user ID). We know that tokens can be
-    # given or revoked (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true')
-    # because that's handled by the response.
+    # `give_token` gives a token from the sender to recipient. It returns a message to send to the chat channel. 
+    # The inputs `sender` and `recipient` are user ID's. 
+    # we know that tokens can be given (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true') because that's handled by the response.
     
     # get the names of these users
     sender_name = "@" + @robot.brain.userForId(sender).name
     recipient_name = "@" + @robot.brain.userForId(recipient).name
       
-    # check whether @tokens_given[sender], @tokens_received[recipient], 
-    # @tokens_given[recipient], @tokens_received[sender] exist and if not
-    # set each one to []
-    if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet 
-                                       # been defined (i.e., it's null or undefined)
+    # check whether @tokens_given[sender], @tokens_received[recipient], @tokens_given[recipient], @tokens_received[sender]
+    # exist and if not set each one to []
+    if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
       @tokens_given[sender] = []
     if @tokens_received[recipient]? == false
       @tokens_received[recipient] = []
@@ -99,19 +97,15 @@ class TokenNetwork
     if @tokens_received[sender]? == false
       @tokens_received[sender] = []
 
-    # If we are giving (rather than revoking) 
+    # if we are giving (rather than revoking) 
     if give_bool
-      # If the sender has not already given out more that `@max_tokens_per_user`
-      # tokens, then add recepient to @cacheTokens[sender]'s list.
-      # Note that this allows someone to send multiple tokens to the same user.
+      # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
+      # note that this allows someone to send multiple tokens to the same user
       if @tokens_given[sender].length >= @max_tokens_per_user
-        return ("#{sender_name}: you do not have any more tokens available " + 
-                "to give to others. If you want, revoke a token using the " + 
-                "command `/revoke @user_name`.")
+        return "#{sender_name}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `/revoke @user_name`."
       else 
         # compute the number of tokens this user can give
-        num_tokens_to_give = Math.min(num_tokens_to_transfer, 
-                                      @max_tokens_per_user - @tokens_given[sender].length)
+        num_tokens_to_give = Math.min(num_tokens_to_transfer, @max_tokens_per_user - @tokens_given[sender].length)
         # update @tokens_given 
         if num_tokens_to_give > 0
           @tokens_given[sender].push recipient for index in [1..num_tokens_to_give]
@@ -121,23 +115,21 @@ class TokenNetwork
           @tokens_received[recipient].push sender for index in [1..num_tokens_to_give]
           @robot.brain.data.tokens_received = @tokens_received
 
-        message = ("#{sender_name} gave " + num_tokens_to_give + " token" + 
-                   (if num_tokens_to_give != 1 then "s" else "") + 
-                   " to #{recipient_name}. ")
+        message = "#{sender_name} gave " + num_tokens_to_give + " token" + (if num_tokens_to_give != 1 then "s" else "") + " to #{recipient_name}. " 
         tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-        message += ("#{sender_name} now has #{tokens_remaining} token" + 
-                    (if tokens_remaining != 1 then "s" else "") + 
-                    " remaining to give to others. ")
+        message += "#{sender_name} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
 
-        return message
+        return message 
+        #message += "\n#{recipient} has received tokens from the following: " # #{@tokens_received[recipient]}."
+        #for own name_peer, number of @tally(@tokens_received[recipient])
+        #  result += "#{name_peer} (#{number} token" + (if number != 1 then "s" else "") + ") "
+        #result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(@tokens_received[recipient])).join(", ")
     
     else # otherwise we are revoking
 
       # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
       if not @tokens_given[sender]?
-        return ("@#{sender_name} has not given tokens to anyone, so I cannot " +
-                "revoke any tokens. Give tokens using the command `token give" +
-                " @user_name`.")
+        return "@#{sender_name} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
       else if not @tokens_received[recipient]
         return "@#{recipient_name} does not hold any tokens from anyone." 
       else # sender has sent >=1 token to someone, and recipient has received >=1 token from someone
@@ -147,8 +139,7 @@ class TokenNetwork
         num_tokens_to_revoke = Math.min(num_tokens_to_transfer, num_tokens_sender_has_given_recipient)
         
         if num_tokens_to_revoke <= 0
-          return ("#{sender_name}: #{recipient_name} does not have any tokens" +
-                  " from you, so you cannot revoke a token from #{recipient_name}.")
+          return "#{sender_name}: #{recipient_name} does not have any tokens from you, so you cannot revoke a token from #{recipient_name}."
         else
           # remove the first occurrence of recipient in the list @tokens_given[sender]
           for index in [1..num_tokens_to_revoke]
@@ -160,13 +151,9 @@ class TokenNetwork
             @tokens_received[recipient].splice index, 1 if index isnt -1
 
           if index isnt -1
-            message = ("#{sender_name} revoked " + num_tokens_to_revoke +
-                       " token" + (if num_tokens_to_revoke != 1 then "s" else "") +
-                       " from #{recipient_name}. ")
+            message = "#{sender_name} revoked " + num_tokens_to_revoke + " token" + (if num_tokens_to_revoke != 1 then "s" else "") + " from #{recipient_name}. "
             tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-            message += ("#{sender_name} now has #{tokens_remaining} token" +
-                        (if tokens_remaining != 1 then "s" else "") + 
-                        " remaining to give to others. ")
+            message += "#{sender_name} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
             return message 
 
 
@@ -182,7 +169,6 @@ class TokenNetwork
       "Sorry #{name}. Tokens cannot be given to oneself.",
       "I can't do that #{name}. Tokens cannot be given to oneself.",
       "Tokens can only be given to other people."
-      "Nice try #{name}! Unfortunately I can't let you give a token to yourself."
     ]
 
   tally: (list_of_strings) -> 
@@ -220,19 +206,15 @@ class TokenNetwork
     tokens_remaining = @max_tokens_per_user - num_tokens_given
 
     has_have = if self_bool then "have " else "has "
-    result += ("#{name} " + has_have +
-               (if tokens_remaining == @max_tokens_per_user then "all " else "") +
-               tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") +
-               " remaining to give to others. ")
+    result += "#{name} " + has_have + (if tokens_remaining == @max_tokens_per_user then "all " else "") + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
     result += "\n"
 
     # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
-      result += ("#{name} " + has_have + "given " + num_tokens_given + " token" +
-                 (if num_tokens_given != 1 then "s" else "") +
-                 " to the following people: ")
-      result += ("@" + @robot.brain.userForId(id_peer).name + " (" +
-                 num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
+      result += "#{name} " + has_have + "given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people: "
+      #for own name_peer, number of @tally(tokens_given_by_this_person)
+      #  result += "    - to #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+      result += ("@" + @robot.brain.userForId(id_peer).name + " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
     # else
     #   result += "#{name} has not given any tokens to other people. "
       result += "\n"
@@ -242,17 +224,14 @@ class TokenNetwork
     tokens_received_by_this_person = if @tokens_received[id]? then @tokens_received[id] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
-      result += ("#{name} " + has_have + num_tokens_received + " token" +
-                 (if num_tokens_received != 1 then "s" else "") +
-                 " from the following people: ")
-      result += ("@" + @robot.brain.userForId(id_peer).name +
-                 " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
+      result += "#{name} " + has_have + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
+      #for own name_peer, number of @tally(tokens_received_by_this_person)
+      #  result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
+      result += ("@" + @robot.brain.userForId(id_peer).name + " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
     else
       result += "#{name} " + (if self_bool then "do" else "does") + " not have any tokens from other people."
 
-    #result += ("\n\n Debugging: \n tokens_given_by_this_person = " +
-    #           "#{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
-
+    #result += "\n\n Debugging: \n tokens_given_by_this_person = #{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
 
     return result
 
@@ -294,11 +273,18 @@ class TokenNetwork
     return str
 
 
-################################################################################
-################################################################################
-######################## Listen for commands ###################################
-################################################################################
-################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
+######################################################################################################
 
 # for inspecting an object usting Util.inspect
 Util = require "util"
@@ -315,7 +301,6 @@ stringToBool = (str) ->
   else
     return null
 
-# interpret strings that correspond to integers between 0 and 13
 interpret_alphabetic_number = (str) ->
   switch str
     when "zero", "no", "none" then 0
@@ -333,31 +318,27 @@ interpret_alphabetic_number = (str) ->
     when "twelve", "dozen", "a dozen" then 12
     when "thirteen", "baker's dozen", "a baker's dozen" then 13
 
-
-# list of alternatives of names of numbers, to be used in regex's below
+# alphabetic_number_alternatives = """
+# zero|no|none|one|a|an|two|a couple of|a pair of|three|a few|four|five|a handful|several|
+# six|a half dozen|seven|eight|nine|ten|eleven|twelve|a dozen|thirteen|a baker's dozen"""
 alphabetic_number_alternatives = """
 zero|no|none|one|a|an|two|three|four|five|several|
 six|seven|eight|nine|ten|eleven|twelve|thirteen|some"""
 
-
-# convert a string to a nonnegative integer
 fuzzy_string_to_nonnegative_int = (str) -> 
-  if str.trim().search(/[0-9]+/i) != -1 # contains numerals
+  if str.trim().search(/[0-9]+/i) != -1
     return parseInt(str, 10)
-  else if str.search(/[a-z ]+/i) != -1 # contains letters
+  else if str.search(/[a-z ]+/i) != -1
     return interpret_alphabetic_number str.trim()
   else
     return NaN
 
-
-# escape characters for regex
 regexEscape = (str) ->
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
 
 
-# The script must export a function. `robot` is an instance of the bot.
-# We export a function of one variable, the `robot`, which `.hear`s messages 
-# and then does stuff.
+# the script must export a function. `robot` is an instance of the bot.
+# we export a function of one variable, the `robot`, which `.hear`s messages and then does stuff
 module.exports = (robot) ->
   tokenBot = new TokenNetwork robot
 
@@ -374,8 +355,9 @@ module.exports = (robot) ->
   else
     bot_id = ""
 
+
   # whether tokens can be given or received. defaults to true
-  tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true
+  tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
 
   # whether people can give tokens to themself. defaults to false.
   allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
@@ -387,38 +369,35 @@ module.exports = (robot) ->
     Give and revoke commands 
   ###
 
-  give_regex_string = "give|send"
+  give_regex_string = "give|send"#"\b(?:give|send)\b"
   give_regex = new RegExp("\\b(" + give_regex_string + ")\\b", "i")
-  revoke_regex_string = "revoke|remove|rescind|cancel|void|retract|withdraw|take back|get back"
+  revoke_regex_string = "revoke|remove|rescind|cancel|void|retract|withdraw|take back|get back" #"\b(?:revoke|remove|rescind|cancel|void|retract|withdraw|take back|get back)\b"
   revoke_regex = new RegExp("\\b(" + revoke_regex_string + ")\\b", "i")
   number_regex_string = "[0-9]+" + "|" + alphabetic_number_alternatives
   number_regex = new RegExp(number_regex_string, "i")
 
   bot_alias_escaped = regexEscape bot_alias
   bot_name_escaped = regexEscape bot_name
-  bot_name_regex_string = ("\s*\b(?:" + bot_name_escaped + ":?\s*" +
-                           "|" + bot_alias_escaped + "\s*" +
-                           "|" + bot_name_escaped + ":?\s*" + bot_alias_escaped +
-                           ")\b")
+  bot_name_regex_string = "\s*\b(?:" + bot_name_escaped + ":?\s*" + "|" + bot_alias_escaped + "\s*" + "|" + bot_name_escaped + ":?\s*" + bot_alias_escaped + ")\b"
 
-  # this regex string is for debugging
-  #regex_test = "\b(give|send|revoke)\b(?:\s+\b([0-9]+|[a-zA-Z ]+)\b)?(?:\s+tokens{0,1})?(?:\s+\b(?:to|from)\b)?\s+@?([\w.\-]+)\s*"
+  # debug
+  #regex_test = "\b(give|send|revoke)\b(?:\s+\b([0-9]+|[a-zA-Z ]+)\b)?(?:\s+tokens{0,1})?(?:\s+\b(?:to|from)\b)?\s+@?([\w.\-]+)*\s*"
+  regex_test = "\b(give|send|revoke)\b(?:\s+\b([0-9]+|[a-zA-Z ]+)\b)?(?:\s+tokens{0,1})?(?:\s+\b(?:to|from)\b)?\s+@?([\w.\-]+)\s*"
 
   give_revoke_regex_string = "" +
-    "\\b(" + give_regex_string +   # give or revoke (first capturing group)
+    "\\b(" + give_regex_string +        # give or revoke (first capturing group)
     "|" + revoke_regex_string + ")\\b" +  
-    "(?:\\s+" +                    # number of tokens is optional (second capturing group)
+    "(?:\\s+" +                         # number of tokens is optional (second capturing group)
     "\\b(" + number_regex_string + "|all" + ")\\b" + 
     ")?" +
-    "(?:\\s+tokens{0,1})?" +       # token or tokens (optional)
-    "(?:\\s+\\b(?:to|from)\\b)?" + # to or from are optional
-    "\\s+" +                       # at least 1 charachter of whitespace
-    "@?([\\w.\\-]+)" +             # user name or name (to be matched in a fuzzy way below) -- third capture group
-    "\\s*$"                        # 0 or more whitespace
+    "(?:\\s+tokens{0,1})?" +            # token or tokens (optional)
+    "(?:\\s+\\b(?:to|from)\\b)?" +        # to or from are optional
+    "\\s+" +                            # at least 1 charachter of whitespace
+    "@?([\\w.\\-]+)" +                  # user name or name (to be matched in a fuzzy way below) -- third capture group
+    "\\s*$"                                # 0 or more whitespace
 
   give_revoke_regex = new RegExp(give_revoke_regex_string, "i")
 
-  # respond to give or revoke commands
   robot.respond give_revoke_regex, (res) ->  # `res` is an instance of Response. 
     sender = res.message.user
     sender_name = "@" + res.message.user.name
@@ -429,16 +408,15 @@ module.exports = (robot) ->
     # (because the room ID is a concatenation of the IDs of the sender and recipients)
     is_direct_message = (res.message.room.indexOf(sender_id) > -1)
 
-    # determine whether the user is trying to give a token or revoke a token
+    #determine whether the user is trying to give a token or revoke a token
     if res.match[1].search(give_regex) != -1
       give_bool = true
     else if res.match[1].search(revoke_regex) != -1
       give_bool = false
     else
-      # The command didn't match the regular expressions for giving nor for 
-      # revoking. This shouldn't fire because the command shouldn't match the 
-      # regular expression `give_revoke_regex`, but we'll include this anyway 
-      # just in case.
+      # the command didn't match the regular expressions for giving nor for revoking 
+      # this shouldn't fire because the command shouldn't match the regular expression `give_revoke_regex`
+      # but we'll include this anyway just in case
       fail_message = "Sorry #{sender_name}, I couldn't understand your command."
       fail_message += " Type `#{bot_name} help` to see the list of commands."
       res.send fail_message
@@ -462,25 +440,20 @@ module.exports = (robot) ->
     # check whether we identified just one person with that user name
     # if not, send a failure message and return
     if recipients.length != 1
-      fail_message = ("Sorry #{sender_name}, I didn't understand that person " +
-                      "( `#{recipient_name_raw}` ) to whom you're trying to give a token." +
-                      "\n\nMake sure that you enter the person's user name correctly, " +
-                      "either with or without a preceding @ symbol, such as `/give @user_name`. " +
-                      "Also, if you did enter that person's user name correctly, " +
-                      "I won't be able to give them a token from you until that " +
-                      "person has sent at least one message in any channel.")
+      fail_message = "Sorry #{sender_name}, I didn't understand that person ( `#{recipient_name_raw}` ) to whom you're trying to give a token."
+      fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as `/give @user_name`. "
+      fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
       res.send fail_message
       return
 
-    # Now we know who the recipient is
+    # now we know who the recipient is
     recipient = recipients[0]
     recipient_name = "@" + recipient.name
     recipient_id = recipient.id
 
     
-    # Check whether the sender is trying to give a token to himself/herself and
-    # allow_self is false. If so, return a random message saying that you can't
-    # give a token to yourself.
+    # check whether the sender is trying to give a token to himself/herself and allow_self is false
+    # if so, return a random message saying that you can't give a token to yourself
     if not allow_self and res.message.user.id == recipient_id
       res.send res.random tokenBot.selfDeniedResponses(sender_name)
       robot.logger.info "User {id: #{sender_id}, name: #{sender_name}} tried to give himself/herself a token"
@@ -543,12 +516,11 @@ module.exports = (robot) ->
 
   # respond to "status (of) @user"
   robot.respond ///            
-                status        # "status"
-                (?:\s+of)?    # "of" is optional
-                \s+           # whitespace
-                @?([\w.\-]+)  # user name or name (to be matched in a fuzzy way below). 
-                              # \w matches any word character (alphanumeric and underscore).
-                \s*$          # 0 or more whitespace
+                status           # "status"
+                (?:\s+of)?       # "of" is optional
+                \s+              # whitespace
+                @?([\w.\-]+)   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
+                \s*$             # 0 or more whitespace
                 ///i, (res) ->
 
     name_raw = res.match[1]
@@ -588,12 +560,12 @@ module.exports = (robot) ->
   # show top n list
   show_top_n_regex_string = "" +
     "(?:show)?" +         # "show" is optional
-    "\\s+" +              # whitespace
+    "\\s+" +               # whitespace
     "(?:the\s+)?" +       # "the" is optional
     "top" +               # "top" is required
-    "\\s+" +              # whitespace
-    "(" + number_regex_string + ")" +     # length of leaderboard, such as "5" or "five"
-    "(?:\\s+\\b(list|users|people)?\\b)?" # "list" or "users" or "people" is optional
+    "\\s+" +               # whitespace
+    "(" + number_regex_string + ")" +       # length of leaderboard, such as "5" or "five"
+    "(?:\\s+\\b(list|users|people)?\\b)?"  # "list" or "users" or "people" is optional
   
   show_top_n_regex = new RegExp(show_top_n_regex_string, "i")
 
@@ -617,13 +589,7 @@ module.exports = (robot) ->
       # it's not an integer, so try to interpret an English word for a number
       number_interpreted = interpret_alphabetic_number number_input
       if isNaN number_interpreted
-        fail_message = ("Sorry, I didn't understand the number you provided " + 
-                      "(` #{number_input} `). Use the command `#{bot_name} " + 
-                      "show leaderboard` to show the top " + 
-                      "#{leaderboard_length} list, or use `#{bot_name} show" +
-                      " top n list` (where `n` is an integer) to show the `n`" +
-                      " people who have received the most tokens.")
-        res.sendPrivate fail_message
+        res.sendPrivate "Sorry, I didn't understand the number you provided (` #{number_input} `). Use the command `#{bot_name} show leaderboard` to show the top #{leaderboard_length} list, or use `#{bot_name} show top n list` (where `n` is an integer) to show the `n` people who have received the most tokens."
       else
         res.sendPrivate tokenBot.leaderboard number_interpreted
 
@@ -637,18 +603,15 @@ module.exports = (robot) ->
     if res?
        res.reply "#{err}\n#{err.stack}"
 
-
   # inspect a user's user name
   robot.respond /inspect me/i, (res) ->
     user = robot.brain.userForId(res.message.user.id)
     res.send "#{Util.inspect(user)}"
 
-
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
-    res.sendPrivate ("Here are all the users I know about: " + 
-                     ("@#{user.name}" for own key, user of robot.brain.data.users).join ", ")
-
+    res.sendPrivate "Here are all the users I know about: " + ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
+    #res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
 
   # show user with tokens still to give out to others
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens?|who(?: still)? has tokens?)(?: to give(?: out)?)?\??\s*/i, (res) ->
@@ -656,15 +619,11 @@ module.exports = (robot) ->
     if Object.keys(tokenBot.tokens_given).length == 0
       res.sendPrivate "No one has said anything yet, so I don't know of the existence of anyone yet!"
     else 
-      response = ("@" + robot.brain.userForId(id).name + " (" +
-                  (tokenBot.max_tokens_per_user - recipients.length).toString() +
-                  " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") +
-                  ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
+      response = ("@" + robot.brain.userForId(id).name + " (" + (tokenBot.max_tokens_per_user - recipients.length).toString() + " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") + ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
       if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
         res.sendPrivate "Everyone has given out all their tokens."
       else
         res.sendPrivate "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
-
 
   # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
   robot.hear /.*/i, (res) -> 
@@ -675,7 +634,6 @@ module.exports = (robot) ->
     if tokenBot.tokens_received[sender_id]? == false
       tokenBot.tokens_received[sender_id] = []
 
-
   robot.respond /show robot.brain.data.users/i, (res) -> 
     res.send "#{Util.inspect(robot.brain.data.users)}"
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
@@ -683,56 +641,17 @@ module.exports = (robot) ->
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
     # res.send "JSON.stringify robot.brain = #{ JSON.stringify robot.brain }" # this gives a  TypeError: Converting circular structure to JSON
 
-
   robot.respond /clear your brain/i, (res) -> 
     tokenBot.tokens_given = {}
     tokenBot.tokens_received = {}
     robot.brain.data.tokens_given = {}
     robot.brain.data.tokens_received = {}
     robot.brain.data.users = {}
-
-
-  # Who has tokens from @user?
-  # Used to run the lottery
-  robot.respond ///            
-                who has tokens from
-                \s+          # whitespace
-                @?([\w.\-]+) # user name or name (to be matched in a fuzzy way below). 
-                             # \w matches any word character (alphanumeric and underscore).
-                \s*$         # 0 or more whitespace
-                ///i, (res) ->
-
-    name_raw = res.match[1]
-    
-    #if not name?
-    #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
-    #else
-    users = robot.brain.usersForFuzzyName(name_raw.trim()) # the second capture group is the user name
-
-    if users.length == 1
-      user = users[0]
-      # whether the person writing the command is the one we're getting the status of
-      
-      tokens_given_by_this_person = if @tokens_given[id]? then @tokens_given[id] else []
-      num_tokens_given = tokens_given_by_this_person.length
-
-      if num_tokens_given == 0
-        res.sendPrivate "@#{user.name} has not given tokens to anyone."
-      else
-        result = ("#{name} has given " + num_tokens_given + " token" +
-                  (if num_tokens_given != 1 then "s" else "") +
-                  " to the following people: ")
-        result += ("@" + robot.brain.userForId(id_peer).name + " (" +
-                   num_tokens.toString() + ")" for own id_peer, num_tokens of robot.tally(tokens_given_by_this_person)).join(", ")
-        res.sendPrivate result
-      
-    else
-      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
     
   ###
     Help the user figure out how to use the bot
   ###
-  robot.respond /(what is|what's) your name\??/i, (res) -> 
+  robot.respond /what is your name\??/i, (res) -> 
     res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} <command>`."
     res.send "My ID is #{Util.inspect robot.brain.usersForFuzzyName(bot_name.trim())}"
 
@@ -741,3 +660,8 @@ module.exports = (robot) ->
 
   robot.hear /how do I \b(?:revoke|get back)\b a token\??/i, (res) -> 
     res.send "Use the command `/revoke @user_name`."
+
+  # robot.hear /I like pie/i, (res) ->
+  #     res.emote "makes a freshly baked pie"
+  #     res.reply "makes a freshly baked pie"
+
