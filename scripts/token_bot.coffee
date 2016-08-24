@@ -696,7 +696,7 @@ module.exports = (robot) ->
   # Who has tokens from @user?
   # Used to run the lottery
   robot.respond ///            
-                who has tokens from
+                who has received tokens from
                 \s+          # whitespace
                 @?([\w.\-]+) # user name or name (to be matched in a fuzzy way below). 
                              # \w matches any word character (alphanumeric and underscore).
