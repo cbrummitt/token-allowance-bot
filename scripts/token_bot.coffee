@@ -316,6 +316,7 @@ stringToBool = (str) ->
   else
     return null
 
+# interpret strings that correspond to integers between 0 and 13
 interpret_alphabetic_number = (str) ->
   switch str
     when "zero", "no", "none" then 0
@@ -333,27 +334,31 @@ interpret_alphabetic_number = (str) ->
     when "twelve", "dozen", "a dozen" then 12
     when "thirteen", "baker's dozen", "a baker's dozen" then 13
 
-# alphabetic_number_alternatives = """
-# zero|no|none|one|a|an|two|a couple of|a pair of|three|a few|four|five|a handful|several|
-# six|a half dozen|seven|eight|nine|ten|eleven|twelve|a dozen|thirteen|a baker's dozen"""
+
+# list of alternatives of names of numbers, to be used in regex's below
 alphabetic_number_alternatives = """
 zero|no|none|one|a|an|two|three|four|five|several|
 six|seven|eight|nine|ten|eleven|twelve|thirteen|some"""
 
+
+# convert a string to a nonnegative integer
 fuzzy_string_to_nonnegative_int = (str) -> 
-  if str.trim().search(/[0-9]+/i) != -1
+  if str.trim().search(/[0-9]+/i) != -1 # contains numerals
     return parseInt(str, 10)
-  else if str.search(/[a-z ]+/i) != -1
+  else if str.search(/[a-z ]+/i) != -1 # contains letters
     return interpret_alphabetic_number str.trim()
   else
     return NaN
 
+
+# escape characters for regex
 regexEscape = (str) ->
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
 
 
-# the script must export a function. `robot` is an instance of the bot.
-# we export a function of one variable, the `robot`, which `.hear`s messages and then does stuff
+# The script must export a function. `robot` is an instance of the bot.
+# We export a function of one variable, the `robot`, which `.hear`s messages 
+# and then does stuff.
 module.exports = (robot) ->
   tokenBot = new TokenNetwork robot
 
@@ -370,9 +375,8 @@ module.exports = (robot) ->
   else
     bot_id = ""
 
-
   # whether tokens can be given or received. defaults to true
-  tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true #process.env.TOKENS_CAN_BE_TRANSFERRED #or true
+  tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true
 
   # whether people can give tokens to themself. defaults to false.
   allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
@@ -384,35 +388,38 @@ module.exports = (robot) ->
     Give and revoke commands 
   ###
 
-  give_regex_string = "give|send"#"\b(?:give|send)\b"
+  give_regex_string = "give|send"
   give_regex = new RegExp("\\b(" + give_regex_string + ")\\b", "i")
-  revoke_regex_string = "revoke|remove|rescind|cancel|void|retract|withdraw|take back|get back" #"\b(?:revoke|remove|rescind|cancel|void|retract|withdraw|take back|get back)\b"
+  revoke_regex_string = "revoke|remove|rescind|cancel|void|retract|withdraw|take back|get back"
   revoke_regex = new RegExp("\\b(" + revoke_regex_string + ")\\b", "i")
   number_regex_string = "[0-9]+" + "|" + alphabetic_number_alternatives
   number_regex = new RegExp(number_regex_string, "i")
 
   bot_alias_escaped = regexEscape bot_alias
   bot_name_escaped = regexEscape bot_name
-  bot_name_regex_string = "\s*\b(?:" + bot_name_escaped + ":?\s*" + "|" + bot_alias_escaped + "\s*" + "|" + bot_name_escaped + ":?\s*" + bot_alias_escaped + ")\b"
+  bot_name_regex_string = ("\s*\b(?:" + bot_name_escaped + ":?\s*" +
+                           "|" + bot_alias_escaped + "\s*" +
+                           "|" + bot_name_escaped + ":?\s*" + bot_alias_escaped +
+                           ")\b")
 
-  # debug
-  #regex_test = "\b(give|send|revoke)\b(?:\s+\b([0-9]+|[a-zA-Z ]+)\b)?(?:\s+tokens{0,1})?(?:\s+\b(?:to|from)\b)?\s+@?([\w.\-]+)*\s*"
-  regex_test = "\b(give|send|revoke)\b(?:\s+\b([0-9]+|[a-zA-Z ]+)\b)?(?:\s+tokens{0,1})?(?:\s+\b(?:to|from)\b)?\s+@?([\w.\-]+)\s*"
+  # this regex string is for debugging
+  #regex_test = "\b(give|send|revoke)\b(?:\s+\b([0-9]+|[a-zA-Z ]+)\b)?(?:\s+tokens{0,1})?(?:\s+\b(?:to|from)\b)?\s+@?([\w.\-]+)\s*"
 
   give_revoke_regex_string = "" +
-    "\\b(" + give_regex_string +        # give or revoke (first capturing group)
+    "\\b(" + give_regex_string +   # give or revoke (first capturing group)
     "|" + revoke_regex_string + ")\\b" +  
-    "(?:\\s+" +                         # number of tokens is optional (second capturing group)
+    "(?:\\s+" +                    # number of tokens is optional (second capturing group)
     "\\b(" + number_regex_string + "|all" + ")\\b" + 
     ")?" +
-    "(?:\\s+tokens{0,1})?" +            # token or tokens (optional)
-    "(?:\\s+\\b(?:to|from)\\b)?" +        # to or from are optional
-    "\\s+" +                            # at least 1 charachter of whitespace
-    "@?([\\w.\\-]+)" +                  # user name or name (to be matched in a fuzzy way below) -- third capture group
-    "\\s*$"                                # 0 or more whitespace
+    "(?:\\s+tokens{0,1})?" +       # token or tokens (optional)
+    "(?:\\s+\\b(?:to|from)\\b)?" + # to or from are optional
+    "\\s+" +                       # at least 1 charachter of whitespace
+    "@?([\\w.\\-]+)" +             # user name or name (to be matched in a fuzzy way below) -- third capture group
+    "\\s*$"                        # 0 or more whitespace
 
   give_revoke_regex = new RegExp(give_revoke_regex_string, "i")
 
+  # respond to give or revoke commands
   robot.respond give_revoke_regex, (res) ->  # `res` is an instance of Response. 
     sender = res.message.user
     sender_name = "@" + res.message.user.name
@@ -423,15 +430,16 @@ module.exports = (robot) ->
     # (because the room ID is a concatenation of the IDs of the sender and recipients)
     is_direct_message = (res.message.room.indexOf(sender_id) > -1)
 
-    #determine whether the user is trying to give a token or revoke a token
+    # determine whether the user is trying to give a token or revoke a token
     if res.match[1].search(give_regex) != -1
       give_bool = true
     else if res.match[1].search(revoke_regex) != -1
       give_bool = false
     else
-      # the command didn't match the regular expressions for giving nor for revoking 
-      # this shouldn't fire because the command shouldn't match the regular expression `give_revoke_regex`
-      # but we'll include this anyway just in case
+      # The command didn't match the regular expressions for giving nor for 
+      # revoking. This shouldn't fire because the command shouldn't match the 
+      # regular expression `give_revoke_regex`, but we'll include this anyway 
+      # just in case.
       fail_message = "Sorry #{sender_name}, I couldn't understand your command."
       fail_message += " Type `#{bot_name} help` to see the list of commands."
       res.send fail_message
@@ -455,20 +463,25 @@ module.exports = (robot) ->
     # check whether we identified just one person with that user name
     # if not, send a failure message and return
     if recipients.length != 1
-      fail_message = "Sorry #{sender_name}, I didn't understand that person ( `#{recipient_name_raw}` ) to whom you're trying to give a token."
-      fail_message += "\n\nMake sure that you enter the person's user name correctly, either with or without a preceding @ symbol, such as `/give @user_name`. "
-      fail_message += "Also, if you did enter that person's user name correctly, I won't be able to give them a token from you until that person has sent at least one message in any channel."
+      fail_message = ("Sorry #{sender_name}, I didn't understand that person " +
+                      "( `#{recipient_name_raw}` ) to whom you're trying to give a token." +
+                      "\n\nMake sure that you enter the person's user name correctly, " +
+                      "either with or without a preceding @ symbol, such as `/give @user_name`. " +
+                      "Also, if you did enter that person's user name correctly, " +
+                      "I won't be able to give them a token from you until that " +
+                      "person has sent at least one message in any channel.")
       res.send fail_message
       return
 
-    # now we know who the recipient is
+    # Now we know who the recipient is
     recipient = recipients[0]
     recipient_name = "@" + recipient.name
     recipient_id = recipient.id
 
     
-    # check whether the sender is trying to give a token to himself/herself and allow_self is false
-    # if so, return a random message saying that you can't give a token to yourself
+    # Check whether the sender is trying to give a token to himself/herself and
+    # allow_self is false. If so, return a random message saying that you can't
+    # give a token to yourself.
     if not allow_self and res.message.user.id == recipient_id
       res.send res.random tokenBot.selfDeniedResponses(sender_name)
       robot.logger.info "User {id: #{sender_id}, name: #{sender_name}} tried to give himself/herself a token"
@@ -531,11 +544,12 @@ module.exports = (robot) ->
 
   # respond to "status (of) @user"
   robot.respond ///            
-                status           # "status"
-                (?:\s+of)?       # "of" is optional
-                \s+              # whitespace
-                @?([\w.\-]+)   # user name or name (to be matched in a fuzzy way below). \w matches any word character (alphanumeric and underscore).
-                \s*$             # 0 or more whitespace
+                status        # "status"
+                (?:\s+of)?    # "of" is optional
+                \s+           # whitespace
+                @?([\w.\-]+)  # user name or name (to be matched in a fuzzy way below). 
+                              # \w matches any word character (alphanumeric and underscore).
+                \s*$          # 0 or more whitespace
                 ///i, (res) ->
 
     name_raw = res.match[1]
@@ -575,12 +589,12 @@ module.exports = (robot) ->
   # show top n list
   show_top_n_regex_string = "" +
     "(?:show)?" +         # "show" is optional
-    "\\s+" +               # whitespace
+    "\\s+" +              # whitespace
     "(?:the\s+)?" +       # "the" is optional
     "top" +               # "top" is required
-    "\\s+" +               # whitespace
-    "(" + number_regex_string + ")" +       # length of leaderboard, such as "5" or "five"
-    "(?:\\s+\\b(list|users|people)?\\b)?"  # "list" or "users" or "people" is optional
+    "\\s+" +              # whitespace
+    "(" + number_regex_string + ")" +     # length of leaderboard, such as "5" or "five"
+    "(?:\\s+\\b(list|users|people)?\\b)?" # "list" or "users" or "people" is optional
   
   show_top_n_regex = new RegExp(show_top_n_regex_string, "i")
 
@@ -604,7 +618,13 @@ module.exports = (robot) ->
       # it's not an integer, so try to interpret an English word for a number
       number_interpreted = interpret_alphabetic_number number_input
       if isNaN number_interpreted
-        res.sendPrivate "Sorry, I didn't understand the number you provided (` #{number_input} `). Use the command `#{bot_name} show leaderboard` to show the top #{leaderboard_length} list, or use `#{bot_name} show top n list` (where `n` is an integer) to show the `n` people who have received the most tokens."
+        fail_message = ("Sorry, I didn't understand the number you provided " + 
+                      "(` #{number_input} `). Use the command `#{bot_name} " + 
+                      "show leaderboard` to show the top " + 
+                      "#{leaderboard_length} list, or use `#{bot_name} show" +
+                      " top n list` (where `n` is an integer) to show the `n`" +
+                      " people who have received the most tokens.")
+        res.sendPrivate fail_message
       else
         res.sendPrivate tokenBot.leaderboard number_interpreted
 
@@ -618,15 +638,18 @@ module.exports = (robot) ->
     if res?
        res.reply "#{err}\n#{err.stack}"
 
+
   # inspect a user's user name
   robot.respond /inspect me/i, (res) ->
     user = robot.brain.userForId(res.message.user.id)
     res.send "#{Util.inspect(user)}"
 
+
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
-    res.sendPrivate "Here are all the users I know about: " + ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
-    #res.send ("key: #{key}\tID: #{user.id}\tuser name:  @#{user.name}" for own key, user of robot.brain.data.users).join "\n"
+    res.sendPrivate ("Here are all the users I know about: " + 
+                     ("@#{user.name}" for own key, user of robot.brain.data.users).join ", ")
+
 
   # show user with tokens still to give out to others
   robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens?|who(?: still)? has tokens?)(?: to give(?: out)?)?\??\s*/i, (res) ->
@@ -634,11 +657,15 @@ module.exports = (robot) ->
     if Object.keys(tokenBot.tokens_given).length == 0
       res.sendPrivate "No one has said anything yet, so I don't know of the existence of anyone yet!"
     else 
-      response = ("@" + robot.brain.userForId(id).name + " (" + (tokenBot.max_tokens_per_user - recipients.length).toString() + " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") + ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
+      response = ("@" + robot.brain.userForId(id).name + " (" +
+                  (tokenBot.max_tokens_per_user - recipients.length).toString() +
+                  " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") +
+                  ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
       if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
         res.sendPrivate "Everyone has given out all their tokens."
       else
         res.sendPrivate "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
+
 
   # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
   robot.hear /.*/i, (res) -> 
@@ -649,6 +676,7 @@ module.exports = (robot) ->
     if tokenBot.tokens_received[sender_id]? == false
       tokenBot.tokens_received[sender_id] = []
 
+
   robot.respond /show robot.brain.data.users/i, (res) -> 
     res.send "#{Util.inspect(robot.brain.data.users)}"
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
@@ -656,27 +684,61 @@ module.exports = (robot) ->
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
     # res.send "JSON.stringify robot.brain = #{ JSON.stringify robot.brain }" # this gives a  TypeError: Converting circular structure to JSON
 
+
   robot.respond /clear your brain/i, (res) -> 
     tokenBot.tokens_given = {}
     tokenBot.tokens_received = {}
     robot.brain.data.tokens_given = {}
     robot.brain.data.tokens_received = {}
     robot.brain.data.users = {}
+
+
+  # Who has tokens from @user?
+  # Used to run the lottery
+  robot.respond ///            
+                who has tokens from
+                \s+          # whitespace
+                @?([\w.\-]+) # user name or name (to be matched in a fuzzy way below). 
+                             # \w matches any word character (alphanumeric and underscore).
+                \s*$         # 0 or more whitespace
+                ///i, (res) ->
+
+    name_raw = res.match[1]
+    
+    #if not name?
+    #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
+    #else
+    users = robot.brain.usersForFuzzyName(name_raw.trim()) # the second capture group is the user name
+
+    if users.length == 1
+      user = users[0]
+      # whether the person writing the command is the one we're getting the status of
+      
+      tokens_given_by_this_person = if @tokens_given[id]? then @tokens_given[id] else []
+      num_tokens_given = tokens_given_by_this_person.length
+
+      if num_tokens_given == 0
+        res.sendPrivate "@#{user.name} has not given tokens to anyone."
+      else
+        result = ("#{name} has given " + num_tokens_given + " token" +
+                  (if num_tokens_given != 1 then "s" else "") +
+                  " to the following people: ")
+        result += ("@" + robot.brain.userForId(id_peer).name + " (" +
+                   num_tokens.toString() + ")" for own id_peer, num_tokens of robot.tally(tokens_given_by_this_person)).join(", ")
+        res.sendPrivate result
+      
+    else
+      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
     
   ###
     Help the user figure out how to use the bot
   ###
-  robot.respond /what is your name\??/i, (res) -> 
+  robot.respond /(what is|what's) your name\??/i, (res) -> 
     res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} <command>`."
-    res.send "My ID is #{Util.inspect robot.brain.usersForFuzzyName(bot_name.trim())}"
+    #res.send "My ID is #{Util.inspect robot.brain.usersForFuzzyName(bot_name.trim())}"
 
   robot.hear /how do I \b(?:give|send)\b a token\??/i, (res) -> 
     res.send "Use the command `/give @user_name`."
 
   robot.hear /how do I \b(?:revoke|get back)\b a token\??/i, (res) -> 
     res.send "Use the command `/revoke @user_name`."
-
-  # robot.hear /I like pie/i, (res) ->
-  #     res.emote "makes a freshly baked pie"
-  #     res.reply "makes a freshly baked pie"
-
