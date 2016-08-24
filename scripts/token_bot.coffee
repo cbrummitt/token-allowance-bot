@@ -695,40 +695,40 @@ module.exports = (robot) ->
 
   # Who has tokens from @user?
   # Used to run the lottery
-  robot.respond ///            
-                who has received tokens from
-                \s+          # whitespace
-                @?([\w.\-]+) # user name or name (to be matched in a fuzzy way below). 
-                             # \w matches any word character (alphanumeric and underscore).
-                \s*$         # 0 or more whitespace
-                ///i, (res) ->
+  # robot.respond ///            
+  #               who has received tokens from
+  #               \s+          # whitespace
+  #               @?([\w.\-]+) # user name or name (to be matched in a fuzzy way below). 
+  #                            # \w matches any word character (alphanumeric and underscore).
+  #               \s*$         # 0 or more whitespace
+  #               ///i, (res) ->
 
-    name_raw = res.match[1]
+  #   name_raw = res.match[1]
     
-    #if not name?
-    #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
-    #else
-    users = robot.brain.usersForFuzzyName(name_raw.trim()) # the second capture group is the user name
+  #   #if not name?
+  #   #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
+  #   #else
+  #   users = robot.brain.usersForFuzzyName(name_raw.trim()) # the second capture group is the user name
 
-    if users.length == 1
-      user = users[0]
-      # whether the person writing the command is the one we're getting the status of
+  #   if users.length == 1
+  #     user = users[0]
+  #     # whether the person writing the command is the one we're getting the status of
       
-      tokens_given_by_this_person = if @tokens_given[id]? then @tokens_given[id] else []
-      num_tokens_given = tokens_given_by_this_person.length
+  #     tokens_given_by_this_person = if @tokens_given[id]? then @tokens_given[id] else []
+  #     num_tokens_given = tokens_given_by_this_person.length
 
-      if num_tokens_given == 0
-        res.sendPrivate "@#{user.name} has not given tokens to anyone."
-      else
-        result = ("#{name} has given " + num_tokens_given + " token" +
-                  (if num_tokens_given != 1 then "s" else "") +
-                  " to the following people: ")
-        result += ("@" + robot.brain.userForId(id_peer).name + " (" +
-                   num_tokens.toString() + ")" for own id_peer, num_tokens of robot.tally(tokens_given_by_this_person)).join(", ")
-        res.sendPrivate result
+  #     if num_tokens_given == 0
+  #       res.sendPrivate "@#{user.name} has not given tokens to anyone."
+  #     else
+  #       result = ("#{name} has given " + num_tokens_given + " token" +
+  #                 (if num_tokens_given != 1 then "s" else "") +
+  #                 " to the following people: ")
+  #       result += ("@" + robot.brain.userForId(id_peer).name + " (" +
+  #                  num_tokens.toString() + ")" for own id_peer, num_tokens of robot.tally(tokens_given_by_this_person)).join(", ")
+  #       res.sendPrivate result
       
-    else
-      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
+  #   else
+  #     res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
     
   ###
     Help the user figure out how to use the bot
