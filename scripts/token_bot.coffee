@@ -36,16 +36,17 @@
 class TokenNetwork
   #### Constructor ####
   constructor: (@robot) -> 
+    
     # a dictionary of whose tokens have been given to whom. The data is in the form 
     #     sender : [recipient1, recipient2, ...]
     @tokens_given = {}
-
 
     # a dictionary of who has received tokens from whom. The data is in the form 
     #     recipient : [sender1, sender2, ...]
     @tokens_received = {}
 
-    #for user of 
+    # Initialize @tokens_given and @tokens_given to a diciontary containing 
+    # `idnumber : []` for each user, where idnumber is the id of a user.
     for own key, user of robot.brain.data.users
       @tokens_given[user['id']] = []
       @tokens_received[user['id']] = []
@@ -53,21 +54,18 @@ class TokenNetwork
     # each user can give at most this many tokens to others
     @max_tokens_per_user = process.env.TOKENS_ENDOWED_TO_EACH_USER or 5 
 
-    # variable that determines whether tokens can be given right now
-    # TDOO: write a method that will turn this off and display a message in #general telling everyone that tokens can no longer be given?
-    # TODO: make these environment variables ` ... = process.env.HUBOT_CAN_TRANSFER_TOKENS or true`
-    #@tokens_can_be_given = true
-    #@tokens_can_be_revoked = true
+    # TDOO: write a method that will turn this off and display a message in 
+    # #general telling everyone that tokens can no longer be given?
 
     # list of responses to display when someone receives or gives a token
     # TODO: send messages like these? 
     @receive_token_responses = ["received a token!", "was thanked with a token!"]
     @revoke_token_responses = ["lost a token :(", "had a token revoked"]
 
-    # if the brain was already on, then set the cache to the dictionary @robot.brain.data.tokens_given
+    # If the brain was already on, then set the cache to the dictionary @robot.brain.data.tokens_given
     # the fat arrow `=>` binds the current value of `this` (i.e., `@`) on the spot
-
-    # TODO: do we want to use this snippet? https://github.com/github/hubot/issues/880#issuecomment-81386478
+    # TODO: do we want to use this snippet? 
+    # https://github.com/github/hubot/issues/880#issuecomment-81386478
     @robot.brain.on 'loaded', =>
       if @robot.brain.data.tokens_given
         @tokens_given = @robot.brain.data.tokens_given
@@ -78,17 +76,21 @@ class TokenNetwork
   #### Methods ####
 
   give_or_revoke_token: (sender, recipient, num_tokens_to_transfer, give_bool) -> 
-    # `give_token` gives a token from the sender to recipient. It returns a message to send to the chat channel. 
-    # The inputs `sender` and `recipient` are user ID's. 
-    # we know that tokens can be given (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true') because that's handled by the response.
+    # Either give or revoke a token. The person doing the giving/revoking is 
+    # the user `sender` (a user ID); the person receiving a token or having a
+    # token revoked is the `recipient` (a user ID). We know that tokens can be
+    # given or revoked (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true')
+    # because that's handled by the response.
     
     # get the names of these users
     sender_name = "@" + @robot.brain.userForId(sender).name
     recipient_name = "@" + @robot.brain.userForId(recipient).name
       
-    # check whether @tokens_given[sender], @tokens_received[recipient], @tokens_given[recipient], @tokens_received[sender]
-    # exist and if not set each one to []
-    if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
+    # check whether @tokens_given[sender], @tokens_received[recipient], 
+    # @tokens_given[recipient], @tokens_received[sender] exist and if not
+    # set each one to []
+    if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet 
+                                       # been defined (i.e., it's null or undefined)
       @tokens_given[sender] = []
     if @tokens_received[recipient]? == false
       @tokens_received[recipient] = []
@@ -97,15 +99,19 @@ class TokenNetwork
     if @tokens_received[sender]? == false
       @tokens_received[sender] = []
 
-    # if we are giving (rather than revoking) 
+    # If we are giving (rather than revoking) 
     if give_bool
-      # if the sender has not already given out more that `@max_tokens_per_user` tokens, then add recepient to @cacheTokens[sender]'s list.
-      # note that this allows someone to send multiple tokens to the same user
+      # If the sender has not already given out more that `@max_tokens_per_user`
+      # tokens, then add recepient to @cacheTokens[sender]'s list.
+      # Note that this allows someone to send multiple tokens to the same user.
       if @tokens_given[sender].length >= @max_tokens_per_user
-        return "#{sender_name}: you do not have any more tokens available to give to others. If you want, revoke a token using the command `/revoke @user_name`."
+        return ("#{sender_name}: you do not have any more tokens available " + 
+                "to give to others. If you want, revoke a token using the " + 
+                "command `/revoke @user_name`.")
       else 
         # compute the number of tokens this user can give
-        num_tokens_to_give = Math.min(num_tokens_to_transfer, @max_tokens_per_user - @tokens_given[sender].length)
+        num_tokens_to_give = Math.min(num_tokens_to_transfer, 
+                                      @max_tokens_per_user - @tokens_given[sender].length)
         # update @tokens_given 
         if num_tokens_to_give > 0
           @tokens_given[sender].push recipient for index in [1..num_tokens_to_give]
@@ -115,21 +121,23 @@ class TokenNetwork
           @tokens_received[recipient].push sender for index in [1..num_tokens_to_give]
           @robot.brain.data.tokens_received = @tokens_received
 
-        message = "#{sender_name} gave " + num_tokens_to_give + " token" + (if num_tokens_to_give != 1 then "s" else "") + " to #{recipient_name}. " 
+        message = ("#{sender_name} gave " + num_tokens_to_give + " token" + 
+                   (if num_tokens_to_give != 1 then "s" else "") + 
+                   " to #{recipient_name}. ")
         tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-        message += "#{sender_name} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
+        message += ("#{sender_name} now has #{tokens_remaining} token" + 
+                    (if tokens_remaining != 1 then "s" else "") + 
+                    " remaining to give to others. ")
 
-        return message 
-        #message += "\n#{recipient} has received tokens from the following: " # #{@tokens_received[recipient]}."
-        #for own name_peer, number of @tally(@tokens_received[recipient])
-        #  result += "#{name_peer} (#{number} token" + (if number != 1 then "s" else "") + ") "
-        #result += (name_peer + " (" + num_tokens.toString() + ")" for own name_peer, num_tokens of @tally(@tokens_received[recipient])).join(", ")
+        return message
     
     else # otherwise we are revoking
 
       # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
       if not @tokens_given[sender]?
-        return "@#{sender_name} has not given tokens to anyone, so I cannot revoke any tokens. Give tokens using the command `token give token @user_name`."
+        return ("@#{sender_name} has not given tokens to anyone, so I cannot " +
+                "revoke any tokens. Give tokens using the command `token give" +
+                " @user_name`.")
       else if not @tokens_received[recipient]
         return "@#{recipient_name} does not hold any tokens from anyone." 
       else # sender has sent >=1 token to someone, and recipient has received >=1 token from someone
@@ -139,7 +147,8 @@ class TokenNetwork
         num_tokens_to_revoke = Math.min(num_tokens_to_transfer, num_tokens_sender_has_given_recipient)
         
         if num_tokens_to_revoke <= 0
-          return "#{sender_name}: #{recipient_name} does not have any tokens from you, so you cannot revoke a token from #{recipient_name}."
+          return ("#{sender_name}: #{recipient_name} does not have any tokens" +
+                  " from you, so you cannot revoke a token from #{recipient_name}.")
         else
           # remove the first occurrence of recipient in the list @tokens_given[sender]
           for index in [1..num_tokens_to_revoke]
@@ -151,9 +160,13 @@ class TokenNetwork
             @tokens_received[recipient].splice index, 1 if index isnt -1
 
           if index isnt -1
-            message = "#{sender_name} revoked " + num_tokens_to_revoke + " token" + (if num_tokens_to_revoke != 1 then "s" else "") + " from #{recipient_name}. "
+            message = ("#{sender_name} revoked " + num_tokens_to_revoke +
+                       " token" + (if num_tokens_to_revoke != 1 then "s" else "") +
+                       " from #{recipient_name}. ")
             tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-            message += "#{sender_name} now has #{tokens_remaining} token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
+            message += ("#{sender_name} now has #{tokens_remaining} token" +
+                        (if tokens_remaining != 1 then "s" else "") + 
+                        " remaining to give to others. ")
             return message 
 
 
@@ -169,6 +182,7 @@ class TokenNetwork
       "Sorry #{name}. Tokens cannot be given to oneself.",
       "I can't do that #{name}. Tokens cannot be given to oneself.",
       "Tokens can only be given to other people."
+      "Nice try #{name}! Unfortunately I can't let you give a token to yourself."
     ]
 
   tally: (list_of_strings) -> 
@@ -206,15 +220,19 @@ class TokenNetwork
     tokens_remaining = @max_tokens_per_user - num_tokens_given
 
     has_have = if self_bool then "have " else "has "
-    result += "#{name} " + has_have + (if tokens_remaining == @max_tokens_per_user then "all " else "") + tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") + " remaining to give to others. "
+    result += ("#{name} " + has_have +
+               (if tokens_remaining == @max_tokens_per_user then "all " else "") +
+               tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") +
+               " remaining to give to others. ")
     result += "\n"
 
     # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
-      result += "#{name} " + has_have + "given " + num_tokens_given + " token" + (if num_tokens_given != 1 then "s" else "") + " to the following people: "
-      #for own name_peer, number of @tally(tokens_given_by_this_person)
-      #  result += "    - to #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
-      result += ("@" + @robot.brain.userForId(id_peer).name + " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
+      result += ("#{name} " + has_have + "given " + num_tokens_given + " token" +
+                 (if num_tokens_given != 1 then "s" else "") +
+                 " to the following people: ")
+      result += ("@" + @robot.brain.userForId(id_peer).name + " (" +
+                 num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
     # else
     #   result += "#{name} has not given any tokens to other people. "
       result += "\n"
@@ -224,14 +242,17 @@ class TokenNetwork
     tokens_received_by_this_person = if @tokens_received[id]? then @tokens_received[id] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
-      result += "#{name} " + has_have + num_tokens_received + " token" + (if num_tokens_received != 1 then "s" else "") + " from the following people: "
-      #for own name_peer, number of @tally(tokens_received_by_this_person)
-      #  result += "    - from #{name_peer}: #{number} token" + (if number != 1 then "s" else "") + "\n"
-      result += ("@" + @robot.brain.userForId(id_peer).name + " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
+      result += ("#{name} " + has_have + num_tokens_received + " token" +
+                 (if num_tokens_received != 1 then "s" else "") +
+                 " from the following people: ")
+      result += ("@" + @robot.brain.userForId(id_peer).name +
+                 " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
     else
       result += "#{name} " + (if self_bool then "do" else "does") + " not have any tokens from other people."
 
-    #result += "\n\n Debugging: \n tokens_given_by_this_person = #{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
+    #result += ("\n\n Debugging: \n tokens_given_by_this_person = " +
+    #           "#{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
+
 
     return result
 
@@ -273,18 +294,12 @@ class TokenNetwork
     return str
 
 
-######################################################################################################
-######################################################################################################
-######################################################################################################
-######################################################################################################
-######################################################################################################
-######################################################################################################
-######################################################################################################
-######################################################################################################
-######################################################################################################
-######################################################################################################
-######################################################################################################
-######################################################################################################
+################################################################################
+################################################################################
+######################## Listen for commands ###################################
+################################################################################
+################################################################################
+
 
 # for inspecting an object usting Util.inspect
 Util = require "util"
