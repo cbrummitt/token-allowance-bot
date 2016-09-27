@@ -676,6 +676,14 @@ module.exports = (robot) ->
     if tokenBot.tokens_received[sender_id]? == false
       tokenBot.tokens_received[sender_id] = []
 
+  # when a user enters the room, add them to tokens_given and tokens_received
+  robot.enter (res) -> 
+    sender_id = res.message.user.id
+    if tokenBot.tokens_given[sender_id]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
+      tokenBot.tokens_given[sender_id] = []
+
+    if tokenBot.tokens_received[sender_id]? == false
+      tokenBot.tokens_received[sender_id] = []
 
   robot.respond /show robot.brain.data.users/i, (res) -> 
     res.send "#{Util.inspect(robot.brain.data.users)}"
