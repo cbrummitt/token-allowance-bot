@@ -700,11 +700,12 @@ module.exports = (robot) ->
   #   robot.brain.data.tokens_received = {}
   #   robot.brain.data.users = {}
 
-  robot.respond /reset.all.tokens.to.zero/i, (res) -> 
+  robot.respond /reset_all_tokens/i, (res) -> 
     tokenBot.tokens_given = {}
     tokenBot.tokens_received = {}
     robot.brain.data.tokens_given = {}
     robot.brain.data.tokens_received = {}
+    res.send "OK, I reset all tokens."
     # robot.brain.data.users = {}
 
 
