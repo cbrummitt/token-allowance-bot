@@ -749,6 +749,11 @@ module.exports = (robot) ->
   ###
     Help the user figure out how to use the bot
   ###
+  robot.respond /hi|hello|hey/i, (res) ->
+    sender = res.message.user
+    sender_name = "@" + res.message.user.name
+    res.send "Hi #{sender_name}!"
+
   robot.respond /(what is|what's) your name\??/i, (res) -> 
     res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} <command>`."
     #res.send "My ID is #{Util.inspect robot.brain.usersForFuzzyName(bot_name.trim())}"
