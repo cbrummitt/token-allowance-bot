@@ -693,12 +693,19 @@ module.exports = (robot) ->
     # res.send "JSON.stringify robot.brain = #{ JSON.stringify robot.brain }" # this gives a  TypeError: Converting circular structure to JSON
 
 
-  robot.respond /clear your brain/i, (res) -> 
+  # robot.respond /clear your brain/i, (res) -> 
+  #   tokenBot.tokens_given = {}
+  #   tokenBot.tokens_received = {}
+  #   robot.brain.data.tokens_given = {}
+  #   robot.brain.data.tokens_received = {}
+  #   robot.brain.data.users = {}
+
+  robot.respond /reset.all.tokens.to.zero/i, (res) -> 
     tokenBot.tokens_given = {}
     tokenBot.tokens_received = {}
     robot.brain.data.tokens_given = {}
     robot.brain.data.tokens_received = {}
-    robot.brain.data.users = {}
+    # robot.brain.data.users = {}
 
 
   # Who has tokens from @user?
