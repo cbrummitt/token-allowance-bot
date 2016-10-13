@@ -262,16 +262,6 @@ class TokenNetwork
     if user_num_tokens_received.length == 0
       return "No one has received any tokens."
 
-
-
-    # users = robot.brain.data._private
-    # tuples = []
-    # for username, score of users
-    #   tuples.push([username, score])
-
-    # if tuples.length == 0
-    #   return "The lack of karma is too damn high!"
-
     # sort by the number of tokens received (in decreasing order)
     user_num_tokens_received.sort (a, b) ->
       if a[1] > b[1]
@@ -701,11 +691,14 @@ module.exports = (robot) ->
   #   robot.brain.data.users = {}
 
   robot.respond /reset_all_tokens/i, (res) -> 
-    tokenBot.tokens_given = {}
-    tokenBot.tokens_received = {}
-    robot.brain.data.tokens_given = {}
-    robot.brain.data.tokens_received = {}
-    res.send "OK, I reset all tokens."
+    if robot.Auth.hasRole(,'admin')
+      tokenBot.tokens_given = {}
+      tokenBot.tokens_received = {}
+      robot.brain.data.tokens_given = {}
+      robot.brain.data.tokens_received = {}
+      res.send "OK, I reset all tokens."
+    else
+      res.send "Sorry, you don't have the permission to do that."
     # robot.brain.data.users = {}
 
 
