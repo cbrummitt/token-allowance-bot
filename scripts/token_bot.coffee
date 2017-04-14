@@ -32,6 +32,9 @@
 #   TOKENS_CAN_BE_TRANSFERRED = true
 #   TOKENS_ENDOWED_TO_EACH_USER = 5
 
+# for inspecting an object usting Util.inspect
+Util = require "util"
+
 
 class TokenNetwork
   #### Constructor ####
@@ -193,7 +196,8 @@ class TokenNetwork
 
 
   status: (id, self_bool) -> 
-    # return the number of tokens remaining, number of tokens, and number of tokens received (including whom).
+    # return the number of tokens remaining, number of tokens, and number of
+    # tokens received (including whom).
     # Inputs: 
     #  1. id is the ID of the user for which we'll return the status; 
     #  2. self_bool is a boolean variable for whether the person writing 
@@ -257,12 +261,11 @@ class TokenNetwork
     return result
 
   leaderboard: (num_users) -> 
-    user_num_tokens_received = ([@robot.brain.userForId(user_id).name, received_list.length] for own user_id, received_list of @tokens_received)
+    user_num_tokens_received = ([@robot.brain.userForId(user_id).name, received_list.length]
+                                for own user_id, received_list of @tokens_received)
 
     if user_num_tokens_received.length == 0
       return "No one has received any tokens."
-
-
 
     # users = robot.brain.data._private
     # tuples = []
@@ -288,7 +291,7 @@ class TokenNetwork
       username = user_num_tokens_received[i][0]
       points = user_num_tokens_received[i][1]
       point_label = if points == 1 then "token" else "tokens"
-      leader = "" #if i == 0 then "All hail the supreme token holder!" else "" # label the one with the most
+      leader = ""
       newline = if i < limit - 1 then '\n' else ''
       str += "#{i+1}. @#{username} (#{points} " + point_label + ") " + leader + newline
     return str
@@ -296,13 +299,10 @@ class TokenNetwork
 
 ################################################################################
 ################################################################################
-######################## Listen for commands ###################################
+########################## Listen for commands #################################
 ################################################################################
 ################################################################################
 
-
-# for inspecting an object usting Util.inspect
-Util = require "util"
 
 # helper function that converts a string to a Boolean
 # for using the Boolean environment variables TOKENS_CAN_BE_TRANSFERRED and TOKEN_ALLOW_SELF
@@ -376,7 +376,8 @@ module.exports = (robot) ->
     bot_id = ""
 
   # whether tokens can be given or received. defaults to true
-  tokens_can_be_given_or_revoked = if process.env.TOKENS_CAN_BE_TRANSFERRED? then stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true
+  tokens_can_be_given_or_revoked = (if process.env.TOKENS_CAN_BE_TRANSFERRED? then
+                                    stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true)
 
   # whether people can give tokens to themself. defaults to false.
   allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
@@ -478,7 +479,6 @@ module.exports = (robot) ->
     recipient_name = "@" + recipient.name
     recipient_id = recipient.id
 
-    
     # Check whether the sender is trying to give a token to himself/herself and
     # allow_self is false. If so, return a random message saying that you can't
     # give a token to yourself.
@@ -559,7 +559,6 @@ module.exports = (robot) ->
     #else
     users = robot.brain.usersForFuzzyName(name_raw.trim()) # the second capture group is the user name
 
-
     if users.length == 1
       user = users[0]
       # whether the person writing the command is the one we're getting the status of
@@ -576,7 +575,6 @@ module.exports = (robot) ->
                 \s*
                 $///i, (res) ->
     res.sendPrivate tokenBot.status res.message.user.id, true
-
 
   # show leaderboard, show leader board
   robot.respond /\s*(?:show )?\s*leaders? ?board\s*/i, (res) ->
@@ -638,21 +636,22 @@ module.exports = (robot) ->
     if res?
        res.reply "#{err}\n#{err.stack}"
 
-
   # inspect a user's user name
   robot.respond /inspect me/i, (res) ->
     user = robot.brain.userForId(res.message.user.id)
     res.send "#{Util.inspect(user)}"
-
 
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
     res.sendPrivate ("Here are all the users I know about: " + 
                      ("@#{user.name}" for own key, user of robot.brain.data.users).join ", ")
 
-
   # show user with tokens still to give out to others
-  robot.respond /\s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)? have)\b tokens?|who(?: still)? has tokens?)(?: to give(?: out)?)?\??\s*/i, (res) ->
+  robot.respond ///
+                \s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)?
+                have)\b tokens?|who(?: still)? has tokens?)
+                (?: to give(?: out)?)?\??\s*
+                ///i, (res) ->
     # check whether tokenBot.tokens_given is empty
     if Object.keys(tokenBot.tokens_given).length == 0
       res.sendPrivate "No one has said anything yet, so I don't know of the existence of anyone yet!"
@@ -664,13 +663,17 @@ module.exports = (robot) ->
       if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
         res.sendPrivate "Everyone has given out all their tokens."
       else
-        res.sendPrivate "The following users still have tokens to give. Try to help these users so that they thank you with a token!\n" + response
+        res.sendPrivate "The following users still have tokens to give. "
+                        "Try to help these users so that they thank you "
+                         "with a token!\n" + response
 
 
-  # if this is the first time that this user has said something, then add them to tokens_given and tokens_received
+  # if this is the first time that this user has said something, then add them
+  # to tokens_given and tokens_received
   robot.hear /.*/i, (res) -> 
     sender_id = res.message.user.id
-    if tokenBot.tokens_given[sender_id]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
+    # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
+    if tokenBot.tokens_given[sender_id]? == false
       tokenBot.tokens_given[sender_id] = []
 
     if tokenBot.tokens_received[sender_id]? == false
@@ -679,9 +682,10 @@ module.exports = (robot) ->
   # when a user enters the room, add them to tokens_given and tokens_received
   robot.enter (res) -> 
     sender_id = res.message.user.id
-    if tokenBot.tokens_given[sender_id]? == false # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
+    # if @tokens_given[sender] has not yet been defined
+    # (i.e., it's null or undefined), then initialize their lists to empty
+    if tokenBot.tokens_given[sender_id]? == false
       tokenBot.tokens_given[sender_id] = []
-
     if tokenBot.tokens_received[sender_id]? == false
       tokenBot.tokens_received[sender_id] = []
 
@@ -690,9 +694,10 @@ module.exports = (robot) ->
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
-    # res.send "JSON.stringify robot.brain = #{ JSON.stringify robot.brain }" # this gives a  TypeError: Converting circular structure to JSON
+    # this gives a  TypeError: Converting circular structure to JSON
+    # res.send "JSON.stringify robot.brain = #{ JSON.stringify robot.brain }"
 
-
+  # This is a dangerous command that clears the contents of the robot's brain
   # robot.respond /clear your brain/i, (res) -> 
   #   tokenBot.tokens_given = {}
   #   tokenBot.tokens_received = {}
@@ -700,13 +705,12 @@ module.exports = (robot) ->
   #   robot.brain.data.tokens_received = {}
   #   robot.brain.data.users = {}
 
-  robot.respond /reset_all_tokens/i, (res) -> 
-    tokenBot.tokens_given = {}
-    tokenBot.tokens_received = {}
-    robot.brain.data.tokens_given = {}
-    robot.brain.data.tokens_received = {}
-    res.send "OK, I reset all tokens."
-    # robot.brain.data.users = {}
+  # robot.respond /reset_all_tokens/i, (res) -> 
+  #   tokenBot.tokens_given = {}
+  #   tokenBot.tokens_received = {}
+  #   robot.brain.data.tokens_given = {}
+  #   robot.brain.data.tokens_received = {}
+  #   res.send "OK, I reset all tokens."
 
 
   # Who has tokens from @user?
