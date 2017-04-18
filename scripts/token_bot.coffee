@@ -7,13 +7,13 @@
 # Configuration:
 #   TOKEN_ALLOW_SELF
 #   TOKENS_CAN_BE_TRANSFERRED
-#   TOKENS_ENDOWED_TO_EACH_USER
+#   TOKEN_ALLOWANCE
+#   ALLOWANCE_FREQUENCY
+#   TIMEZONE
 #
 # Commands:
 #   hubot give @user_name - Gives one token to `@user_name`.
 #   hubot give a token to @user_name - Gives a token to `@user_name`.
-#   hubot revoke @user_name - Revokes a token from `@user_name`.
-#   hubot revoke a token from @user_name - Revokes a token from `@user_name`.
 #   hubot status @user_name - Returns the status of `@user_name`'s tokens.
 #   hubot status of @user_name - Returns the status of `@user_name`'s tokens.
 #   hubot show users - Returns a list of all the users that the bot knows about.
@@ -26,159 +26,118 @@
 # Author:
 #   Charlie Brummitt <brummitt@gmail.com> Github:cbrummitt
 
-
 # Environment variables:
 #   TOKEN_ALLOW_SELF = false
 #   TOKENS_CAN_BE_TRANSFERRED = true
-#   TOKENS_ENDOWED_TO_EACH_USER = 5
+#   TOKEN_ALLOWANCE = 7
+#   ALLOWANCE_FREQUENCY = '59 59 23 * * 0'  # every Sunday at 11:59:59 PM; see https://github.com/kelektiv/node-cron#cron-ranges
+#   TIMEZONE = "America/New_York"
+Util = require "util"  # for inspecting an object with `Util.inspect`
+Cron = require "cron"  # for running jobs
+CronJob = Cron.CronJob
 
-# for inspecting an object usting Util.inspect
-Util = require "util"
 
+TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
+# default allowance frequency: every Sunday at 11:59:59 PM
+# see https://github.com/kelektiv/node-cron#cron-ranges
+# TODO: Create an English description of the frequency using
+# https://stackoverflow.com/questions/321494/calculate-when-a-cron-job-will-be-executed-then-next-time
+# perhaps
+# https://bitbucket.org/nevity/cronner
+ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
+#ALLOWANCE_FREQUENCY = '* * * * * *'  # every second
+TIMEZONE = process.env.TIMEZONE or "America/New_York"
+ROOM_TO_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 
 class TokenNetwork
-  #### Constructor ####
-  constructor: (@robot) -> 
-    
-    # a dictionary of whose tokens have been given to whom. The data is in the form 
-    #     sender : [recipient1, recipient2, ...]
+  constructor: (@robot) ->
+    # a dictionary mapping a user ID to a list of user IDs that specifies
+    # whose tokens have been given to whom:
+    # {sender_id : [recipient_1, recipient_2, ...], ...}
     @tokens_given = {}
 
-    # a dictionary of who has received tokens from whom. The data is in the form 
-    #     recipient : [sender1, sender2, ...]
+    # a dictionary mapping a user ID to a list of user IDs that specifies
+    # who has received tokens from whom:
+    # {recipient_id: [sender_1, sender_2, ...], ...}
     @tokens_received = {}
 
-    # Initialize @tokens_given and @tokens_given to a diciontary containing 
-    # `idnumber : []` for each user, where idnumber is the id of a user.
+    # a dictionary of how many tokens each person has available to give;
+    # it maps each user's id to a non-negative integer
+    @token_wallet = {}
+
     for own key, user of robot.brain.data.users
-      @tokens_given[user['id']] = []
-      @tokens_received[user['id']] = []
-    
-    # each user can give at most this many tokens to others
-    @max_tokens_per_user = process.env.TOKENS_ENDOWED_TO_EACH_USER or 5 
+      @initialize_user(user['id'])
 
-    # TDOO: write a method that will turn this off and display a message in 
-    # #general telling everyone that tokens can no longer be given?
-
-    # list of responses to display when someone receives or gives a token
-    # TODO: send messages like these? 
-    @receive_token_responses = ["received a token!", "was thanked with a token!"]
-    @revoke_token_responses = ["lost a token :(", "had a token revoked"]
-
-    # If the brain was already on, then set the cache to the dictionary @robot.brain.data.tokens_given
-    # the fat arrow `=>` binds the current value of `this` (i.e., `@`) on the spot
-    # TODO: do we want to use this snippet? 
-    # https://github.com/github/hubot/issues/880#issuecomment-81386478
+    # If the brain was already on, then set the cache to the dictionary
+    # `@robot.brain.data.tokens_given`.
+    # The fat arrow `=>` binds the current value of `this` (i.e., `@`)
+    # on the spot.
     @robot.brain.on 'loaded', =>
       if @robot.brain.data.tokens_given
         @tokens_given = @robot.brain.data.tokens_given
       if @robot.brain.data.tokens_received
         @tokens_received = @robot.brain.data.tokens_received
+      if @robot.brain.data.token_wallet
+        @token_wallet = @robot.brain.data.token_wallet
 
+  recognize_user: (user_id) ->
+    return (@tokens_given[user_id]? and
+            @tokens_received[user_id]? and
+            @token_wallet[user_id]?)
 
-  #### Methods ####
+  initialize_user: (user_id) ->
+    @tokens_given[user_id] = []
+    @tokens_received[user_id] = []
+    @token_wallet[user_id] = process.env.TOKEN_ALLOWANCE or 7
 
-  give_or_revoke_token: (sender, recipient, num_tokens_to_transfer, give_bool) -> 
-    # Either give or revoke a token. The person doing the giving/revoking is 
-    # the user `sender` (a user ID); the person receiving a token or having a
-    # token revoked is the `recipient` (a user ID). We know that tokens can be
-    # given or revoked (i.e., process.env.TOKENS_CAN_BE_TRANSFERRED == 'true')
-    # because that's handled by the response.
-    
-    # get the names of these users
+  initialize_user_if_unrecognized: (user_id) ->
+    if not @recognize_user(user_id)
+      @initialize_user(user_id)
+
+  reset_everyones_wallet: () ->
+    for own key, user of @robot.brain.data.users
+      @token_wallet[user['id']] = TOKEN_ALLOWANCE
+
+  give_token: (sender, recipient, num_tokens_to_transfer) ->
+    # Give a certain number of tokens from one user ID to another user ID.
+
+    # Prepend `@` to the user names so that the users are notified by the
+    # message generated by this method.
     sender_name = "@" + @robot.brain.userForId(sender).name
     recipient_name = "@" + @robot.brain.userForId(recipient).name
-      
-    # check whether @tokens_given[sender], @tokens_received[recipient], 
-    # @tokens_given[recipient], @tokens_received[sender] exist and if not
-    # set each one to []
-    if @tokens_given[sender]? == false # if @tokens_given[sender] has not yet 
-                                       # been defined (i.e., it's null or undefined)
-      @tokens_given[sender] = []
-    if @tokens_received[recipient]? == false
-      @tokens_received[recipient] = []
-    if @tokens_given[recipient]? == false
-      @tokens_given[recipient] = []
-    if @tokens_received[sender]? == false
-      @tokens_received[sender] = []
 
-    # If we are giving (rather than revoking) 
-    if give_bool
-      # If the sender has not already given out more that `@max_tokens_per_user`
-      # tokens, then add recepient to @cacheTokens[sender]'s list.
-      # Note that this allows someone to send multiple tokens to the same user.
-      if @tokens_given[sender].length >= @max_tokens_per_user
+    if num_tokens_to_transfer == 0
+      return "#{sender_name}: I can't let you send *zero* tokens :)"
+
+    num_tokens_to_give = Math.min(num_tokens_to_transfer, @token_wallet[sender])
+    if num_tokens_to_give <= 0
         return ("#{sender_name}: you do not have any more tokens available " + 
-                "to give to others. If you want, revoke a token using the " + 
-                "command `/revoke @user_name`.")
-      else 
-        # compute the number of tokens this user can give
-        num_tokens_to_give = Math.min(num_tokens_to_transfer, 
-                                      @max_tokens_per_user - @tokens_given[sender].length)
-        # update @tokens_given 
-        if num_tokens_to_give > 0
-          @tokens_given[sender].push recipient for index in [1..num_tokens_to_give]
-          @robot.brain.data.tokens_given = @tokens_given
+                "to give to others. You will have to wait until you receive " +
+                "more tokens next week.")
+        # TODO: is there a way to translate a cron time to an English
+        # description and use that here? (instead of "next week")
+    else
+      # update @tokens_given
+      @tokens_given[sender].push recipient for index in [1..num_tokens_to_give]
+      @robot.brain.data.tokens_given = @tokens_given
 
-          # update @tokens_received
-          @tokens_received[recipient].push sender for index in [1..num_tokens_to_give]
-          @robot.brain.data.tokens_received = @tokens_received
+      # update @tokens_received
+      @tokens_received[recipient].push sender for index in [1..num_tokens_to_give]
+      @robot.brain.data.tokens_received = @tokens_received
 
-        message = ("#{sender_name} gave " + num_tokens_to_give + " token" + 
-                   (if num_tokens_to_give != 1 then "s" else "") + 
-                   " to #{recipient_name}. ")
-        tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-        message += ("#{sender_name} now has #{tokens_remaining} token" + 
-                    (if tokens_remaining != 1 then "s" else "") + 
-                    " remaining to give to others. ")
+      # update @token_wallet
+      @token_wallet[sender] = @token_wallet[sender] - num_tokens_to_give
+      @robot.brain.data.token_wallet = @token_wallet
 
-        return message
-    
-    else # otherwise we are revoking
-
-      # check whether @tokens_given[sender] or @tokens_received[recipient] is null or undefined
-      if not @tokens_given[sender]?
-        return ("@#{sender_name} has not given tokens to anyone, so I cannot " +
-                "revoke any tokens. Give tokens using the command `token give" +
-                " @user_name`.")
-      else if not @tokens_received[recipient]
-        return "@#{recipient_name} does not hold any tokens from anyone." 
-      else # sender has sent >=1 token to someone, and recipient has received >=1 token from someone
-        
-        # compute the number of tokens this user can revoke
-        num_tokens_sender_has_given_recipient = (i for i in @tokens_given[sender] when i == recipient).length
-        num_tokens_to_revoke = Math.min(num_tokens_to_transfer, num_tokens_sender_has_given_recipient)
-        
-        if num_tokens_to_revoke <= 0
-          return ("#{sender_name}: #{recipient_name} does not have any tokens" +
-                  " from you, so you cannot revoke a token from #{recipient_name}.")
-        else
-          # remove the first occurrence of recipient in the list @tokens_given[sender]
-          for index in [1..num_tokens_to_revoke]
-            index = @tokens_given[sender].indexOf recipient;
-            @tokens_given[sender].splice index, 1 if index isnt -1;
-
-            # remove the first occurence of sender in the list @tokens_received[recipient]
-            index = @tokens_received[recipient].indexOf sender
-            @tokens_received[recipient].splice index, 1 if index isnt -1
-
-          if index isnt -1
-            message = ("#{sender_name} revoked " + num_tokens_to_revoke +
-                       " token" + (if num_tokens_to_revoke != 1 then "s" else "") +
-                       " from #{recipient_name}. ")
-            tokens_remaining = @max_tokens_per_user - @tokens_given[sender].length
-            message += ("#{sender_name} now has #{tokens_remaining} token" +
-                        (if tokens_remaining != 1 then "s" else "") + 
-                        " remaining to give to others. ")
-            return message 
-
-
-  # TODO: currently we're not using these functions. We're showing the same response every time.
-  receive_token_response: ->
-    @receive_token_responses[Math.floor(Math.random() * @receive_token_responses.length)]
-
-  revoke_token_response: ->
-    @revoke_token_responses[Math.floor(Math.random() * @revoke_token_responses.length)]
+      # create a message to be sent in the channel where the command was made
+      message = ("#{sender_name} gave " + num_tokens_to_give + " token" + 
+                 (if num_tokens_to_give != 1 then "s" else "") + 
+                 " to #{recipient_name}. ")
+      tokens_remaining = @token_wallet[sender]
+      message += ("#{sender_name} now has #{tokens_remaining} token" + 
+                  (if tokens_remaining != 1 then "s" else "") + 
+                  " remaining to give to others. ")
+      return message
 
   selfDeniedResponses: (name) ->
     @self_denied_responses = [
@@ -194,16 +153,16 @@ class TokenNetwork
       if count[x]? then count[x] += 1 else count[x] = 1
     return count
 
-
   status: (id, self_bool) -> 
-    # return the number of tokens remaining, number of tokens, and number of
-    # tokens received (including whom).
+    # Return a string describing the status of a user.
+    # The status is the number of tokens left in the user's wallet,
+    # the number of tokens given and received (to whom and from whom).
     # Inputs: 
     #  1. id is the ID of the user for which we'll return the status; 
-    #  2. self_bool is a boolean variable for whether the person writing 
-    #     this command is the same as the one for which we're returning the status
+    #  2. self_bool is a boolean variable for whether the person writing this
+    #     command is the same as the one for which we're returning the status
     # Example:
-    # @name has 2 tokens remaining to give to others. 
+    # @name has 2 tokens remaining to give to others.
     # @name has given tokens to the following people: 
     #   @user_4 (1 token)
     #   @user_8 (2 tokens) 
@@ -216,30 +175,28 @@ class TokenNetwork
     # list of the people to whom `name` has given tokens
     tokens_given_by_this_person = if @tokens_given[id]? then @tokens_given[id] else []
     num_tokens_given = tokens_given_by_this_person.length
+    # number of tokens this person has left to give others
+    tokens_remaining = @token_wallet[id]
 
     # build up a string of results
     result = ""
 
-    # number of tokens this person has left to give others
-    tokens_remaining = @max_tokens_per_user - num_tokens_given
-
-    has_have = if self_bool then "have " else "has "
-    result += ("#{name} " + has_have +
-               (if tokens_remaining == @max_tokens_per_user then "all " else "") +
-               tokens_remaining + " token" + (if tokens_remaining != 1 then "s" else "") +
+    has_have = if self_bool then "have" else "has"
+    token_or_tokens = if tokens_remaining != 1 then "tokens" else "token"
+    result += ("#{name} #{has_have} #{tokens_remaining} #{token_or_tokens}" +
                " remaining to give to others. ")
     result += "\n"
 
     # number of tokens `name` has given to others (and to whom)
     if num_tokens_given > 0
-      result += ("#{name} " + has_have + "given " + num_tokens_given + " token" +
-                 (if num_tokens_given != 1 then "s" else "") +
-                 " to the following people: ")
+      token_or_tokens = if num_tokens_given != 1 then "tokens" else "token"
+      result += ("#{name} #{has_have} given #{num_tokens_given}" +
+                 " #{token_or_tokens} to the following people: ")
       result += ("@" + @robot.brain.userForId(id_peer).name + " (" +
                  num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_given_by_this_person)).join(", ")
-    # else
-    #   result += "#{name} has not given any tokens to other people. "
-      result += "\n"
+    else
+      result += "#{name} #{has_have} not given any tokens to other people. "
+    result += "\n"
 
 
     # number of tokens `name` has received from others (and from whom)
@@ -252,28 +209,28 @@ class TokenNetwork
       result += ("@" + @robot.brain.userForId(id_peer).name +
                  " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
     else
-      result += "#{name} " + (if self_bool then "do" else "does") + " not have any tokens from other people."
+      do_or_does = if self_bool then "do" else "does"
+      result += "#{name} #{do_or_does} not have any tokens from other people."
+      if self_bool
+        result += " Give feedback to others on their business ideas, so"
+        result += " that they thank you by giving you a token!"
+      else
+        result += " If #{name} has given you useful feedback on your business"
+        result += " idea, then make sure to thank them with a token by writing"
+        result += " `/give #{name}`."
 
     #result += ("\n\n Debugging: \n tokens_given_by_this_person = " +
     #           "#{Util.inspect(tokens_given_by_this_person)} \n tokens_received_by_this_person = #{Util.inspect(tokens_received_by_this_person)}"
-
-
     return result
 
   leaderboard: (num_users) -> 
-    user_num_tokens_received = ([@robot.brain.userForId(user_id).name, received_list.length]
-                                for own user_id, received_list of @tokens_received)
+    user_num_tokens_received = (\
+      [@robot.brain.userForId(user_id).name, received_list.length] \
+      for own user_id, received_list of @tokens_received
+    )
 
     if user_num_tokens_received.length == 0
       return "No one has received any tokens."
-
-    # users = robot.brain.data._private
-    # tuples = []
-    # for username, score of users
-    #   tuples.push([username, score])
-
-    # if tuples.length == 0
-    #   return "The lack of karma is too damn high!"
 
     # sort by the number of tokens received (in decreasing order)
     user_num_tokens_received.sort (a, b) ->
@@ -284,7 +241,7 @@ class TokenNetwork
       else
          return 0
 
-    # build up a string `str` 
+    # # build up a string `str` 
     limit = Math.min(num_users, user_num_tokens_received.length) #5
     str = "These #{limit} users have currently been thanked the most:\n"
     for i in [0...limit]
@@ -295,13 +252,6 @@ class TokenNetwork
       newline = if i < limit - 1 then '\n' else ''
       str += "#{i+1}. @#{username} (#{points} " + point_label + ") " + leader + newline
     return str
-
-
-################################################################################
-################################################################################
-########################## Listen for commands #################################
-################################################################################
-################################################################################
 
 
 # helper function that converts a string to a Boolean
@@ -356,13 +306,10 @@ regexEscape = (str) ->
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
 
 
-# The script must export a function. `robot` is an instance of the bot.
-# We export a function of one variable, the `robot`, which `.hear`s messages 
-# and then does stuff.
 module.exports = (robot) ->
   tokenBot = new TokenNetwork robot
 
-  ### 
+  ###
     Environment variables
   ###
 
@@ -376,49 +323,46 @@ module.exports = (robot) ->
     bot_id = ""
 
   # whether tokens can be given or received. defaults to true
-  tokens_can_be_given_or_revoked = (if process.env.TOKENS_CAN_BE_TRANSFERRED? then
-                                    stringToBool(process.env.TOKENS_CAN_BE_TRANSFERRED) else true)
+  if process.env.TOKENS_CAN_BE_TRANSFERRED?
+    tokens_can_be_given_or_revoked = stringToBool(
+      process.env.TOKENS_CAN_BE_TRANSFERRED)
+  else
+    tokens_can_be_given_or_revoked = true
 
   # whether people can give tokens to themself. defaults to false.
-  allow_self = if process.env.TOKEN_ALLOW_SELF? then stringToBool(process.env.TOKEN_ALLOW_SELF) else false
-  
+  if process.env.TOKEN_ALLOW_SELF?
+    allow_self = stringToBool(process.env.TOKEN_ALLOW_SELF)
+  else
+    allow_self = true # TODO: change this default to false
+
   # default length for the leaderboard showing the people with the most tokens
   leaderboard_length = 10
 
-  ###
-    Give and revoke commands 
-  ###
+  # Reset everyone's wallet to the allowance environment variable
+  reset_wallets = ->
+    tokenBot.reset_everyones_wallet()
+    msg = ("I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens." +
+           " Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful" +
+           " feedback before these tokens disappear!")
+    robot.messageRoom ROOM_TO_ANNOUNCE_ALLOWANCE, msg
+  job = new Cron.CronJob ALLOWANCE_FREQUENCY, reset_wallets(), null, true, TIMEZONE
 
+ 
   give_regex_string = "give|send"
   give_regex = new RegExp("\\b(" + give_regex_string + ")\\b", "i")
-  revoke_regex_string = "revoke|remove|rescind|cancel|void|retract|withdraw|take back|get back"
-  revoke_regex = new RegExp("\\b(" + revoke_regex_string + ")\\b", "i")
   number_regex_string = "[0-9]+" + "|" + alphabetic_number_alternatives
-  number_regex = new RegExp(number_regex_string, "i")
-
-  bot_alias_escaped = regexEscape bot_alias
-  bot_name_escaped = regexEscape bot_name
-  bot_name_regex_string = ("\s*\b(?:" + bot_name_escaped + ":?\s*" +
-                           "|" + bot_alias_escaped + "\s*" +
-                           "|" + bot_name_escaped + ":?\s*" + bot_alias_escaped +
-                           ")\b")
-
-  # this regex string is for debugging
-  #regex_test = "\b(give|send|revoke)\b(?:\s+\b([0-9]+|[a-zA-Z ]+)\b)?(?:\s+tokens{0,1})?(?:\s+\b(?:to|from)\b)?\s+@?([\w.\-]+)\s*"
-
-  give_revoke_regex_string = "" +
-    "\\b(" + give_regex_string +   # give or revoke (first capturing group)
-    "|" + revoke_regex_string + ")\\b" +  
+  give_regex_string = "" +
+    "\\b(" + give_regex_string +   # give or send (first capturing group)
+    ")\\b" +  
     "(?:\\s+" +                    # number of tokens is optional (second capturing group)
     "\\b(" + number_regex_string + "|all" + ")\\b" + 
     ")?" +
     "(?:\\s+tokens{0,1})?" +       # token or tokens (optional)
-    "(?:\\s+\\b(?:to|from)\\b)?" + # to or from are optional
+    "(?:\\s+\\b(?:to)\\b)?" +      # to (optional)
     "\\s+" +                       # at least 1 charachter of whitespace
     "@?([\\w.\\-]+)" +             # user name or name (to be matched in a fuzzy way below) -- third capture group
     "\\s*$"                        # 0 or more whitespace
-
-  give_revoke_regex = new RegExp(give_revoke_regex_string, "i")
+  give_revoke_regex = new RegExp(give_regex_string, "i")
 
   # respond to give or revoke commands
   robot.respond give_revoke_regex, (res) ->  # `res` is an instance of Response. 
@@ -427,34 +371,17 @@ module.exports = (robot) ->
     sender_id = res.message.user.id
 
     # is the message a DM to the bot?
-    # a message is a direct message if the message's room contains the sender_id 
-    # (because the room ID is a concatenation of the IDs of the sender and recipients)
+    # a message is a direct message if the message's room contains the
+    # sender_id (because the room ID is a concatenation of the IDs of the
+    # sender and recipients)
     is_direct_message = (res.message.room.indexOf(sender_id) > -1)
-
-    # determine whether the user is trying to give a token or revoke a token
-    if res.match[1].search(give_regex) != -1
-      give_bool = true
-    else if res.match[1].search(revoke_regex) != -1
-      give_bool = false
-    else
-      # The command didn't match the regular expressions for giving nor for 
-      # revoking. This shouldn't fire because the command shouldn't match the 
-      # regular expression `give_revoke_regex`, but we'll include this anyway 
-      # just in case.
-      fail_message = "Sorry #{sender_name}, I couldn't understand your command."
-      fail_message += " Type `#{bot_name} help` to see the list of commands."
-      res.send fail_message
-      return
-
-    action_string = if give_bool then "give" else "revoke"
 
     # check whether the transferring tokens is frozen; 
     # if so, send a message and return
     if not tokens_can_be_given_or_revoked
       res.send "Sorry #{sender_name}, tokens can no longer be given nor revoked."
-      robot.logger.info ("User {id: #{sender_id}, name: #{sender_name}} tried to " + 
-                          action_string + 
-                          " a token but tokens cannot be given now.")
+      robot.logger.info ("User {id: #{sender_id}, name: #{sender_name}} tried" + 
+                          " to give a token but tokens cannot be given now.")
       return
     
     # figure out who the recipient is 
@@ -484,24 +411,26 @@ module.exports = (robot) ->
     # give a token to yourself.
     if not allow_self and res.message.user.id == recipient_id
       res.send res.random tokenBot.selfDeniedResponses(sender_name)
-      robot.logger.info "User {id: #{sender_id}, name: #{sender_name}} tried to give himself/herself a token"
+      log_message = ("User {id: #{sender_id}, name: #{sender_name}} tried to" +
+                     " give himself/herself a token")
+      robot.logger.info log_message
       return
 
-    # figure out how many tokens they want to give or revoke
+    # figure out how many tokens they want to give
     # if the user doesn't provide a number, then assume that the number is 1
     num_tokens_to_transfer = switch
       when res.match[2] == "" or not res.match[2]? then 1
-      when res.match[2] == "all" then tokenBot.max_tokens_per_user
+      when res.match[2] == "all" then tokenBot.wallet[sender_id]
       else fuzzy_string_to_nonnegative_int res.match[2]
 
     if num_tokens_to_transfer? and not isNaN num_tokens_to_transfer
-      log_message = "{action: " + (if give_bool then "give" else "revoke") + ", "
+      log_message = "{action: give, "
       log_message += "sender: {id: #{sender_id}, name: #{sender_name}}, "
       log_message += "recipient: {id: #{recipient_id}, name: #{recipient_name}}, "
       log_message += "is_direct_message: #{is_direct_message}, "
       log_message += "numtokens: #{num_tokens_to_transfer}}"
       robot.logger.info log_message
-      message = tokenBot.give_or_revoke_token sender_id, recipient_id, num_tokens_to_transfer, give_bool
+      message = tokenBot.give_token sender_id, recipient_id, num_tokens_to_transfer
       res.send message
 
       # if the command was given in a direct message to the bot, 
@@ -514,27 +443,28 @@ module.exports = (robot) ->
       # msg.sendDirect "test"
 
       # This isn't working yet ...
-      if false #is_direct_message
-        direct_message = ("Psst. This action was done privately. " + message)
-        #res.send "Attempting to send the following DM: #{direct_message}"
-        #res.send "recipient_id = #{recipient_id}"
-        #res.send "recipient_name = #{recipient_name}"
-        #res.send "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name) = #{Util.inspect robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name)}"
-        #robot.logger.info "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_id).room = #{robot.adapter.chatdriver.getDirectMessageRoomId(recipient).room}"
-        #robot.adapter.chatdriver.sendMessageByRoomId direct_message, robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name).room
+      # if false #is_direct_message
+      #   direct_message = ("Psst. This action was done privately. " + message)
+      #   #res.send "Attempting to send the following DM: #{direct_message}"
+      #   #res.send "recipient_id = #{recipient_id}"
+      #   #res.send "recipient_name = #{recipient_name}"
+      #   #res.send "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name) = #{Util.inspect robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name)}"
+      #   #robot.logger.info "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_id).room = #{robot.adapter.chatdriver.getDirectMessageRoomId(recipient).room}"
+      #   #robot.adapter.chatdriver.sendMessageByRoomId direct_message, robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name).room
         
-        # room for the direct message
-        # TODO: Need to find out how to get the user ID of the bot
-        robot.logger.info "bot_id = #{bot_id}"
-        direct_msg_room_id = robot.chatdriver.getDirectMessageRoomId recipient_name
-        #room_id = [recipient_id, bot_id].sort().join('')
-        robot.logger.info direct_message
-        robot.logger.info ("room_id of the DM: " + direct_msg_room_id)
-        robot.sendDirectToUsername recipient_name, message
+      #   # room for the direct message
+      #   # TODO: Need to find out how to get the user ID of the bot
+      #   robot.logger.info "bot_id = #{bot_id}"
+      #   direct_msg_room_id = robot.chatdriver.getDirectMessageRoomId recipient_name
+      #   #room_id = [recipient_id, bot_id].sort().join('')
+      #   robot.logger.info direct_message
+      #   robot.logger.info ("room_id of the DM: " + direct_msg_room_id)
+      #   robot.sendDirectToUsername recipient_name, message
     else
-      fail_message = "I didn't understand how many tokens you want to " + action_string + "."
-      fail_message += " If you don't provide a number, I assume you want to " + action_string + " one token."
-      fail_message += " I also understand numbers like 1, 2, 3 and some alphabetic numbers like one, two, three."
+      fail_message = ("I didn't understand how many tokens you want to give." +
+                      " If you don't provide a number, I assume you want to " +
+                      " give one token. I also understand numbers like 1, 2," +
+                      " 3 and some alphabetic numbers like one, two, three.")
       res.send fail_message
     return
 
@@ -553,19 +483,17 @@ module.exports = (robot) ->
                 ///i, (res) ->
 
     name_raw = res.match[1]
-    
-    #if not name?
-    #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
-    #else
-    users = robot.brain.usersForFuzzyName(name_raw.trim()) # the second capture group is the user name
+    # the second capture group is the user name:
+    users = robot.brain.usersForFuzzyName(name_raw.trim())
 
     if users.length == 1
       user = users[0]
       # whether the person writing the command is the one we're getting the status of
       self_bool = (user['id'] == res.message.user.id)
-      res.sendPrivate tokenBot.status user['id'], self_bool
+      tokenBot.initialize_user_if_unrecognized user['id']
+      res.send tokenBot.status user['id'], self_bool # TODO: change res.send to res.sendPrivate
     else
-      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
+      res.send "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )." # TODO: change res.send to res.sendPrivate
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
@@ -574,15 +502,17 @@ module.exports = (robot) ->
                 status
                 \s*
                 $///i, (res) ->
-    res.sendPrivate tokenBot.status res.message.user.id, true
+    tokenBot.initialize_user_if_unrecognized res.message.user.id
+    res.send tokenBot.status res.message.user.id, true
+    # TODO: change res.sendPrivate to res.sendPrivate
 
   # show leaderboard, show leader board
   robot.respond /\s*(?:show )?\s*leaders? ?board\s*/i, (res) ->
-    res.sendPrivate tokenBot.leaderboard leaderboard_length
+    res.send tokenBot.leaderboard leaderboard_length # TODO: change res.send to res.sendPrivate
 
   # who has the most tokens? 
   robot.respond /\s*who \b(has|holds)\b the most tokens\??\s*/i, (res) ->
-    res.sendPrivate tokenBot.leaderboard leaderboard_length
+    res.send tokenBot.leaderboard leaderboard_length # TODO: change res.send to res.sendPrivate
 
   # show top n list
   show_top_n_regex_string = "" +
@@ -609,9 +539,11 @@ module.exports = (robot) ->
     # then send the result of tokenBot.leaderboard
     if not isNaN number_parseInt
       if number_parseInt > 0
-        res.sendPrivate tokenBot.leaderboard number_parseInt
+        res.send tokenBot.leaderboard number_parseInt # TODO: change res.send to res.sendPrivate
       else
-        res.sendPrivate "Please provide a positive integer; for example, use the command `#{bot_name} show top 5 list`."
+        msg = "Please provide a positive integer; for example, use the "
+        msg += "command `#{bot_name} show top 5 list`."
+        res.send msg
     else
       # it's not an integer, so try to interpret an English word for a number
       number_interpreted = interpret_alphabetic_number number_input
@@ -622,137 +554,72 @@ module.exports = (robot) ->
                       "#{leaderboard_length} list, or use `#{bot_name} show" +
                       " top n list` (where `n` is an integer) to show the `n`" +
                       " people who have received the most tokens.")
-        res.sendPrivate fail_message
+        res.send fail_message # TODO: change res.send to res.sendPrivate
       else
-        res.sendPrivate tokenBot.leaderboard number_interpreted
+        res.send tokenBot.leaderboard number_interpreted # TODO: change res.send to res.sendPrivate
 
   ###
     Miscellaneous commands
   ###
 
-  # log all errors 
+  #log all errors 
   robot.error (err, res) ->
     robot.logger.error "#{err}\n#{err.stack}"
     if res?
        res.reply "#{err}\n#{err.stack}"
 
-  # inspect a user's user name
-  robot.respond /inspect me/i, (res) ->
-    user = robot.brain.userForId(res.message.user.id)
-    res.send "#{Util.inspect(user)}"
-
-  # show users, show all users -- show all users and their user names
-  robot.respond /show (?:all )?users$/i, (res) ->
-    res.sendPrivate ("Here are all the users I know about: " + 
-                     ("@#{user.name}" for own key, user of robot.brain.data.users).join ", ")
-
   # show user with tokens still to give out to others
   robot.respond ///
-                \s*\b(show(?: the)? users \b(with|(?:who|that)(?: still)?
-                have)\b tokens?|who(?: still)? has tokens?)
-                (?: to give(?: out)?)?\??\s*
+                \s*
+                \b(show)?\s*
+                \b(the)?\s*
+                \b(people|everyone|users)?\s*
+                \b(who|with)\s*
+                \b(still)?\s*
+                \b(has|have)\s*
+                \b(tokens)
+                \b(to give\b(out)?)?
+                \s*\??
+                \s*
                 ///i, (res) ->
+    sender_id = res.message.user.id
+    tokenBot.initialize_user_if_unrecognized sender_id
     # check whether tokenBot.tokens_given is empty
     if Object.keys(tokenBot.tokens_given).length == 0
-      res.sendPrivate "No one has said anything yet, so I don't know of the existence of anyone yet!"
-    else 
-      response = ("@" + robot.brain.userForId(id).name + " (" +
-                  (tokenBot.max_tokens_per_user - recipients.length).toString() +
-                  " token" + (if tokenBot.max_tokens_per_user - recipients.length != 1 then "s" else "") +
-                  ")" for own id, recipients of tokenBot.tokens_given when recipients.length < tokenBot.max_tokens_per_user).join(", ")
-      if response == "" # recipients.length == tokenBot.max_tokens_per_user for all users
-        res.sendPrivate "Everyone has given out all their tokens."
+      msg = "No one has said anything yet, so I don't know of the existence of anyone yet!"
+      # TODO: change res.send to res.sendPrivate
+      res.send msg
+    else
+      response = ""
+      for own id, tokens_remaining of tokenBot.token_wallet
+        if tokens_remaining > 0
+          username = "@" + robot.brain.userForId(id).name
+          token_or_tokens = if tokens_remaining != 1 then "tokens" else "token"
+          if response != ""
+            resposne += ", "
+          response += "#{username} (#{tokens_remaining} #{token_or_tokens})"
+      if response == ""
+        # TODO: change res.send to res.sendPrivate
+        res.send "Everyone has given out all their tokens."
       else
-        res.sendPrivate "The following users still have tokens to give. "
-                        "Try to help these users so that they thank you "
-                         "with a token!\n" + response
+        # TODO: change res.send to res.sendPrivate
+        preamble = "The following users still have tokens to give. Try to help"
+        preamble += " these users so that they thank you with a token!\n"
+        res.send (preamble + response)
 
-
-  # if this is the first time that this user has said something, then add them
-  # to tokens_given and tokens_received
-  robot.hear /.*/i, (res) -> 
+  # if this is the first time that this user has said something, then
+  # initialize this user in the dictionaries of tokens sent, tokens received,
+  # and tokens available to give
+  robot.hear /.*/i, (res) ->
     sender_id = res.message.user.id
-    # if @tokens_given[sender] has not yet been defined (i.e., it's null or undefined)
-    if tokenBot.tokens_given[sender_id]? == false
-      tokenBot.tokens_given[sender_id] = []
+    tokenBot.initialize_user_if_unrecognized sender_id
 
-    if tokenBot.tokens_received[sender_id]? == false
-      tokenBot.tokens_received[sender_id] = []
-
-  # when a user enters the room, add them to tokens_given and tokens_received
+  # # when a user enters the room, initialize them in the tokenBot's dictionaries
+  # # if this user's ID is not already a key in those dictionaries
   robot.enter (res) -> 
     sender_id = res.message.user.id
-    # if @tokens_given[sender] has not yet been defined
-    # (i.e., it's null or undefined), then initialize their lists to empty
-    if tokenBot.tokens_given[sender_id]? == false
-      tokenBot.tokens_given[sender_id] = []
-    if tokenBot.tokens_received[sender_id]? == false
-      tokenBot.tokens_received[sender_id] = []
+    tokenBot.initialize_user_if_unrecognized sender_id
 
-  robot.respond /show robot.brain.data.users/i, (res) -> 
-    res.send "#{Util.inspect(robot.brain.data.users)}"
-    res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
-    res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
-    res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
-    # this gives a  TypeError: Converting circular structure to JSON
-    # res.send "JSON.stringify robot.brain = #{ JSON.stringify robot.brain }"
-
-  # This is a dangerous command that clears the contents of the robot's brain
-  # robot.respond /clear your brain/i, (res) -> 
-  #   tokenBot.tokens_given = {}
-  #   tokenBot.tokens_received = {}
-  #   robot.brain.data.tokens_given = {}
-  #   robot.brain.data.tokens_received = {}
-  #   robot.brain.data.users = {}
-
-  # robot.respond /reset_all_tokens/i, (res) -> 
-  #   tokenBot.tokens_given = {}
-  #   tokenBot.tokens_received = {}
-  #   robot.brain.data.tokens_given = {}
-  #   robot.brain.data.tokens_received = {}
-  #   res.send "OK, I reset all tokens."
-
-
-  # Who has tokens from @user?
-  # Used to run the lottery
-  # robot.respond ///            
-  #               who has received tokens from
-  #               \s+          # whitespace
-  #               @?([\w.\-]+) # user name or name (to be matched in a fuzzy way below). 
-  #                            # \w matches any word character (alphanumeric and underscore).
-  #               \s*$         # 0 or more whitespace
-  #               ///i, (res) ->
-
-  #   name_raw = res.match[1]
-    
-  #   #if not name?
-  #   #  res.send "Sorry, I couldn't understand the name you provided (#{name})."
-  #   #else
-  #   users = robot.brain.usersForFuzzyName(name_raw.trim()) # the second capture group is the user name
-
-  #   if users.length == 1
-  #     user = users[0]
-  #     # whether the person writing the command is the one we're getting the status of
-      
-  #     tokens_given_by_this_person = if @tokens_given[id]? then @tokens_given[id] else []
-  #     num_tokens_given = tokens_given_by_this_person.length
-
-  #     if num_tokens_given == 0
-  #       res.sendPrivate "@#{user.name} has not given tokens to anyone."
-  #     else
-  #       result = ("#{name} has given " + num_tokens_given + " token" +
-  #                 (if num_tokens_given != 1 then "s" else "") +
-  #                 " to the following people: ")
-  #       result += ("@" + robot.brain.userForId(id_peer).name + " (" +
-  #                  num_tokens.toString() + ")" for own id_peer, num_tokens of robot.tally(tokens_given_by_this_person)).join(", ")
-  #       res.sendPrivate result
-      
-  #   else
-  #     res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
-    
-  ###
-    Help the user figure out how to use the bot
-  ###
   robot.respond /hi|hello|hey/i, (res) ->
     sender = res.message.user
     sender_name = "@" + res.message.user.name
@@ -765,5 +632,27 @@ module.exports = (robot) ->
   robot.hear /how do I \b(?:give|send)\b a token\??/i, (res) -> 
     res.send "Use the command `/give @user_name`."
 
-  robot.hear /how do I \b(?:revoke|get back)\b a token\??/i, (res) -> 
-    res.send "Use the command `/revoke @user_name`."
+  ###
+    DEBUGGING
+  ###
+  # inspect a user's user name
+  robot.respond /inspect me/i, (res) ->
+    user = robot.brain.userForId(res.message.user.id)
+    res.send "#{Util.inspect(user)}"
+
+  # show users, show all users -- show all users and their user names
+  robot.respond /show (?:all )?users$/i, (res) ->
+    msg = "Here are all the users I know about: "
+    msg += ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
+    res.send msg
+
+  robot.respond /show your brain/i, (res) -> 
+    res.send "#{Util.inspect(robot.brain.data.users)}"
+    res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
+    res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
+    res.send "tokenBot.token_wallet = #{Util.inspect(tokenBot.token_wallet)}"
+    res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
+
+  # TODO remove this command before putting this into production.
+  robot.respond /reset wallets/i, (res) ->
+    reset_wallets()
