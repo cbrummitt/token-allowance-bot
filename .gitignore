@@ -41,3 +41,8 @@ bin/hubot.cmd
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Sublime workspaces #
+######################
+*.sublime-project
+*.sublime-workspace
