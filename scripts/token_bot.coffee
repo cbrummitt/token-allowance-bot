@@ -46,7 +46,7 @@ TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
 # https://bitbucket.org/nevity/cronner
 ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
 #ALLOWANCE_FREQUENCY = '* * * * * *'  # every second
-TIMEZONE = process.env.TIMEZONE or "America/New_York"
+TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
 ROOM_TO_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 
 class TokenNetwork
@@ -130,13 +130,13 @@ class TokenNetwork
       @robot.brain.data.token_wallet = @token_wallet
 
       # create a message to be sent in the channel where the command was made
-      message = ("#{sender_name} gave " + num_tokens_to_give + " token" + 
-                 (if num_tokens_to_give != 1 then "s" else "") + 
-                 " to #{recipient_name}. ")
+      token_or_tokens = if num_tokens_to_give != 1 then "tokens" else "token"
+      message = ("#{sender_name} gave #{num_tokens_to_give} " + 
+                 "#{token_or_tokens} to #{recipient_name}. ")
       tokens_remaining = @token_wallet[sender]
-      message += ("#{sender_name} now has #{tokens_remaining} token" + 
-                  (if tokens_remaining != 1 then "s" else "") + 
-                  " remaining to give to others. ")
+      token_or_tokens = if num_tokens_to_give != 1 then "tokens" else "token"
+      message += ("#{sender_name} now has #{tokens_remaining} " + 
+                  "#{token_or_tokens} remaining to give to others. ")
       return message
 
   selfDeniedResponses: (name) ->
@@ -203,9 +203,9 @@ class TokenNetwork
     tokens_received_by_this_person = if @tokens_received[id]? then @tokens_received[id] else []
     num_tokens_received = tokens_received_by_this_person.length
     if num_tokens_received > 0
-      result += ("#{name} " + has_have + num_tokens_received + " token" +
-                 (if num_tokens_received != 1 then "s" else "") +
-                 " from the following people: ")
+      token_or_tokens = if num_tokens_received != 1 then "tokens" else "token"
+      result += ("#{name} #{has_have} received #{num_tokens_received} " + 
+                 "#{token_or_tokens} from the following people: ")
       result += ("@" + @robot.brain.userForId(id_peer).name +
                  " (" + num_tokens.toString() + ")" for own id_peer, num_tokens of @tally(tokens_received_by_this_person)).join(", ")
     else
@@ -369,6 +369,7 @@ module.exports = (robot) ->
     sender = res.message.user
     sender_name = "@" + res.message.user.name
     sender_id = res.message.user.id
+    tokenBot.initialize_user_if_unrecognized sender_id
 
     # is the message a DM to the bot?
     # a message is a direct message if the message's room contains the
