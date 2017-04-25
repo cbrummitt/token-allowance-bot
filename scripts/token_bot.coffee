@@ -45,7 +45,7 @@ TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
 # https://stackoverflow.com/questions/321494/calculate-when-a-cron-job-will-be-executed-then-next-time
 # perhaps
 # https://bitbucket.org/nevity/cronner
-ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
+# ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
 # ALLOWANCE_FREQUENCY = '* * * * * *' # every second
 # every 10 seconds: '*/10 * * * * *' # every 10 seconds
 # Seconds: 0-59
@@ -355,8 +355,9 @@ module.exports = (robot) ->
     robot.messageRoom room, msg
 
   timezone = process.env.TIMEZONE or "Africa/Accra"
-  job = new CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, timezone
-  job2 = new CronJob ALLOWANCE_FREQUENCY, robot.messageRoom("general", "test"), null, true, timezone
+  frequency = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
+  job = new CronJob frequency, reset_wallets(), null, true, timezone
+  job2 = new CronJob frequency, robot.messageRoom("general", "test"), null, true, timezone
 
  
   give_regex_string = "give|send"
