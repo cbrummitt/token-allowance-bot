@@ -354,8 +354,8 @@ module.exports = (robot) ->
            " tokens. Make sure to thank #{TOKEN_ALLOWANCE} people for " +
            "giving useful feedback on their business ideas before these " +
            "tokens disappear next week!")
-    robot.messageRoom process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general", msg
-  #job = new CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, TIMEZONE
+    robot.messageRoom process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "GENERAL", msg
+  job = new CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, TIMEZONE
 
  
   give_regex_string = "give|send"
