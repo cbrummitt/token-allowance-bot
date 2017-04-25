@@ -359,6 +359,7 @@ module.exports = (robot) ->
   # "59 59 23 * * 0"
   frequency = process.env.ALLOWANCE_FREQUENCY or "0,15,30,45 * * * * *"
   job = new CronJob frequency, reset_wallets(), null, true, timezone
+  job.start
   #job2 = new CronJob frequency, robot.messageRoom("general", "test"), null, true, timezone
 
  
