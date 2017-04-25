@@ -669,3 +669,5 @@ module.exports = (robot) ->
   # TODO remove this command before putting this into production.
   robot.respond /reset wallets/i, (res) ->
     reset_wallets()
+    res.send "Just reset wallets"
+
