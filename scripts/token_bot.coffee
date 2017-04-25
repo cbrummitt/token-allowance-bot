@@ -33,8 +33,9 @@
 #   ALLOWANCE_FREQUENCY = '59 59 23 * * 0'  # every Sunday at 11:59:59 PM; see https://github.com/kelektiv/node-cron#cron-ranges
 #   TIMEZONE = "America/New_York"
 Util = require "util"  # for inspecting an object with `Util.inspect`
-Cron = require "cron"  # for running jobs
-CronJob = Cron.CronJob
+# Cron = require "cron"  # for running jobs
+# CronJob = Cron.CronJob
+CronJob = require('cron').CronJob
 
 
 TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
@@ -45,6 +46,14 @@ TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
 # perhaps
 # https://bitbucket.org/nevity/cronner
 ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
+# ALLOWANCE_FREQUENCY = '* * * * * *'
+# every 10 seconds: '*/10 * * * * *'
+# Seconds: 0-59
+# Minutes: 0-59
+# Hours: 0-23
+# Day of Month: 1-31
+# Months: 0-11
+# Day of Week: 0-6
 #ALLOWANCE_FREQUENCY = '* * * * * *'  # every second
 TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
 ROOM_TO_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
@@ -345,7 +354,7 @@ module.exports = (robot) ->
            " tokens. Make sure to thank #{TOKEN_ALLOWANCE} people for " +
            "giving useful feedback on their business ideas before these " +
            "tokens disappear next week!")
-    robot.messageRoom ROOM_TO_ANNOUNCE_ALLOWANCE, msg
+    robot.messageRoom process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general", msg
   job = new Cron.CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, TIMEZONE
 
  
