@@ -338,14 +338,14 @@ module.exports = (robot) ->
   # default length for the leaderboard showing the people with the most tokens
   leaderboard_length = 10
 
-  # Reset everyone's wallet to the allowance environment variable
-  reset_wallets = ->
-    tokenBot.reset_everyones_wallet()
-    msg = ("I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens." +
-           " Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful" +
-           " feedback before these tokens disappear!")
-    robot.messageRoom ROOM_TO_ANNOUNCE_ALLOWANCE, msg
-  job = new Cron.CronJob ALLOWANCE_FREQUENCY, reset_wallets(), null, true, TIMEZONE
+  # # Reset everyone's wallet to the allowance environment variable
+  # reset_wallets = ->
+  #   tokenBot.reset_everyones_wallet()
+  #   msg = ("I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens." +
+  #          " Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful" +
+  #          " feedback before these tokens disappear!")
+  #   robot.messageRoom ROOM_TO_ANNOUNCE_ALLOWANCE, msg
+  # job = new Cron.CronJob ALLOWANCE_FREQUENCY, reset_wallets(), null, true, TIMEZONE
 
  
   give_regex_string = "give|send"
@@ -655,5 +655,5 @@ module.exports = (robot) ->
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
 
   # TODO remove this command before putting this into production.
-  robot.respond /reset wallets/i, (res) ->
-    reset_wallets()
+  # robot.respond /reset wallets/i, (res) ->
+  #   reset_wallets()
