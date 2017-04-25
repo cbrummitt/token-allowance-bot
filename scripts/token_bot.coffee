@@ -353,9 +353,10 @@ module.exports = (robot) ->
            "tokens disappear next week!")
     room = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
     robot.messageRoom room, msg
-  job = new CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, process.env.TIMEZONE or "Africa/Accra"
 
-  job2 = new CronJob ALLOWANCE_FREQUENCY, robot.messageRoom "general", "test", null, true, process.env.TIMEZONE or "Africa/Accra"
+  timezone = process.env.TIMEZONE or "Africa/Accra"
+  job = new CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, timezone
+  job2 = new CronJob ALLOWANCE_FREQUENCY, robot.messageRoom "general", "test", null, true, timezone
 
  
   give_regex_string = "give|send"
