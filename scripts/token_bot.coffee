@@ -307,7 +307,7 @@ regexEscape = (str) ->
 
 
 module.exports = (robot) ->
-  #tokenBot = new TokenNetwork robot
+  tokenBot = new TokenNetwork robot
 
   ###
     Environment variables
