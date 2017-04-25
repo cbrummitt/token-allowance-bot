@@ -356,7 +356,7 @@ module.exports = (robot) ->
 
   timezone = process.env.TIMEZONE or "Africa/Accra"
   job = new CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, timezone
-  job2 = new CronJob ALLOWANCE_FREQUENCY, robot.messageRoom "general", "test", null, true, timezone
+  job2 = new CronJob ALLOWANCE_FREQUENCY, robot.messageRoom("general", "test"), null, true, timezone
 
  
   give_regex_string = "give|send"
