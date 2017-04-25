@@ -341,9 +341,10 @@ module.exports = (robot) ->
   # # Reset everyone's wallet to the allowance environment variable
   reset_wallets = ->
     tokenBot.reset_everyones_wallet()
-    msg = ("I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens." +
-           " Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful" +
-           " feedback before these tokens disappear!")
+    msg = ("@all: I just reset everyone's wallet to #{TOKEN_ALLOWANCE}" +
+           " tokens. Make sure to thank #{TOKEN_ALLOWANCE} people for " +
+           "giving useful feedback on their business ideas before these " +
+           "tokens disappear!")
     robot.messageRoom ROOM_TO_ANNOUNCE_ALLOWANCE, msg
   # job = new Cron.CronJob ALLOWANCE_FREQUENCY, reset_wallets(), null, true, TIMEZONE
 
@@ -420,7 +421,7 @@ module.exports = (robot) ->
     # figure out how many tokens they want to give
     # if the user doesn't provide a number, then assume that the number is 1
     num_tokens_to_transfer = switch
-      when res.match[2] == "" or not res.match[2]? then 1
+      when not res.match[2]? or res.match[2] == "" then 1
       when res.match[2] == "all" then tokenBot.wallet[sender_id]
       else fuzzy_string_to_nonnegative_int res.match[2]
 
