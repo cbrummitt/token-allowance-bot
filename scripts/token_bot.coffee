@@ -630,22 +630,22 @@ module.exports = (robot) ->
     res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} <command>`."
     #res.send "My ID is #{Util.inspect robot.brain.usersForFuzzyName(bot_name.trim())}"
 
-  robot.hear /how do I \b(?:give|send)\b a token\??/i, (res) -> 
-    res.send "Use the command `/give @user_name`."
+  # robot.hear /how do I \b(?:give|send)\b a token\??/i, (res) -> 
+  #   res.send "Use the command `/give @user_name`."
 
-  ###
-    DEBUGGING
-  ###
-  # inspect a user's user name
-  robot.respond /inspect me/i, (res) ->
-    user = robot.brain.userForId(res.message.user.id)
-    res.send "#{Util.inspect(user)}"
+  # ###
+  #   DEBUGGING
+  # ###
+  # # inspect a user's user name
+  # robot.respond /inspect me/i, (res) ->
+  #   user = robot.brain.userForId(res.message.user.id)
+  #   res.send "#{Util.inspect(user)}"
 
-  # show users, show all users -- show all users and their user names
-  robot.respond /show (?:all )?users$/i, (res) ->
-    msg = "Here are all the users I know about: "
-    msg += ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
-    res.send msg
+  # # show users, show all users -- show all users and their user names
+  # robot.respond /show (?:all )?users$/i, (res) ->
+  #   msg = "Here are all the users I know about: "
+  #   msg += ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
+  #   res.send msg
 
   robot.respond /show your brain/i, (res) -> 
     res.send "#{Util.inspect(robot.brain.data.users)}"
@@ -654,6 +654,6 @@ module.exports = (robot) ->
     res.send "tokenBot.token_wallet = #{Util.inspect(tokenBot.token_wallet)}"
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
 
-  # TODO remove this command before putting this into production.
-  robot.respond /reset wallets/i, (res) ->
-    reset_wallets()
+  # # TODO remove this command before putting this into production.
+  # robot.respond /reset wallets/i, (res) ->
+  #   reset_wallets()
