@@ -630,8 +630,8 @@ module.exports = (robot) ->
     res.send "My name is #{bot_name}. You can give commands in the form `#{bot_name} <command>`."
     #res.send "My ID is #{Util.inspect robot.brain.usersForFuzzyName(bot_name.trim())}"
 
-  # robot.hear /how do I \b(?:give|send)\b a token\??/i, (res) -> 
-  #   res.send "Use the command `/give @user_name`."
+  robot.hear /how do I \b(?:give|send)\b(?:\s+a)? tokens?\??/i, (res) -> 
+    res.send "Use the command `/give @user_name`."
 
   ###
     DEBUGGING
