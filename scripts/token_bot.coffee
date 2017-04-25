@@ -33,8 +33,8 @@
 #   ALLOWANCE_FREQUENCY = '59 59 23 * * 0'  # every Sunday at 11:59:59 PM; see https://github.com/kelektiv/node-cron#cron-ranges
 #   TIMEZONE = "America/New_York"
 Util = require "util"  # for inspecting an object with `Util.inspect`
-# Cron = require "cron"  # for running jobs
-# CronJob = Cron.CronJob
+Cron = require "cron"  # for running jobs
+CronJob = Cron.CronJob
 
 
 TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
