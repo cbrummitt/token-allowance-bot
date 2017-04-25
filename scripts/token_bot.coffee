@@ -422,7 +422,7 @@ module.exports = (robot) ->
     # if the user doesn't provide a number, then assume that the number is 1
     num_tokens_to_transfer = switch
       when not res.match[2]? or res.match[2] == "" then 1
-      when res.match[2] == "all" then tokenBot.wallet[sender_id]
+      when res.match[2] == "all" then tokenBot.token_wallet[sender_id]
       else fuzzy_string_to_nonnegative_int res.match[2]
 
     if num_tokens_to_transfer? and not isNaN num_tokens_to_transfer
