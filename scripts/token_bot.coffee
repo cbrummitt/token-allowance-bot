@@ -353,6 +353,7 @@ module.exports = (robot) ->
            "tokens disappear next week!")
     room = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
     robot.messageRoom room, msg
+    robot.messageRoom "general", "Just reset wallets"
 
   timezone = process.env.TIMEZONE or "Africa/Accra"
   frequency = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
