@@ -355,6 +355,8 @@ module.exports = (robot) ->
     robot.messageRoom room, msg
   job = new CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, process.env.TIMEZONE or "Africa/Accra"
 
+  job = new CronJob ALLOWANCE_FREQUENCY, robot.messageRoom "general", "test", null, true, process.env.TIMEZONE or "Africa/Accra"
+
  
   give_regex_string = "give|send"
   give_regex = new RegExp("\\b(" + give_regex_string + ")\\b", "i")
