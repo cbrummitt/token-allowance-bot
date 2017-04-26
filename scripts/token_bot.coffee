@@ -669,7 +669,7 @@ module.exports = (robot) ->
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
 
   # TODO remove this command before putting this into production.
-  # robot.respond /reset wallets/i, (res) ->
-  #   reset_wallets()
-  #   res.send "Just reset wallets"
+  robot.respond /reset wallets/i, (res) ->
+    reset_wallets()
+    res.send "Just reset wallets"
 
