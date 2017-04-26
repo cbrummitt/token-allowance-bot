@@ -354,7 +354,8 @@ module.exports = (robot) ->
       on their business ideas before these tokens disappear next week!"
     robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
     robot.messageRoom "tokens", msg
-    robot.messageRoom "general", "\@all: I just reset wallets to 
+    all = "@all"
+    robot.messageRoom "general", "#{all}: I just reset wallets to 
       #{TOKEN_ALLOWANCE} tokens. Make sure to thank #{TOKEN_ALLOWANCE} people
       for giving useful feedback on their business ideas before these tokens
       disappear next week!"
