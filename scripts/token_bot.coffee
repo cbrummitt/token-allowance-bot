@@ -502,9 +502,9 @@ module.exports = (robot) ->
       # whether the person writing the command is the one we're getting the status of
       self_bool = (user['id'] == res.message.user.id)
       tokenBot.initialize_user_if_unrecognized user['id']
-      res.send tokenBot.status user['id'], self_bool # TODO: change res.send to res.sendPrivate
+      res.sendPrivate tokenBot.status user['id'], self_bool
     else
-      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )." # TODO: change res.send to res.sendPrivate
+      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
@@ -515,15 +515,14 @@ module.exports = (robot) ->
                 $///i, (res) ->
     tokenBot.initialize_user_if_unrecognized res.message.user.id
     res.sendPrivate tokenBot.status res.message.user.id, true
-    # TODO: change res.send to res.sendPrivate
 
   # show leaderboard, show leader board
   robot.respond /\s*(?:show )?\s*leaders? ?board\s*/i, (res) ->
-    res.sendPrivate tokenBot.leaderboard leaderboard_length # TODO: change res.send to res.sendPrivate
+    res.sendPrivate tokenBot.leaderboard leaderboard_length
 
   # who has the most tokens? 
   robot.respond /\s*who \b(has|holds)\b the most tokens\??\s*/i, (res) ->
-    res.sendPrivate tokenBot.leaderboard leaderboard_length # TODO: change res.send to res.sendPrivate
+    res.sendPrivate tokenBot.leaderboard leaderboard_length
 
   # show top n list
   show_top_n_regex_string = "" +
@@ -550,7 +549,7 @@ module.exports = (robot) ->
     # then send the result of tokenBot.leaderboard
     if not isNaN number_parseInt
       if number_parseInt > 0
-        res.sendPrivate tokenBot.leaderboard number_parseInt # TODO: change res.send to res.sendPrivate
+        res.sendPrivate tokenBot.leaderboard number_parseInt
       else
         msg = "Please provide a positive integer; for example, use the "
         msg += "command `#{bot_name} show top 5 list`."
@@ -565,9 +564,9 @@ module.exports = (robot) ->
                       "#{leaderboard_length} list, or use `#{bot_name} show" +
                       " top n list` (where `n` is an integer) to show the `n`" +
                       " people who have received the most tokens.")
-        res.sendPrivate fail_message # TODO: change res.send to res.sendPrivate
+        res.sendPrivate fail_message
       else
-        res.sendPrivate tokenBot.leaderboard number_interpreted # TODO: change res.send to res.sendPrivate
+        res.sendPrivate tokenBot.leaderboard number_interpreted
 
   ###
     Miscellaneous commands
@@ -598,8 +597,7 @@ module.exports = (robot) ->
     # check whether tokenBot.tokens_given is empty
     if Object.keys(tokenBot.tokens_given).length == 0
       msg = "No one has said anything yet, so I don't know of the existence of anyone yet!"
-      # TODO: change res.send to res.sendPrivate
-      res.send msg
+      res.sendPrivate msg
     else
       response = ""
       for own id, tokens_remaining of tokenBot.token_wallet
@@ -610,10 +608,8 @@ module.exports = (robot) ->
             response += ", "
           response += "#{username} (#{tokens_remaining} #{token_or_tokens})"
       if response == ""
-        # TODO: change res.send to res.sendPrivate
         res.sendPrivate "Everyone has given out all their tokens."
       else
-        # TODO: change res.send to res.sendPrivate
         preamble = "The following users still have tokens to give. Try to help"
         preamble += " these users so that they thank you with a token!\n"
         res.sendPrivate (preamble + response)
