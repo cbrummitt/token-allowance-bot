@@ -349,7 +349,8 @@ module.exports = (robot) ->
   reset_wallets = ->
     tokenBot.reset_everyones_wallet()
     allowance = process.env.TOKEN_ALLOWANCE or 7
-    msg = "I just reset everyone's wallet to #{allowance} tokens.
+    all_mention = "@all"
+    msg = "@{all_mention} I just reset everyone's wallet to #{allowance} tokens.
       Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful feedback
       on their business ideas before these #{TOKEN_ALLOWANCE} tokens disappear
       next week!"
