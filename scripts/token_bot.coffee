@@ -33,8 +33,6 @@
 #   ALLOWANCE_FREQUENCY = '59 59 23 * * 0'  # every Sunday at 11:59:59 PM; see https://github.com/kelektiv/node-cron#cron-ranges
 #   TIMEZONE = "America/New_York"
 Util = require "util"  # for inspecting an object with `Util.inspect`
-# Cron = require "cron"  # for running jobs
-# CronJob = Cron.CronJob
 CronJob = require('cron').CronJob
 
 
@@ -43,7 +41,6 @@ ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
 # ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0" # every Sunday at 11:59:59 PM
 ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "0 0 * * * *" # every hour
-  # "59 59 23 * * 0"
 # default allowance frequency: every Sunday at 11:59:59 PM
 # see https://github.com/kelektiv/node-cron#cron-ranges
 # TODO: Create an English description of the frequency using
@@ -352,9 +349,8 @@ module.exports = (robot) ->
   # # Reset everyone's wallet to the allowance environment variable
   reset_wallets = ->
     tokenBot.reset_everyones_wallet()
-    allowance = process.env.TOKEN_ALLOWANCE or 7
     all_mention = "@all"
-    msg = "#{all_mention} I just reset everyone's wallet to #{allowance} tokens.
+    msg = "#{all_mention} I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens.
       Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful feedback
       on their business ideas before these #{TOKEN_ALLOWANCE} tokens disappear
       next week!"
@@ -508,7 +504,7 @@ module.exports = (robot) ->
       tokenBot.initialize_user_if_unrecognized user['id']
       res.send tokenBot.status user['id'], self_bool # TODO: change res.send to res.sendPrivate
     else
-      res.send "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )." # TODO: change res.send to res.sendPrivate
+      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )." # TODO: change res.send to res.sendPrivate
 
   # Listen for the command `status` without any user name provided.
   # This sends the message returned by `tokenBot.status` on the input `res.message.user.name`.
@@ -518,16 +514,16 @@ module.exports = (robot) ->
                 \s*
                 $///i, (res) ->
     tokenBot.initialize_user_if_unrecognized res.message.user.id
-    res.send tokenBot.status res.message.user.id, true
-    # TODO: change res.sendPrivate to res.sendPrivate
+    res.sendPrivate tokenBot.status res.message.user.id, true
+    # TODO: change res.send to res.sendPrivate
 
   # show leaderboard, show leader board
   robot.respond /\s*(?:show )?\s*leaders? ?board\s*/i, (res) ->
-    res.send tokenBot.leaderboard leaderboard_length # TODO: change res.send to res.sendPrivate
+    res.sendPrivate tokenBot.leaderboard leaderboard_length # TODO: change res.send to res.sendPrivate
 
   # who has the most tokens? 
   robot.respond /\s*who \b(has|holds)\b the most tokens\??\s*/i, (res) ->
-    res.send tokenBot.leaderboard leaderboard_length # TODO: change res.send to res.sendPrivate
+    res.sendPrivate tokenBot.leaderboard leaderboard_length # TODO: change res.send to res.sendPrivate
 
   # show top n list
   show_top_n_regex_string = "" +
@@ -554,7 +550,7 @@ module.exports = (robot) ->
     # then send the result of tokenBot.leaderboard
     if not isNaN number_parseInt
       if number_parseInt > 0
-        res.send tokenBot.leaderboard number_parseInt # TODO: change res.send to res.sendPrivate
+        res.sendPrivate tokenBot.leaderboard number_parseInt # TODO: change res.send to res.sendPrivate
       else
         msg = "Please provide a positive integer; for example, use the "
         msg += "command `#{bot_name} show top 5 list`."
@@ -569,9 +565,9 @@ module.exports = (robot) ->
                       "#{leaderboard_length} list, or use `#{bot_name} show" +
                       " top n list` (where `n` is an integer) to show the `n`" +
                       " people who have received the most tokens.")
-        res.send fail_message # TODO: change res.send to res.sendPrivate
+        res.sendPrivate fail_message # TODO: change res.send to res.sendPrivate
       else
-        res.send tokenBot.leaderboard number_interpreted # TODO: change res.send to res.sendPrivate
+        res.sendPrivate tokenBot.leaderboard number_interpreted # TODO: change res.send to res.sendPrivate
 
   ###
     Miscellaneous commands
@@ -615,12 +611,12 @@ module.exports = (robot) ->
           response += "#{username} (#{tokens_remaining} #{token_or_tokens})"
       if response == ""
         # TODO: change res.send to res.sendPrivate
-        res.send "Everyone has given out all their tokens."
+        res.sendPrivate "Everyone has given out all their tokens."
       else
         # TODO: change res.send to res.sendPrivate
         preamble = "The following users still have tokens to give. Try to help"
         preamble += " these users so that they thank you with a token!\n"
-        res.send (preamble + response)
+        res.sendPrivate (preamble + response)
 
   # if this is the first time that this user has said something, then
   # initialize this user in the dictionaries of tokens sent, tokens received,
