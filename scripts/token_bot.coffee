@@ -607,7 +607,7 @@ module.exports = (robot) ->
           username = "@" + robot.brain.userForId(id).name
           token_or_tokens = if tokens_remaining != 1 then "tokens" else "token"
           if response != ""
-            resposne += ", "
+            response += ", "
           response += "#{username} (#{tokens_remaining} #{token_or_tokens})"
       if response == ""
         # TODO: change res.send to res.sendPrivate
