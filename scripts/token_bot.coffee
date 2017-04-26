@@ -39,6 +39,7 @@ CronJob = require('cron').CronJob
 
 
 TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
+ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 # default allowance frequency: every Sunday at 11:59:59 PM
 # see https://github.com/kelektiv/node-cron#cron-ranges
 # TODO: Create an English description of the frequency using
@@ -94,7 +95,7 @@ class TokenNetwork
   initialize_user: (user_id) ->
     @tokens_given[user_id] = []
     @tokens_received[user_id] = []
-    @token_wallet[user_id] = process.env.TOKEN_ALLOWANCE or 7
+    @token_wallet[user_id] = TOKEN_ALLOWANCE
 
   initialize_user_if_unrecognized: (user_id) ->
     if not @recognize_user(user_id)
@@ -352,9 +353,8 @@ module.exports = (robot) ->
           " tokens. Make sure to thank #{TOKEN_ALLOWANCE} people for " +
           "giving useful feedback on their business ideas before these " +
           "tokens disappear next week!"
-    room = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
-    robot.messageRoom room, msg
-    robot.messageRoom "general", "Just reset wallets"
+    robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
+    robot.messageRoom "general", (msg + ' :)')
 
   timezone = process.env.TIMEZONE or "Africa/Accra"
   # "59 59 23 * * 0"
