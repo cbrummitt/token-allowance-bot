@@ -347,17 +347,18 @@ module.exports = (robot) ->
   # # Reset everyone's wallet to the allowance environment variable
   reset_wallets = ->
     tokenBot.reset_everyones_wallet()
-    msg = ("@all I just reset everyone's wallet to #{TOKEN_ALLOWANCE}" +
-           " tokens. Make sure to thank #{TOKEN_ALLOWANCE} people for " +
-           "giving useful feedback on their business ideas before these " +
-           "tokens disappear next week!")
+
+    msg = "@all I just reset everyone's wallet to #{TOKEN_ALLOWANCE}" +
+          " tokens. Make sure to thank #{TOKEN_ALLOWANCE} people for " +
+          "giving useful feedback on their business ideas before these " +
+          "tokens disappear next week!"
     room = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
     robot.messageRoom room, msg
     robot.messageRoom "general", "Just reset wallets"
 
   timezone = process.env.TIMEZONE or "Africa/Accra"
   # "59 59 23 * * 0"
-  frequency = process.env.ALLOWANCE_FREQUENCY or "0,15,30,45 * * * * *"
+  frequency = process.env.ALLOWANCE_FREQUENCY or "0,20,40 * * * * *"
   job = new CronJob frequency, reset_wallets, null, true, timezone
   job.start
   #job2 = new CronJob frequency, robot.messageRoom("general", "test"), null, true, timezone
