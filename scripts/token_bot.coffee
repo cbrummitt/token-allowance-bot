@@ -40,6 +40,10 @@ CronJob = require('cron').CronJob
 
 TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
 ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
+TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
+# ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0" # every Sunday at 11:59:59 PM
+ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "0 0 * * * *" # every hour
+  # "59 59 23 * * 0"
 # default allowance frequency: every Sunday at 11:59:59 PM
 # see https://github.com/kelektiv/node-cron#cron-ranges
 # TODO: Create an English description of the frequency using
@@ -356,12 +360,7 @@ module.exports = (robot) ->
       next week!"
     robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
 
-  timezone = process.env.TIMEZONE or "Africa/Accra"
-  # "59 59 23 * * 0"
-  # frequency = process.env.ALLOWANCE_FREQUENCY or "0,20,40 * * * * *"
-  # job = new CronJob frequency, reset_wallets, null, true, timezone
-  #job2 = new CronJob frequency, robot.messageRoom("general", "test"), null, true, timezone
-
+  job = new CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, TIMEZONE
  
   give_regex_string = "give|send"
   give_regex = new RegExp("\\b(" + give_regex_string + ")\\b", "i")
