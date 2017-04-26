@@ -350,14 +350,10 @@ module.exports = (robot) ->
     tokenBot.reset_everyones_wallet()
     allowance = process.env.TOKEN_ALLOWANCE or 7
     msg = "I just reset everyone's wallet to #{allowance} tokens.
-      Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful feedback 
-      on their business ideas before these tokens disappear next week!"
+      Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful feedback
+      on their business ideas before these #{TOKEN_ALLOWANCE} tokens disappear
+      next week!"
     robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
-    robot.messageRoom "tokens", msg
-    robot.messageRoom "general", "I just reset everyone's wallets to 
-      #{TOKEN_ALLOWANCE} tokens. Make sure to thank #{TOKEN_ALLOWANCE} people
-      for giving useful feedback on their business ideas before these
-      #{TOKEN_ALLOWANCE} tokens disappear next week!"
 
   timezone = process.env.TIMEZONE or "Africa/Accra"
   # "59 59 23 * * 0"
@@ -674,11 +670,7 @@ module.exports = (robot) ->
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
 
   # TODO remove this command before putting this into production.
-  robot.respond /reset wallets/i, (res) ->
-    reset_wallets()
-    res.send "Just reset wallets"
-
-  robot.respond /mention all/i, (res) ->
-    reset_wallets()
-    res.send "@all !"
+  # robot.respond /reset wallets/i, (res) ->
+  #   reset_wallets()
+  #   res.send "Just reset wallets"
 
