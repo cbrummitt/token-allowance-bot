@@ -348,13 +348,13 @@ module.exports = (robot) ->
   # # Reset everyone's wallet to the allowance environment variable
   reset_wallets = ->
     tokenBot.reset_everyones_wallet()
-
-    msg = "@all I just reset everyone's wallet to #{TOKEN_ALLOWANCE}" +
-          " tokens. Make sure to thank #{TOKEN_ALLOWANCE} people for " +
-          "giving useful feedback on their business ideas before these " +
-          "tokens disappear next week!"
+    msg = "@all: I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens."
+        # msg = "@all I just reset everyone's wallet to #{TOKEN_ALLOWANCE}" +
+        #   " tokens. Make sure to thank #{TOKEN_ALLOWANCE} people for " +
+        #   "giving useful feedback on their business ideas before these " +
+        #   "tokens disappear next week!"
     robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
-    robot.messageRoom "general", (msg + ' :)')
+    robot.messageRoom "general", (msg + " :)")
 
   timezone = process.env.TIMEZONE or "Africa/Accra"
   # "59 59 23 * * 0"
