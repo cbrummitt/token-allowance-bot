@@ -405,7 +405,7 @@ module.exports = (robot) ->
       fail_message = ("Sorry #{sender_name}, I didn't understand that person " +
                       "( `#{recipient_name_raw}` ) to whom you're trying to give a token." +
                       "\n\nMake sure that you enter the person's user name correctly, " +
-                      "either with or without a preceding @ symbol, such as `/give @user_name`. " +
+                      "either with or without a preceding @ symbol, such as `/give @username`. " +
                       "Also, if you did enter that person's user name correctly, " +
                       "I won't be able to give them a token from you until that " +
                       "person has sent at least one message in any channel.")
@@ -637,7 +637,7 @@ module.exports = (robot) ->
     #res.send "My ID is #{Util.inspect robot.brain.usersForFuzzyName(bot_name.trim())}"
 
   robot.hear /how do I \b(?:give|send)\b(?:\s+a)? tokens?\??/i, (res) -> 
-    res.send "Use the command `/give @user_name`."
+    res.send "Use the command `/give @username`."
 
   ###
     DEBUGGING
