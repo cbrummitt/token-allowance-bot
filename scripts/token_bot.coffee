@@ -392,7 +392,7 @@ module.exports = (robot) ->
       if gave_to_bot
         give_to_bot_responses = [
           "Thanks #{sender_name} for offering to give me a token! We'll consider
-            that just a practice round :simple_smile: When you give tokens to
+            that just a practice round :relaxed: When you give tokens to
             other people then I will actually transfer a token from you to them.",
           "Aw, thanks #{sender_name}. I won't actually transfer a token from 
             you to me. I keep track of all the tokens! :nerd_face: ",
