@@ -39,23 +39,6 @@ CronJob = require('cron').CronJob
 TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
 ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
-# ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0" # every Sunday at 11:59:59 PM
-ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "00 00 * * * *" # every hour
-# default allowance frequency: every Sunday at 11:59:59 PM
-# see https://github.com/kelektiv/node-cron#cron-ranges
-# TODO: Create an English description of the frequency using
-# https://stackoverflow.com/questions/321494/calculate-when-a-cron-job-will-be-executed-then-next-time
-# perhaps
-# https://bitbucket.org/nevity/cronner
-# ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
-# ALLOWANCE_FREQUENCY = '* * * * * *' # every second
-# every 10 seconds: '*/10 * * * * *' # every 10 seconds
-# Seconds: 0-59
-# Minutes: 0-59
-# Hours: 0-23
-# Day of Month: 1-31
-# Months: 0-11
-# Day of Week: 0-6
 
 class TokenNetwork
   constructor: (@robot) ->
@@ -404,15 +387,28 @@ module.exports = (robot) ->
     # check whether we identified just one person with that user name
     # if not, send a failure message and return
     if recipients.length != 1
-      fail_message = ("Sorry #{sender_name}, I didn't understand that person " +
-                      "( `#{recipient_name_raw}` ) to whom you're trying to give a token." +
-                      "\n\nMake sure that you enter the person's user name correctly, " +
-                      "either with or without a preceding @ symbol, such as `/give @username`. " +
-                      "Also, if you did enter that person's user name correctly, " +
-                      "I won't be able to give them a token from you until that " +
-                      "person has sent at least one message in any channel.")
-      res.send fail_message
-      return
+      if recipients.length >= 1 and recipients[0] == bot_name:
+        give_to_bot_responses = [
+          "Thanks #{sender_name} for offering to give me a token! We'll consider
+            that just a practice round :simple_smile: When you give tokens to
+            other people then I will actually transfer a token from you to them.",
+          "Aw, thanks #{senders_name}. I won't actually transfer a token from 
+            you to me. I keep track of all the tokens! :nerd_face: ",
+          "Way to go, that's how you give tokens! :thumbsup: Don't worry; that
+            one was just a practice. :wink: "
+        ]
+        res.send res.random give_to_bot_responses
+
+      else
+        fail_message = "Sorry #{sender_name}, I didn't understand that person 
+          ( `#{recipient_name_raw}` ) to whom you're trying to give a token.
+          \n\nMake sure that you enter the person's user name correctly,
+          either with or without a preceding @ symbol, such as `/give @username`.
+          Also, if you did enter that person's user name correctly,
+          I won't be able to give them a token from you until that
+          person has sent at least one message in any channel."
+        res.send fail_message
+        return
 
     # Now we know who the recipient is
     recipient = recipients[0]
@@ -474,10 +470,10 @@ module.exports = (robot) ->
       #   robot.logger.info ("room_id of the DM: " + direct_msg_room_id)
       #   robot.sendDirectToUsername recipient_name, message
     else
-      fail_message = ("I didn't understand how many tokens you want to give." +
-                      " If you don't provide a number, I assume you want to " +
-                      " give one token. I also understand numbers like 1, 2," +
-                      " 3 and some alphabetic numbers like one, two, three.")
+      fail_message = "I didn't understand how many tokens you want to give.
+        If you don't provide a number, I assume you want to 
+        give one token. I also understand numbers like 1, 2,
+        3 and some alphabetic numbers like one, two, three."
       res.send fail_message
     return
 
@@ -560,12 +556,11 @@ module.exports = (robot) ->
       # it's not an integer, so try to interpret an English word for a number
       number_interpreted = interpret_alphabetic_number number_input
       if isNaN number_interpreted
-        fail_message = ("Sorry, I didn't understand the number you provided " + 
-                      "(` #{number_input} `). Use the command `#{bot_name} " + 
-                      "show leaderboard` to show the top " + 
-                      "#{leaderboard_length} list, or use `#{bot_name} show" +
-                      " top n list` (where `n` is an integer) to show the `n`" +
-                      " people who have received the most tokens.")
+        fail_message = "Sorry, I didn't understand the number you provided 
+          (` #{number_input} `). Use the command `#{bot_name} show leaderboard`
+          to show the top #{leaderboard_length} list, or use `#{bot_name} show
+           top n list` (where `n` is an integer) to show the `n`
+           people who have received the most tokens."
         res.sendPrivate fail_message
       else
         res.sendPrivate tokenBot.leaderboard number_interpreted
