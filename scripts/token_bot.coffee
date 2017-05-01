@@ -388,13 +388,13 @@ module.exports = (robot) ->
     # if not, send a failure message and return
     if recipients.length != 1
       fail_message = "Sorry #{sender_name}, I didn't understand that person 
-          ( `#{recipient_name_raw}` ) to whom you're trying to give a token.
-          \n\nMake sure that you enter the person's user name correctly,
-          either with or without a preceding @ symbol, such as `/give @username`.
-          Also, if you did enter that person's user name correctly,
-          I won't be able to give them a token from you until that
-          person has sent at least one message in any channel."
-        res.send fail_message
+        ( `#{recipient_name_raw}` ) to whom you're trying to give a token.
+        \n\nMake sure that you enter the person's user name correctly,
+        either with or without a preceding @ symbol, such as `/give @username`.
+        Also, if you did enter that person's user name correctly,
+        I won't be able to give them a token from you until that
+        person has sent at least one message in any channel."
+      res.send fail_message
       return
     # if recipients.length != 1
     #   if recipients.length >= 1 and recipients[0] == bot_name:
@@ -569,8 +569,8 @@ module.exports = (robot) ->
         fail_message = "Sorry, I didn't understand the number you provided 
           (` #{number_input} `). Use the command `#{bot_name} show leaderboard`
           to show the top #{leaderboard_length} list, or use `#{bot_name} show
-           top n list` (where `n` is an integer) to show the `n`
-           people who have received the most tokens."
+          top n list` (where `n` is an integer) to show the `n`
+          people who have received the most tokens."
         res.sendPrivate fail_message
       else
         res.sendPrivate tokenBot.leaderboard number_interpreted
