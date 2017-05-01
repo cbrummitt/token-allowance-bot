@@ -40,7 +40,7 @@ TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
 ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
 # ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0" # every Sunday at 11:59:59 PM
-ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "0 0 * * * *" # every hour
+ALLOWANCE_FREQUENCY = process.env.ALLOWANCE_FREQUENCY or "00 00 * * * *" # every hour
 # default allowance frequency: every Sunday at 11:59:59 PM
 # see https://github.com/kelektiv/node-cron#cron-ranges
 # TODO: Create an English description of the frequency using
@@ -350,13 +350,13 @@ module.exports = (robot) ->
   reset_wallets = ->
     tokenBot.reset_everyones_wallet()
     all_mention = "@all"
-    msg = "#{all_mention} I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens.
+    msg = "Hi #{all_mention} I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens.
       Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful feedback
       on their business ideas before these #{TOKEN_ALLOWANCE} tokens disappear
       next week!"
     robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
 
-  job = new CronJob ALLOWANCE_FREQUENCY, reset_wallets, null, true, TIMEZONE
+  job = new CronJob(ALLOWANCE_FREQUENCY, function() {reset_wallets()}, null, true, TIMEZONE)
  
   give_regex_string = "give|send"
   give_regex = new RegExp("\\b(" + give_regex_string + ")\\b", "i")
