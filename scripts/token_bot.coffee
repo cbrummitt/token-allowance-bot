@@ -387,9 +387,9 @@ module.exports = (robot) ->
     # check whether we identified just one person with that user name
     # if not, send a failure message and return
     if recipients.length != 1
-      res.send "Recipients list: #{recipients}"
-      res.send "Raw name match: #{recipient_name_raw}"
-      if recipients.length >= 1 and recipients[0] == bot_name
+      gave_to_bot = ((recipients.length >= 1 and recipients[0] == bot_name) or
+        recipient_name_raw.indexOf(bot_name) != -1)
+      if gave_to_bot
         give_to_bot_responses = [
           "Thanks #{sender_name} for offering to give me a token! We'll consider
             that just a practice round :simple_smile: When you give tokens to
