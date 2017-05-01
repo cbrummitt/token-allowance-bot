@@ -387,38 +387,26 @@ module.exports = (robot) ->
     # check whether we identified just one person with that user name
     # if not, send a failure message and return
     if recipients.length != 1
-      fail_message = "Sorry #{sender_name}, I didn't understand that person 
-        ( `#{recipient_name_raw}` ) to whom you're trying to give a token.
-        \n\nMake sure that you enter the person's user name correctly,
-        either with or without a preceding @ symbol, such as `/give @username`.
-        Also, if you did enter that person's user name correctly,
-        I won't be able to give them a token from you until that
-        person has sent at least one message in any channel."
-      res.send fail_message
-      return
-    # if recipients.length != 1
-    #   if recipients.length >= 1 and recipients[0] == bot_name:
-    #     give_to_bot_responses = [
-    #       "Thanks #{sender_name} for offering to give me a token! We'll consider
-    #         that just a practice round :simple_smile: When you give tokens to
-    #         other people then I will actually transfer a token from you to them.",
-    #       "Aw, thanks #{senders_name}. I won't actually transfer a token from 
-    #         you to me. I keep track of all the tokens! :nerd_face: ",
-    #       "Way to go, that's how you give tokens! :thumbsup: Don't worry; that
-    #         one was just a practice. :wink: "
-    #     ]
-    #     res.send res.random give_to_bot_responses
-
-    #   else
-    #     fail_message = "Sorry #{sender_name}, I didn't understand that person 
-    #       ( `#{recipient_name_raw}` ) to whom you're trying to give a token.
-    #       \n\nMake sure that you enter the person's user name correctly,
-    #       either with or without a preceding @ symbol, such as `/give @username`.
-    #       Also, if you did enter that person's user name correctly,
-    #       I won't be able to give them a token from you until that
-    #       person has sent at least one message in any channel."
-    #     res.send fail_message
-    #     return
+      if recipients.length >= 1 and recipients[0] == bot_name:
+        give_to_bot_responses = [
+          "Thanks #{sender_name} for offering to give me a token! We'll consider
+            that just a practice round :simple_smile: When you give tokens to
+            other people then I will actually transfer a token from you to them.",
+          "Aw, thanks #{senders_name}. I won't actually transfer a token from 
+            you to me. I keep track of all the tokens! :nerd_face: ",
+          "Way to go, that's how you give tokens! :thumbsup: Don't worry; that
+            one was just a practice. :wink: "]
+        res.send res.random give_to_bot_responses
+      else
+        fail_message = "Sorry #{sender_name}, I didn't understand that person 
+          ( `#{recipient_name_raw}` ) to whom you're trying to give a token.
+          \n\nMake sure that you enter the person's user name correctly,
+          either with or without a preceding @ symbol, such as `/give @username`.
+          Also, if you did enter that person's user name correctly,
+          I won't be able to give them a token from you until that
+          person has sent at least one message in any channel."
+        res.send fail_message
+        return
 
     # Now we know who the recipient is
     recipient = recipients[0]
