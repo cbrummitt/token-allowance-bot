@@ -356,7 +356,9 @@ module.exports = (robot) ->
       next week!"
     robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
 
-  job = new CronJob(ALLOWANCE_FREQUENCY, function() {reset_wallets()}, null, true, TIMEZONE)
+  job = new CronJob(ALLOWANCE_FREQUENCY, (->
+    do reset_wallets
+  ), null, true, TIMEZONE)
  
   give_regex_string = "give|send"
   give_regex = new RegExp("\\b(" + give_regex_string + ")\\b", "i")
