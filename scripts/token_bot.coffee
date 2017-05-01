@@ -356,7 +356,7 @@ module.exports = (robot) ->
       next week!"
     robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
 
-  job = new CronJob(ALLOWANCE_FREQUENCY, (->
+  job = new CronJob(process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0", (->
     do reset_wallets
   ), null, true, TIMEZONE)
  
