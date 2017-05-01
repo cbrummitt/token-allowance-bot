@@ -399,6 +399,7 @@ module.exports = (robot) ->
           "Way to go #{sender_name}, that's how you give tokens! :thumbsup:
             Don't worry; that one was just a practice. :wink: "]
         res.send res.random give_to_bot_responses
+        return
       else
         fail_message = "Sorry #{sender_name}, I didn't understand that person 
           ( `#{recipient_name_raw}` ) to whom you're trying to give a token.
