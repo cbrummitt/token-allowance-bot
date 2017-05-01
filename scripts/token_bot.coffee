@@ -394,10 +394,10 @@ module.exports = (robot) ->
           "Thanks #{sender_name} for offering to give me a token! We'll consider
             that just a practice round :simple_smile: When you give tokens to
             other people then I will actually transfer a token from you to them.",
-          "Aw, thanks #{senders_name}. I won't actually transfer a token from 
+          "Aw, thanks #{sender_name}. I won't actually transfer a token from 
             you to me. I keep track of all the tokens! :nerd_face: ",
-          "Way to go, that's how you give tokens! :thumbsup: Don't worry; that
-            one was just a practice. :wink: "]
+          "Way to go #{sender_name}, that's how you give tokens! :thumbsup:
+            Don't worry; that one was just a practice. :wink: "]
         res.send res.random give_to_bot_responses
       else
         fail_message = "Sorry #{sender_name}, I didn't understand that person 
