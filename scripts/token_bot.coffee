@@ -305,14 +305,17 @@ class TokenNetwork
     vote_received_tally = @tally vote_recipients
     max_num_votes_received = Math.max (vote_count for recipient, vote_count of vote_received_tally)...
 
-    winner_user_ids = new Set
-    winner_user_names = new Set
-    most_votes_user_names = new Set
+    winner_user_ids = []
+    winner_user_names = []
+    most_votes_user_names = []
+    most_votes_ids = []
     for voter, recipient of @votes
       if vote_received_tally[recipient] == max_num_votes_received
-        winner_user_ids.add voter
-        winner_user_names.add ("@" + @robot.brain.userForId(voter).name)
-        most_votes_user_names.add ("@" + @robot.brain.userForId(recipient).name)
+        winner_user_ids.push voter
+        winner_user_names.push ("@" + @robot.brain.userForId(voter).name)
+        if recipient not in most_votes_ids
+          most_votes_ids.push recipient
+          most_votes_user_names.push ("@" + @robot.brain.userForId(recipient).name)
 
     result =
       winner_user_ids: Array.from(winner_user_ids)
