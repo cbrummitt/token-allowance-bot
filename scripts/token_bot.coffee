@@ -54,7 +54,7 @@ BONUS_TOKENS = process.env.BONUS_TOKENS or 3
 ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
 FREQUENCY_RESET_WALLETS = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
-RUN_VOTE_CONTEST = stringToBool(process.env.RUN_VOTE_CONTEST) or true
+RUN_VOTE_CONTEST = stringToBool(process.env.RUN_VOTE_CONTEST)
 
 class TokenNetwork
   constructor: (@robot) ->
