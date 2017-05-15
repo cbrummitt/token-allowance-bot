@@ -29,16 +29,21 @@
 # Environment variables:
 #   TOKEN_ALLOW_SELF = false
 #   TOKENS_CAN_BE_TRANSFERRED = true
-#   TOKEN_ALLOWANCE = 7
+#   TOKEN_ALLOWANCE = 5
+#   BONUS_TOKENS = 3
 #   ALLOWANCE_FREQUENCY = '59 59 23 * * 0'  # every Sunday at 11:59:59 PM; see https://github.com/kelektiv/node-cron#cron-ranges
 #   TIMEZONE = "America/New_York"
+#   RUN_VOTE_CONTEST = true
 Util = require "util"  # for inspecting an object with `Util.inspect`
 CronJob = require('cron').CronJob
 
 
-TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
+TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 5
+BONUS_TOKENS = process.env.BONUS_TOKENS or 3
 ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
+FREQUENCY_RESET_WALLETS = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
+RUN_VOTE_CONTEST = stringToBool(process.env.RUN_VOTE_CONTEST) or true
 
 class TokenNetwork
   constructor: (@robot) ->
@@ -55,6 +60,8 @@ class TokenNetwork
     # a dictionary of how many tokens each person has available to give;
     # it maps each user's id to a non-negative integer
     @token_wallet = {}
+
+    @votes = {}
 
     for own key, user of robot.brain.data.users
       @initialize_user(user['id'])
@@ -86,8 +93,15 @@ class TokenNetwork
       @initialize_user(user_id)
 
   reset_everyones_wallet: () ->
+    result_beauty_contest = compute_result_of_beauty_contest()
     for own key, user of @robot.brain.data.users
-      @token_wallet[user['id']] = TOKEN_ALLOWANCE
+      if user['id'] in result_beauty_contest.winner_user_ids
+        @token_wallet[user['id']] = TOKEN_ALLOWANCE + BONUS_TOKENS
+      else
+        @token_wallet[user['id']] = TOKEN_ALLOWANCE
+
+  reset_votes: () ->
+    @votes = {}
 
   give_token: (sender, recipient, num_tokens_to_transfer) ->
     # Give a certain number of tokens from one user ID to another user ID.
@@ -131,7 +145,7 @@ class TokenNetwork
       return message
 
   selfDeniedResponses: (name) ->
-    @self_denied_responses = [
+    return [
       "Sorry #{name}. Tokens cannot be given to oneself.",
       "I can't do that #{name}. Tokens cannot be given to oneself.",
       "Tokens can only be given to other people."
@@ -244,6 +258,61 @@ class TokenNetwork
       str += "#{i+1}. @#{username} (#{points} " + point_label + ") " + leader + newline
     return str
 
+  vote: (voter_id, voter_name, recipient_id, recipient_name) ->
+    if not @recognize_user(voter_id)
+      return "I did not recognize the user #{voter_name}."
+    if not @recognize_user(recipient_id)
+      return "I did not recognize the recipient of the vote #{recipient_name}."
+
+    if @votes[voter_id]?
+      previous_recipient = @votes[voter_id]
+      previous_recipient_username = "@" + @robot.brain.userForId(previous_recipient).name
+    else
+      previous_recipient = null
+
+    # Record the vote
+    @votes[voter_id] = recipient_id
+  
+    if previous_recipient? and recipient_id == previous_recipient:
+      return "You are already scheduled to vote for #{recipient_name}."
+    else if previous_recipient? and recipient_id != previous_recipient:
+      return "OK, I changed your vote from #{previous_recipient_username} to
+        #{recipient_name}. This means that now you think that #{recipient_name}
+        will win the most votes."
+    else
+      return "OK, I have recorded that you think #{recipient_name} will win
+        the most votes."
+
+  compute_result_of_beauty_contest: () ->
+    # Tally the votes and figure out who voted for the people who received
+    # the most votes.
+    # Returns an object with keys
+    #   winner_user_ids : list of user id's of people who voted for someone with the most votes
+    #   winner_user_names : list of user names of people who voted for someone with the most votes
+    #   most_votes_user_names : list of user names of people who received the most votes
+    vote_recipients = (recipient for voter, recipient of @votes)
+    vote_received_tally = @tally vote_recipients
+    max_num_votes_received = Math.max (vote_count for recipient, vote_count of vote_received_tally)...
+
+    winner_user_ids = new Set()
+    winner_user_names = new Set()
+    most_votes_user_names = new Set()
+    for voter, recipient of @votes
+      if vote_received_tally[recipient] == max_num_votes_received
+        winner_user_ids.add voter
+        winner_user_names.add ("@" + @robot.brain.userForId(voter).name)
+        most_votes_user_names.add ("@" + @robot.brain.userForId(recipient).name)
+
+    result =
+      winner_user_ids: [...winner_user_ids]
+      winner_user_names: [...winner_user_names]
+      most_votes_user_names: [...most_votes_user_names]
+
+    #winner_user_ids = (voter for voter, recipient of @votes when vote_received_tally[recipient] >= max_num_votes_received)
+    #winner_user_names = (("@" + @robot.brain.userForId(voter).name) for voter of winner_user_ids)
+
+    return result
+
 
 # helper function that converts a string to a Boolean
 # for using the Boolean environment variables TOKENS_CAN_BE_TRANSFERRED and TOKEN_ALLOW_SELF
@@ -329,22 +398,41 @@ module.exports = (robot) ->
   # default length for the leaderboard showing the people with the most tokens
   leaderboard_length = 10
 
+  reset_wallets_and_run_beauty_contest = () ->
+    reset_wallets()
+    if RUN_VOTE_CONTEST
+      run_beauty_contest()
+
   # # Reset everyone's wallet to the allowance environment variable
-  reset_wallets = ->
-    tokenBot.reset_everyones_wallet()
-    all_mention = "@all"
+  reset_wallets = () ->
+    all_mention = "all" #TODO change all to @all
     msg = "Hi #{all_mention} I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens.
       Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful feedback
       on their business ideas before these #{TOKEN_ALLOWANCE} tokens disappear
       next week!"
     robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
+    tokenBot.reset_everyones_wallet()
 
-  job = new CronJob(process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0", (->
-    do reset_wallets
+  run_beauty_contest = () ->
+    result_beauty_contest = tokenBot.compute_result_of_beauty_contest()
+    winner_list = result_beauty_contest.winner_user_names.join ", "
+    mosted_voted_list = result_beauty_contest.most_votes_user_names.join ", "
+    person_people_win = if len(result_beauty_contest) >= 1 then "people" else "person"
+    person_people_voted = if len(mosted_voted_list) >= 1 then "people" else "person"
+    was_were_voted = if len(mosted_voted_list) >= 1 then "people" else "person"
+    msg = "Also, I tallied the votes of the contest. The following 
+      #{person_people_win} voted for the #{person_people_voted} who received
+      the most votes, so they receive #{BONUS_TOKENS} extra tokens: \n\n
+      #{winner_list} \n
+      Congratulations! \n\n The #{person_people_voted} who recieved the most
+      votes #{was_were_voted} #{mosted_voted_list}. Nice work!"
+    tokenBot.reset_votes()
+
+  job = new CronJob(FREQUENCY_RESET_WALLETS, (->
+    do reset_wallets_and_run_beauty_contest
   ), null, true, TIMEZONE)
  
   give_regex_string = "give|send"
-  give_regex = new RegExp("\\b(" + give_regex_string + ")\\b", "i")
   number_regex_string = "[0-9]+" + "|" + alphabetic_number_alternatives
   give_regex_string = "" +
     "\\b(" + give_regex_string +   # give or send (first capturing group)
@@ -484,7 +572,7 @@ module.exports = (robot) ->
   ###
 
   # respond to "status (of) @user"
-  robot.respond ///            
+  robot.respond ///
                 status        # "status"
                 (?:\s+of)?    # "of" is optional
                 \s+           # whitespace
@@ -566,6 +654,42 @@ module.exports = (robot) ->
         res.sendPrivate fail_message
       else
         res.sendPrivate tokenBot.leaderboard number_interpreted
+
+  ###
+    Vote command
+  ###
+
+  # respond to "vote (for) @user"
+  robot.respond ///
+                vote          # "vote"
+                (?:\s+for)?   # "for" is optional
+                \s+           # whitespace
+                @?([\w.\-]+)  # user name or name (to be matched in a fuzzy way below). 
+                              # \w matches any word character (alphanumeric and underscore).
+                \s*$          # 0 or more whitespace
+                ///i, (res) ->
+
+    voter = res.message.user
+    voter_name = "@" + res.message.user.name
+    voter_id = res.message.user.id
+    tokenBot.initialize_user_if_unrecognized voter_id
+
+    name_raw = res.match[1]
+    users = robot.brain.usersForFuzzyName(name_raw.trim())
+    if users.length == 1
+      recipient = users[0]
+      recipient_name = "@" + recipient.name
+      recipient_id = recipient.id
+      tokenBot.initialize_user_if_unrecognized recipient_id
+
+      # whether the person writing the command is the recipient of the vote
+      voting_for_self = (recipient_id == voter_id)
+      if voting_for_self
+        res.sendPrivate "Sorry #{voter_name}, I can't let you vote for yourself."
+      else
+        res.sendPrivate(tokenBot.vote(voter_id, voter_name, recipient_id, recipient_name))
+    else
+      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
 
   ###
     Miscellaneous commands
@@ -669,3 +793,17 @@ module.exports = (robot) ->
 
   robot.respond /how many tokens do we get each week?/i, (res) ->
     res.send "Everyone gets #{TOKEN_ALLOWANCE} tokens each week."
+
+  robot.respond /when will wallets be reset?/i, (res) ->
+    res.send "The frequency of resetting wallets is #{FREQUENCY_RESET_WALLETS}."
+
+  robot.respond /is the vote contest running?/i, (res) ->
+    if RUN_VOTE_CONTEST
+      res.send "Yes, the vote contest is occurring. The votes will be tallied
+        with this frequency: #{FREQUENCY_RESET_WALLETS}."
+    else
+      res.send "No, the vote contest is not occurring."
+
+  robot.respond /compute_result_of_beauty_contest/i, (res) ->
+    res.send "If the contest were run right now, the result would be: \n\n
+      #{Util.inspect tokenBot.compute_result_of_beauty_contest()}"
