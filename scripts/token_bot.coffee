@@ -36,7 +36,7 @@ Util = require "util"  # for inspecting an object with `Util.inspect`
 CronJob = require('cron').CronJob
 
 
-TOKEN_ALLOWANCE = parseInt(process.env.TOKEN_ALLOWANCE or 7, 10)
+TOKEN_ALLOWANCE = parseInt(process.env.TOKEN_ALLOWANCE) or 7
 ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
 
@@ -664,3 +664,8 @@ module.exports = (robot) ->
     reset_wallets()
     res.send "Just reset wallets"
 
+  robot.respond /what time zone are you on?/i, (res) ->
+    res.send "I am on time zone #{TIMEZONE}."
+
+  robot.respond /how many tokens do we get each week?/i, (res) ->
+    res.send "Everyone gets #{TOKEN_ALLOWANCE} tokens each week."
