@@ -831,7 +831,7 @@ module.exports = (robot) ->
     res.send "The frequency of resetting wallets is #{FREQUENCY_RESET_WALLETS}."
 
   robot.respond /is the vote contest running?/i, (res) ->
-    if stringToBool(process.env.RUN_VOTE_CONTEST) or true
+    if RUN_VOTE_CONTEST
       res.send "Yes, the vote contest is occurring. The votes will be tallied
         with this frequency: #{FREQUENCY_RESET_WALLETS}."
     else
