@@ -1,4 +1,4 @@
-# Description:
+,# Description:
 #   Track tokens given to acknowledge contributions from others
 #
 # Dependencies:
@@ -36,7 +36,7 @@ Util = require "util"  # for inspecting an object with `Util.inspect`
 CronJob = require('cron').CronJob
 
 
-TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 7
+TOKEN_ALLOWANCE = parseInt(process.env.TOKEN_ALLOWANCE or 7, 10)
 ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
 
