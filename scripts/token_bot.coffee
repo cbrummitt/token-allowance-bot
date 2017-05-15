@@ -680,6 +680,10 @@ module.exports = (robot) ->
                 \s*$          # 0 or more whitespace
                 ///i, (res) ->
 
+    if not RUN_VOTE_CONTEST
+      res.sendPrivate "There is currently no ongoing contest for voting for the
+        person whom you think will receive the most votes."
+      return
     voter = res.message.user
     voter_name = "@" + res.message.user.name
     voter_id = res.message.user.id
