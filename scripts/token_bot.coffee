@@ -114,6 +114,12 @@ class TokenNetwork
   reset_votes: () ->
     @votes = {}
 
+  vote_recipient_of: (voter_id) ->
+    if votes[voter_id]?
+      return "@" + @robot.brain.userForId(votes[voter_id]).name
+    else
+      return null
+
   give_token: (sender, recipient, num_tokens_to_transfer) ->
     # Give a certain number of tokens from one user ID to another user ID.
 
@@ -689,10 +695,14 @@ module.exports = (robot) ->
       # forbid people from voting for themselves
       voting_for_self = (recipient_id == voter_id)
       if voting_for_self
-        res.sendPrivate "Sorry #{voter_name}, I can't let you vote for yourself.
+        msg = "Sorry #{voter_name}, I can't let you vote for yourself.
           You must vote for someone else. To do so,
-          send the command `/vote @username` where `@username` is the username
+          send the command `/vote @username`, where `@username` is the username
           of the person who you think will win the most votes."
+        previous_recipient = vote_recipient_of(voter_id)
+        if previous_recipient?
+          msg += "\n\nYour vote is still scheduled for #{previous_recipient}."
+        res.sendPrivate msg
       else
         msg = tokenBot.vote(voter_id, voter_name, recipient_id, recipient_name)
         res.sendPrivate msg
