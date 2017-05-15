@@ -699,7 +699,7 @@ module.exports = (robot) ->
           You must vote for someone else. To do so,
           send the command `/vote @username`, where `@username` is the username
           of the person who you think will win the most votes."
-        previous_recipient = vote_recipient_of(voter_id)
+        previous_recipient = tokenBot.vote_recipient_of(voter_id)
         if previous_recipient?
           msg += "\n\nYour vote is still scheduled for #{previous_recipient}."
         res.sendPrivate msg
