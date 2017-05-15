@@ -35,8 +35,19 @@
 #   TIMEZONE = "America/New_York"
 #   RUN_VOTE_CONTEST = true
 Util = require "util"  # for inspecting an object with `Util.inspect`
-CronJob = require('cron').CronJob
+#CronJob = require('cron').CronJob
 
+# helper function that converts a string to a Boolean
+# for using the Boolean environment variables TOKENS_CAN_BE_TRANSFERRED and TOKEN_ALLOW_SELF
+stringToBool = (str) -> 
+  if not str?
+    return null
+  else if str.match(/^(true|1|yes)$/i) != null
+    return true
+  else if str.match(/^(false|0|no)$/i) != null
+    return false
+  else
+    return null
 
 TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 5
 BONUS_TOKENS = process.env.BONUS_TOKENS or 3
@@ -93,7 +104,7 @@ class TokenNetwork
       @initialize_user(user_id)
 
   reset_everyones_wallet: () ->
-    result_beauty_contest = compute_result_of_beauty_contest()
+    result_beauty_contest = @compute_result_of_beauty_contest()
     for own key, user of @robot.brain.data.users
       if user['id'] in result_beauty_contest.winner_user_ids
         @token_wallet[user['id']] = TOKEN_ALLOWANCE + BONUS_TOKENS
@@ -258,73 +269,57 @@ class TokenNetwork
       str += "#{i+1}. @#{username} (#{points} " + point_label + ") " + leader + newline
     return str
 
-  # vote: (voter_id, voter_name, recipient_id, recipient_name) ->
-  #   if not @recognize_user(voter_id)
-  #     return "I did not recognize the user #{voter_name}."
-  #   if not @recognize_user(recipient_id)
-  #     return "I did not recognize the recipient of the vote #{recipient_name}."
+  vote: (voter_id, voter_name, recipient_id, recipient_name) ->
+    if not @recognize_user(voter_id)
+      return "I did not recognize the user #{voter_name}."
+    if not @recognize_user(recipient_id)
+      return "I did not recognize the recipient of the vote #{recipient_name}."
 
-  #   if @votes[voter_id]?
-  #     previous_recipient = @votes[voter_id]
-  #     previous_recipient_username = "@" + @robot.brain.userForId(previous_recipient).name
-  #   else
-  #     previous_recipient = null
+    if @votes[voter_id]?
+      previous_recipient = @votes[voter_id]
+      previous_recipient_username = "@" + @robot.brain.userForId(previous_recipient).name
+    else
+      previous_recipient = null
 
-  #   # Record the vote
-  #   @votes[voter_id] = recipient_id
+    # Record the vote
+    @votes[voter_id] = recipient_id
   
-  #   if previous_recipient? and recipient_id == previous_recipient:
-  #     return "You are already scheduled to vote for #{recipient_name}."
-  #   else if previous_recipient? and recipient_id != previous_recipient:
-  #     return "OK, I changed your vote from #{previous_recipient_username} to
-  #       #{recipient_name}. This means that now you think that #{recipient_name}
-  #       will win the most votes."
-  #   else
-  #     return "OK, I have recorded that you think #{recipient_name} will win
-  #       the most votes."
+    if previous_recipient? and recipient_id == previous_recipient
+      return "You are already scheduled to vote for #{recipient_name}."
+    else if previous_recipient? and recipient_id != previous_recipient
+      return "OK, I changed your vote from #{previous_recipient_username} to
+        #{recipient_name}. This means that now you think that #{recipient_name}
+        will win the most votes."
+    else
+      return "OK, I have recorded that you think #{recipient_name} will win
+        the most votes."
 
-  # compute_result_of_beauty_contest: () ->
-  #   # Tally the votes and figure out who voted for the people who received
-  #   # the most votes.
-  #   # Returns an object with keys
-  #   #   winner_user_ids : list of user id's of people who voted for someone with the most votes
-  #   #   winner_user_names : list of user names of people who voted for someone with the most votes
-  #   #   most_votes_user_names : list of user names of people who received the most votes
-  #   vote_recipients = (recipient for voter, recipient of @votes)
-  #   vote_received_tally = @tally vote_recipients
-  #   max_num_votes_received = Math.max (vote_count for recipient, vote_count of vote_received_tally)...
+  compute_result_of_beauty_contest: () ->
+    # Tally the votes and figure out who voted for the people who received
+    # the most votes.
+    # Returns an object with keys
+    #   winner_user_ids : list of user id's of people who voted for someone with the most votes
+    #   winner_user_names : list of user names of people who voted for someone with the most votes
+    #   most_votes_user_names : list of user names of people who received the most votes
+    vote_recipients = (recipient for voter, recipient of @votes)
+    vote_received_tally = @tally vote_recipients
+    max_num_votes_received = Math.max (vote_count for recipient, vote_count of vote_received_tally)...
 
-  #   winner_user_ids = new Set()
-  #   winner_user_names = new Set()
-  #   most_votes_user_names = new Set()
-  #   for voter, recipient of @votes
-  #     if vote_received_tally[recipient] == max_num_votes_received
-  #       winner_user_ids.add voter
-  #       winner_user_names.add ("@" + @robot.brain.userForId(voter).name)
-  #       most_votes_user_names.add ("@" + @robot.brain.userForId(recipient).name)
+    winner_user_ids = new Set()
+    winner_user_names = new Set()
+    most_votes_user_names = new Set()
+    for voter, recipient of @votes
+      if vote_received_tally[recipient] == max_num_votes_received
+        winner_user_ids.add voter
+        winner_user_names.add ("@" + @robot.brain.userForId(voter).name)
+        most_votes_user_names.add ("@" + @robot.brain.userForId(recipient).name)
 
-  #   result =
-  #     winner_user_ids: [...winner_user_ids]
-  #     winner_user_names: [...winner_user_names]
-  #     most_votes_user_names: [...most_votes_user_names]
+    result =
+      winner_user_ids: Array.from(winner_user_ids)
+      winner_user_names: Array.from(winner_user_names)
+      most_votes_user_names: Array.from(most_votes_user_names)
+    return result
 
-  #   #winner_user_ids = (voter for voter, recipient of @votes when vote_received_tally[recipient] >= max_num_votes_received)
-  #   #winner_user_names = (("@" + @robot.brain.userForId(voter).name) for voter of winner_user_ids)
-
-  #   return result
-
-
-# helper function that converts a string to a Boolean
-# for using the Boolean environment variables TOKENS_CAN_BE_TRANSFERRED and TOKEN_ALLOW_SELF
-stringToBool = (str) -> 
-  if not str?
-    return null
-  else if str.match(/^(true|1|yes)$/i) != null
-    return true
-  else if str.match(/^(false|0|no)$/i) != null
-    return false
-  else
-    return null
 
 # interpret strings that correspond to integers between 0 and 13
 interpret_alphabetic_number = (str) ->
@@ -414,23 +409,29 @@ module.exports = (robot) ->
     tokenBot.reset_everyones_wallet()
 
   run_beauty_contest = () ->
-    result_beauty_contest = tokenBot.compute_result_of_beauty_contest()
-    winner_list = result_beauty_contest.winner_user_names.join ", "
-    mosted_voted_list = result_beauty_contest.most_votes_user_names.join ", "
-    person_people_win = if len(result_beauty_contest) >= 1 then "people" else "person"
-    person_people_voted = if len(mosted_voted_list) >= 1 then "people" else "person"
-    was_were_voted = if len(mosted_voted_list) >= 1 then "people" else "person"
-    msg = "Also, I tallied the votes of the contest. The following 
-      #{person_people_win} voted for the #{person_people_voted} who received
-      the most votes, so they receive #{BONUS_TOKENS} extra tokens: \n\n
-      #{winner_list} \n
-      Congratulations! \n\n The #{person_people_voted} who recieved the most
-      votes #{was_were_voted} #{mosted_voted_list}. Nice work!"
+    run_beauty_contest_without_resetting_votes()
     tokenBot.reset_votes()
 
-  job = new CronJob(FREQUENCY_RESET_WALLETS, (->
-    do reset_wallets_and_run_beauty_contest
-  ), null, true, TIMEZONE)
+  run_beauty_contest_without_resetting_votes = () ->
+    result_beauty_contest = tokenBot.compute_result_of_beauty_contest()
+    winner_names = result_beauty_contest.winner_user_names
+    mosted_voted_names = result_beauty_contest.most_votes_user_names
+    if winner_names.length >= 1
+      winner_list = winner_names.join ", "
+      most_voted_list = mosted_voted_names.join ", "
+      person_people_win = if winner_names.length > 1 then "people" else "person"
+      person_people_voted = if mosted_voted_names.length > 1 then "people" else "person"
+      was_were_voted = if mosted_voted_names.length > 1 then "were" else "was"
+      msg = "I tallied the votes of the contest. The following 
+        #{person_people_win} voted for the #{person_people_voted} who received
+        the most votes, so they receive #{BONUS_TOKENS} extra tokens: \n\n
+        #{winner_list} \n
+        Congratulations! \n\n The #{person_people_voted} who recieved the most
+        votes #{was_were_voted} #{most_voted_list}. Nice work!"
+      robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
+  # job = new CronJob(FREQUENCY_RESET_WALLETS, (->
+  #   do reset_wallets_and_run_beauty_contest
+  # ), null, true, TIMEZONE)
  
   give_regex_string = "give|send"
   number_regex_string = "[0-9]+" + "|" + alphabetic_number_alternatives
@@ -659,42 +660,46 @@ module.exports = (robot) ->
     Vote command
   ###
 
-  # respond to "vote (for) @user"
-  # robot.respond ///
-  #               vote          # "vote"
-  #               (?:\s+for)?   # "for" is optional
-  #               \s+           # whitespace
-  #               @?([\w.\-]+)  # user name or name (to be matched in a fuzzy way below). 
-  #                             # \w matches any word character (alphanumeric and underscore).
-  #               \s*$          # 0 or more whitespace
-  #               ///i, (res) ->
+  #respond to "vote (for) @user"
+  robot.respond ///
+                vote          # "vote"
+                (?:\s+for)?   # "for" is optional
+                \s+           # whitespace
+                @?([\w.\-]+)  # user name or name (to be matched in a fuzzy way below). 
+                              # \w matches any word character (alphanumeric and underscore).
+                \s*$          # 0 or more whitespace
+                ///i, (res) ->
 
-  #   voter = res.message.user
-  #   voter_name = "@" + res.message.user.name
-  #   voter_id = res.message.user.id
-  #   tokenBot.initialize_user_if_unrecognized voter_id
+    voter = res.message.user
+    voter_name = "@" + res.message.user.name
+    voter_id = res.message.user.id
+    tokenBot.initialize_user_if_unrecognized voter_id
 
-  #   name_raw = res.match[1]
-  #   users = robot.brain.usersForFuzzyName(name_raw.trim())
-  #   if users.length == 1
-  #     recipient = users[0]
-  #     recipient_name = "@" + recipient.name
-  #     recipient_id = recipient.id
-  #     tokenBot.initialize_user_if_unrecognized recipient_id
+    name_raw = res.match[1]
+    users = robot.brain.usersForFuzzyName(name_raw.trim())
+    if users.length == 1
+      recipient = users[0]
+      recipient_name = "@" + recipient.name
+      recipient_id = recipient.id
+      tokenBot.initialize_user_if_unrecognized recipient_id
 
-  #     # whether the person writing the command is the recipient of the vote
-  #     voting_for_self = (recipient_id == voter_id)
-  #     if voting_for_self
-  #       res.sendPrivate "Sorry #{voter_name}, I can't let you vote for yourself."
-  #     else
-  #       res.sendPrivate(tokenBot.vote(voter_id, voter_name, recipient_id, recipient_name))
+      # forbid people from voting for themselves
+      voting_for_self = (recipient_id == voter_id)
+      if voting_for_self
+        res.sendPrivate "Sorry #{voter_name}, I can't let you vote for yourself.
+          You must vote for someone else. To do so,
+          send the command `/vote @username` where `@username` is the username
+          of the person who you think will win the most votes."
+      else
+        msg = tokenBot.vote(voter_id, voter_name, recipient_id, recipient_name)
+        res.sendPrivate msg
 
-  #       log_message = "{action: vote, "
-  #       log_message += "voter: {id: #{voter_id}, name: #{voter_name}}, "
-  #       log_message += "recipient: {id: #{recipient_id}, name: #{recipient_name}}}"
-  #       robot.logger.info log_message
-  #   else
-  #     res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
+        log_message = "{action: vote, "
+        log_message += "voter: {id: #{voter_id}, name: #{voter_name}}, "
+        log_message += "recipient: {id: #{recipient_id}, name: #{recipient_name}}}"
+        robot.logger.info log_message
+    else
+      res.sendPrivate "Sorry, I couldn't understand the name you provided ( `#{name_raw}` )."
 
   ###
     Miscellaneous commands
@@ -809,6 +814,11 @@ module.exports = (robot) ->
     else
       res.send "No, the vote contest is not occurring."
 
-  # robot.respond /compute_result_of_beauty_contest/i, (res) ->
-  #   res.send "If the contest were run right now, the result would be: \n\n
-  #     #{Util.inspect tokenBot.compute_result_of_beauty_contest()}"
+  robot.respond /compute_result_of_beauty_contest/i, (res) ->
+    res.send "If the contest were run right now, the result would be: \n\n
+      #{Util.inspect tokenBot.compute_result_of_beauty_contest()}"
+
+  robot.respond /run_mock_beauty_contest/i, (res) ->
+    res.send "OK, I'll run a mock contest now."
+    run_beauty_contest_without_resetting_votes()
+    res.send "Done running a mock contest."
