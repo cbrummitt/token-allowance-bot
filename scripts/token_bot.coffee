@@ -35,7 +35,7 @@
 #   TIMEZONE = "America/New_York"
 #   RUN_VOTE_CONTEST = true
 Util = require "util"  # for inspecting an object with `Util.inspect`
-#CronJob = require('cron').CronJob
+CronJob = require('cron').CronJob
 
 # helper function that converts a string to a Boolean
 # for using the Boolean environment variables TOKENS_CAN_BE_TRANSFERRED and TOKEN_ALLOW_SELF
@@ -305,9 +305,9 @@ class TokenNetwork
     vote_received_tally = @tally vote_recipients
     max_num_votes_received = Math.max (vote_count for recipient, vote_count of vote_received_tally)...
 
-    winner_user_ids = new Set()
-    winner_user_names = new Set()
-    most_votes_user_names = new Set()
+    winner_user_ids = new Set
+    winner_user_names = new Set
+    most_votes_user_names = new Set
     for voter, recipient of @votes
       if vote_received_tally[recipient] == max_num_votes_received
         winner_user_ids.add voter
@@ -429,9 +429,9 @@ module.exports = (robot) ->
         Congratulations! \n\n The #{person_people_voted} who recieved the most
         votes #{was_were_voted} #{most_voted_list}. Nice work!"
       robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
-  # job = new CronJob(FREQUENCY_RESET_WALLETS, (->
-  #   do reset_wallets_and_run_beauty_contest
-  # ), null, true, TIMEZONE)
+  job = new CronJob(FREQUENCY_RESET_WALLETS, (->
+    do reset_wallets_and_run_beauty_contest
+  ), null, true, TIMEZONE)
  
   give_regex_string = "give|send"
   number_regex_string = "[0-9]+" + "|" + alphabetic_number_alternatives
