@@ -115,7 +115,7 @@ class TokenNetwork
     @votes = {}
 
   vote_recipient_of: (voter_id) ->
-    if votes[voter_id]?
+    if @votes[voter_id]?
       return "@" + @robot.brain.userForId(votes[voter_id]).name
     else
       return null
