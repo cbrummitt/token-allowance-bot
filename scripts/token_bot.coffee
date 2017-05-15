@@ -104,11 +104,15 @@ class TokenNetwork
       @initialize_user(user_id)
 
   reset_everyones_wallet: () ->
-    result_beauty_contest = @compute_result_of_beauty_contest()
-    for own key, user of @robot.brain.data.users
-      if user['id'] in result_beauty_contest.winner_user_ids
-        @token_wallet[user['id']] = TOKEN_ALLOWANCE + BONUS_TOKENS
-      else
+    if RUN_VOTE_CONTEST
+      result_beauty_contest = @compute_result_of_beauty_contest()
+      for own key, user of @robot.brain.data.users
+        if user['id'] in result_beauty_contest.winner_user_ids
+          @token_wallet[user['id']] = TOKEN_ALLOWANCE + BONUS_TOKENS
+        else
+          @token_wallet[user['id']] = TOKEN_ALLOWANCE
+    else
+      for own key, user of @robot.brain.data.users
         @token_wallet[user['id']] = TOKEN_ALLOWANCE
 
   reset_votes: () ->
@@ -407,7 +411,7 @@ module.exports = (robot) ->
     if RUN_VOTE_CONTEST
       run_beauty_contest()
 
-  # # Reset everyone's wallet to the allowance environment variable
+  # Reset everyone's wallet to the allowance environment variable
   reset_wallets = () ->
     all_mention = "all" #TODO change all to @all
     msg = "Hi #{all_mention} I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens.
@@ -439,6 +443,7 @@ module.exports = (robot) ->
         the most votes! \n\n The #{person_people_voted} who recieved the most
         votes #{was_were_voted} #{most_voted_list}. Nice work!"
       robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
+
   job = new CronJob(FREQUENCY_RESET_WALLETS, (->
     do reset_wallets_and_run_beauty_contest
   ), null, true, TIMEZONE)
