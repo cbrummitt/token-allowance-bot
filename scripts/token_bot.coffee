@@ -1,4 +1,4 @@
-,# Description:
+# Description:
 #   Track tokens given to acknowledge contributions from others
 #
 # Dependencies:
@@ -663,9 +663,3 @@ module.exports = (robot) ->
   robot.respond /reset wallets/i, (res) ->
     reset_wallets()
     res.send "Just reset wallets"
-
-  robot.respond /what time zone are you on?/i, (res) ->
-    res.send "I am on time zone #{TIMEZONE}."
-
-  robot.respond /how many tokens do we get each week?/i, (res) ->
-    res.send "Everyone gets #{TOKEN_ALLOWANCE} tokens each week."
