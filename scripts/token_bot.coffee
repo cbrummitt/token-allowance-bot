@@ -324,9 +324,9 @@ class TokenNetwork
           most_votes_user_names.push ("@" + @robot.brain.userForId(recipient).name)
 
     result =
-      winner_user_ids: Array.from(winner_user_ids)
-      winner_user_names: Array.from(winner_user_names)
-      most_votes_user_names: Array.from(most_votes_user_names)
+      winner_user_ids: winner_user_ids
+      winner_user_names: winner_user_names
+      most_votes_user_names: most_votes_user_names
     return result
 
 
