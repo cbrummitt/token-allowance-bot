@@ -33,7 +33,7 @@
 #   TOKEN_ALLOWANCE = 5
 #   BONUS_TOKENS = 3
 #   ALLOWANCE_FREQUENCY = '59 59 23 * * 0'  # every Sunday at 11:59:59 PM; see https://github.com/kelektiv/node-cron#cron-ranges
-#   TIMEZONE = "America/New_York"
+#   TIMEZONE = "Africa/Accra"
 #   RUN_VOTE_CONTEST = true
 Util = require "util"  # for inspecting an object with `Util.inspect`
 CronJob = require('cron').CronJob
