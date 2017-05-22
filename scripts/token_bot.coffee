@@ -50,8 +50,8 @@ stringToBool = (str) ->
   else
     return null
 
-TOKEN_ALLOWANCE = process.env.TOKEN_ALLOWANCE or 5
-BONUS_TOKENS = process.env.BONUS_TOKENS or 3
+TOKEN_ALLOWANCE = parseInt(process.env.TOKEN_ALLOWANCE or 5, 10)
+BONUS_TOKENS = parseInt(process.env.BONUS_TOKENS or 3, 10)
 ROOM_ANNOUNCE_ALLOWANCE = process.env.ROOM_TO_ANNOUNCE_ALLOWANCE or "general"
 TIMEZONE = process.env.TIMEZONE or "Africa/Accra"
 FREQUENCY_RESET_WALLETS = process.env.ALLOWANCE_FREQUENCY or "59 59 23 * * 0"
@@ -302,8 +302,10 @@ class TokenNetwork
         #{recipient_name}. This means that now you think that #{recipient_name}
         will win the most votes."
     else
-      return "OK, I have recorded that you think #{recipient_name} will win
-        the most votes."
+      return "OK, I have recorded that you think #{recipient_name} will receive
+        the most votes. If #{recipient_name} receives the most such votes, then
+        you will receive #{BONUS_TOKENS} extra tokens next week. You can change
+        your vote by voting for someone else."
 
   compute_result_of_beauty_contest: () ->
     # Tally the votes and figure out who voted for the people who received
