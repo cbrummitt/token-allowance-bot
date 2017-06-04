@@ -1,18 +1,27 @@
 # token bot
 
-`token` is a chat bot for acknowledging and thanking peers and for stimulating interaction in a group of people. It can be used to award prizes to people who have helped others. It was built on the [Hubot][hubot] framework.
+`token` is a chat bot for acknowledging and thanking peers and for stimulating interaction in a group of people. It does this in two ways. First, it can be used to award prizes to people who have helped others. Second, it can conduct a "beauty contest" where people vote for the person whom they think will receive the most such votes. The bot was built on the [Hubot][hubot] framework.
 
 ## Summary
 
+
+### Acknowlodging others
+
 The bot keeps track of acknowledgment given from one user to another. Each unit of acknowledgment is called a **token**. Users can `give` one or more tokens at a time to other users to thank them. 
 
-Everyone gets an allowance of tokens with some frequency (specified by the environment variable `ALLOWANCE_FREQUENCY`, expressed in [cron format][cron]. Tokens do not accumulate in your wallet: if you do not give out a certain token by the time you get new tokens, then it disappears.
+Everyone gets an allowance of tokens with some frequency specified by the environment variable `ALLOWANCE_FREQUENCY`, expressed in [cron format][cron]. Tokens **do not accumulate** in your wallet: if you do not give out a certain token by the time you get new tokens, then it disappears.
 
 Users can also ask the bot to show the `status` of a user, which shows how many tokens they've given and received. Users can also ask for a `leaderboard` of who has received the most tokens. 
 
 The administrator of the bot can "freeze" the giving and revoking of tokens using the environment variable `TOKENS_CAN_BE_TRANSFERRED`. Details on how to do that, and on what the other environment variables are, are given in the section [Technical information](#technical-information).
 
-The bot also has a feature for casting a `vote` for at most one other user. The bot implements what economists call a "beauty contest": the winners of the contest are the people who vote for the person who receives the most such votes. Those winners get an extra number of tokens. This contest is run with the same frequency as that of the allowance of tokens, and it can be disabled by setting the environment `RUN_VOTE_CONTEST` to `false`. This `vote` feature adds a fun way to stimulate interaction and to incentivize people to learn what others are doing.
+### Beauty contest
+
+The bot also has a feature for casting a `vote` for at most one other user. The bot implements what economists call a _beauty contest_: the winners of the contest are the people who vote for the person who receives the most such votes. Rather than voting for who is "the best", one tries to vote for the person one thinks others think will vote as the best. 
+
+The winners get an extra number of tokens. This contest is run with the same frequency as that of the allowance of tokens, and it can be disabled by setting the environment `RUN_VOTE_CONTEST` to `false`. This `vote` feature adds a fun way to stimulate interaction and to incentivize people to learn what others are doing.
+
+### Purpose 
 
 The bot was developed for a randomized controlled trial on social networks and entrepreneurship called [The Adansonia Project][adansonia]. At the end of the experiment, each token is a lottery ticket for a prize. Thus, the `token` bot can create incentives for people to help one another.
 
