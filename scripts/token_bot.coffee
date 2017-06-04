@@ -404,7 +404,7 @@ module.exports = (robot) ->
   if process.env.TOKEN_ALLOW_SELF?
     allow_self = stringToBool(process.env.TOKEN_ALLOW_SELF)
   else
-    allow_self = true # TODO: change this default to false
+    allow_self = false
 
   # default length for the leaderboard showing the people with the most tokens
   leaderboard_length = 10
@@ -416,7 +416,7 @@ module.exports = (robot) ->
 
   # Reset everyone's wallet to the allowance environment variable
   reset_wallets = () ->
-    all_mention = "all" #TODO change all to @all
+    all_mention = "@all"
     msg = "Hi #{all_mention} I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens.
       Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful feedback
       on their business ideas before these #{TOKEN_ALLOWANCE} tokens disappear
@@ -550,34 +550,6 @@ module.exports = (robot) ->
       robot.logger.info log_message
       message = tokenBot.give_token sender_id, recipient_id, num_tokens_to_transfer
       res.send message
-
-      # if the command was given in a direct message to the bot, 
-      # then send a direct message to the recipient to notify them
-      # res.send "recipient: {id: #{recipient_id}, name: #{recipient_name}}"
-      # res.send "res.envelope = #{Util.inspect res.envelope}"
-      # res.send "res.envelope.user.name = #{res.envelope.user.name}"
-
-      # msg.envelope.user.id = recipient_id
-      # msg.sendDirect "test"
-
-      # This isn't working yet ...
-      # if false #is_direct_message
-      #   direct_message = ("Psst. This action was done privately. " + message)
-      #   #res.send "Attempting to send the following DM: #{direct_message}"
-      #   #res.send "recipient_id = #{recipient_id}"
-      #   #res.send "recipient_name = #{recipient_name}"
-      #   #res.send "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name) = #{Util.inspect robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name)}"
-      #   #robot.logger.info "robot.adapter.chatdriver.getDirectMessageRoomId(recipient_id).room = #{robot.adapter.chatdriver.getDirectMessageRoomId(recipient).room}"
-      #   #robot.adapter.chatdriver.sendMessageByRoomId direct_message, robot.adapter.chatdriver.getDirectMessageRoomId(recipient_name).room
-        
-      #   # room for the direct message
-      #   # TODO: Need to find out how to get the user ID of the bot
-      #   robot.logger.info "bot_id = #{bot_id}"
-      #   direct_msg_room_id = robot.chatdriver.getDirectMessageRoomId recipient_name
-      #   #room_id = [recipient_id, bot_id].sort().join('')
-      #   robot.logger.info direct_message
-      #   robot.logger.info ("room_id of the DM: " + direct_msg_room_id)
-      #   robot.sendDirectToUsername recipient_name, message
     else
       fail_message = "I didn't understand how many tokens you want to give.
         If you don't provide a number, I assume you want to 
@@ -819,11 +791,6 @@ module.exports = (robot) ->
     res.send "tokenBot.token_wallet = #{Util.inspect(tokenBot.token_wallet)}"
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
 
-  # TODO remove this command before putting this into production.
-  robot.respond /reset wallets/i, (res) ->
-    reset_wallets()
-    res.send "Just reset wallets"
-
   robot.respond /what time zone are you on?/i, (res) ->
     res.send "I am on time zone #{TIMEZONE}."
 
@@ -839,12 +806,3 @@ module.exports = (robot) ->
         with this frequency: #{FREQUENCY_RESET_WALLETS}."
     else
       res.send "No, the vote contest is not occurring."
-
-  robot.respond /compute_result_of_beauty_contest/i, (res) ->
-    res.send "If the contest were run right now, the result would be: \n\n
-      #{Util.inspect tokenBot.compute_result_of_beauty_contest()}"
-
-  robot.respond /run_mock_beauty_contest/i, (res) ->
-    res.send "OK, I'll run a mock contest now."
-    run_beauty_contest_without_resetting_votes()
-    res.send "Done running a mock contest."
