@@ -395,10 +395,10 @@ module.exports = (robot) ->
 
   # whether tokens can be given or received. defaults to true
   if process.env.TOKENS_CAN_BE_TRANSFERRED?
-    tokens_can_be_given_or_revoked = stringToBool(
+    tokens_can_be_given = stringToBool(
       process.env.TOKENS_CAN_BE_TRANSFERRED)
   else
-    tokens_can_be_given_or_revoked = true
+    tokens_can_be_given = true
 
   # whether people can give tokens to themself. defaults to false.
   if process.env.TOKEN_ALLOW_SELF?
@@ -464,10 +464,10 @@ module.exports = (robot) ->
     "\\s+" +                       # at least 1 charachter of whitespace
     "@?([\\w.\\-]+)" +             # user name or name (to be matched in a fuzzy way below) -- third capture group
     "\\s*$"                        # 0 or more whitespace
-  give_revoke_regex = new RegExp(give_regex_string, "i")
+  give_regex = new RegExp(give_regex_string, "i")
 
-  # respond to give or revoke commands
-  robot.respond give_revoke_regex, (res) ->  # `res` is an instance of Response. 
+  # respond to give commands
+  robot.respond give_regex, (res) ->  # `res` is an instance of Response. 
     sender = res.message.user
     sender_name = "@" + res.message.user.name
     sender_id = res.message.user.id
@@ -481,14 +481,14 @@ module.exports = (robot) ->
 
     # check whether the transferring tokens is frozen; 
     # if so, send a message and return
-    if not tokens_can_be_given_or_revoked
-      res.send "Sorry #{sender_name}, tokens can no longer be given nor revoked."
+    if not tokens_can_be_given
+      res.send "Sorry #{sender_name}, tokens cannot be given right now."
       robot.logger.info ("User {id: #{sender_id}, name: #{sender_name}} tried" + 
                           " to give a token but tokens cannot be given now.")
       return
     
     # figure out who the recipient is 
-    recipient_name_raw = res.match[3] # third capture group in give_revoke_regex
+    recipient_name_raw = res.match[3] # third capture group in give_regex
     recipients = robot.brain.usersForFuzzyName(recipient_name_raw.trim()) 
     
     # check whether we identified just one person with that user name
