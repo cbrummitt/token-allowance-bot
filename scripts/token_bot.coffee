@@ -802,7 +802,6 @@ module.exports = (robot) ->
 
   robot.respond /is the vote contest running?/i, (res) ->
     if RUN_VOTE_CONTEST
-      res.send "Yes, the vote contest is occurring. The votes will be tallied
-        with this frequency: #{FREQUENCY_RESET_WALLETS}."
+      res.send "Yes, the vote contest is occurring."
     else
       res.send "No, the vote contest is not occurring."
