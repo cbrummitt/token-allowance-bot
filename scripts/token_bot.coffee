@@ -835,7 +835,3 @@ module.exports = (robot) ->
       res.send "Yes, the vote contest is occurring."
     else
       res.send "No, the vote contest is not occurring."
-
-  robot.respond /compute_result_of_beauty_contest/i, (res) ->
-    res.send "If the contest were run right now, the result would be: \n\n
-      #{Util.inspect tokenBot.compute_result_of_beauty_contest()}"
