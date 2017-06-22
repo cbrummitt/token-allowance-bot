@@ -807,11 +807,11 @@ module.exports = (robot) ->
     res.send msg
 
   robot.respond /show your brain/i, (res) -> 
-    res.send "#{Util.inspect(robot.brain.users())}"
-    res.send "#{Util.inspect(robot.brain.get 'tokens_given')}"
-    res.send "#{Util.inspect(robot.brain.get 'tokens_received')}"
-    res.send "#{Util.inspect(robot.brain.get 'token_wallet')}"
-    res.send "#{Util.inspect(robot.brain.get 'votes')}"
+    res.send "robot.brain.users() = #{Util.inspect(robot.brain.users())}"
+    res.send "robot.brain.get 'tokens_given' = #{Util.inspect(robot.brain.get 'tokens_given')}"
+    res.send "robot.brain.get 'tokens_received' = #{Util.inspect(robot.brain.get 'tokens_received')}"
+    res.send "robot.brain.get 'token_wallet' = #{Util.inspect(robot.brain.get 'token_wallet')}"
+    res.send "robot.brain.get 'votes' = #{Util.inspect(robot.brain.get 'votes')}"
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
 
   robot.respond /show token's data/i, (res) ->
