@@ -117,18 +117,18 @@ class TokenNetwork
     # A fix for migrating data from robot.brain.data to robot._private
     summary_message = 'Migrated data: '
     if @robot.brain.data.tokens_given?
-      message += ' tokens_given'
+      summary_message += ' tokens_given'
       for own sender, recipients of @robot.brain.data.tokens_given
         # create a copy of the array
         @tokens_given[sender] = recipients.slice 0
 
     if @robot.brain.data.tokens_received?
-      message += ' tokens_received'
+      summary_message += ' tokens_received'
       for own recipient, senders of @robot.brain.data.tokens_received
         @tokens_received[recipient] = senders.slice 0
 
     if @robot.brain.data.token_wallet?
-      message += ' token_wallet'
+      summary_message += ' token_wallet'
       for own user_id, num_tokens of @robot.brain.data.token_wallet
         @token_wallet[user_id] = num_tokens
 
@@ -136,7 +136,6 @@ class TokenNetwork
       summary_message += 'votes '
       for own user_id, voted_id of @robot.brain.data.votes
         votes[user_id] = voted_id
-      
 
     @save_token_data_to_brain()
     return summary_message
