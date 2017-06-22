@@ -118,19 +118,25 @@ class TokenNetwork
     summary_message = 'Migrated data: '
     if @robot.brain.data.tokens_given?
       message += ' tokens_given'
-      @tokens_given = @robot.brain.data.tokens_given
+      for own sender, recipients of @robot.brain.data.tokens_given
+        # create a copy of the array
+        @tokens_given[sender] = recipients.slice 0
 
     if @robot.brain.data.tokens_received?
       message += ' tokens_received'
-      @tokens_received = @robot.brain.data.tokens_received
+      for own recipient, senders of @robot.brain.data.tokens_received
+        @tokens_received[recipient] = senders.slice 0
 
     if @robot.brain.data.token_wallet?
       message += ' token_wallet'
-      @token_wallet = @robot.brain.data.token_wallet
+      for own user_id, num_tokens of @robot.brain.data.token_wallet
+        @token_wallet[user_id] = num_tokens
 
     if @robot.brain.data.votes?
-      @votes = @robot.brain.data.votes
       summary_message += 'votes '
+      for own user_id, voted_id of @robot.brain.data.votes
+        votes[user_id] = voted_id
+      
 
     @save_token_data_to_brain()
     return summary_message
@@ -844,10 +850,10 @@ module.exports = (robot) ->
     res.send "tokenBot.votes = #{Util.inspect(tokenBot.votes)}"
 
   robot.respond /show robot.brain.data/i, (res) ->
-    res.send "tokenBot.tokens_given = #{Util.inspect(robot.brain.data.tokens_given)}"
-    res.send "tokenBot.tokens_received = #{Util.inspect(robot.brain.data.tokens_received)}"
-    res.send "tokenBot.token_wallet = #{Util.inspect(robot.brain.data.token_wallet)}"
-    res.send "tokenBot.votes = #{Util.inspect(robot.brain.data.votes)}"
+    res.send "robot.brain.data.tokens_given = #{Util.inspect(robot.brain.data.tokens_given)}"
+    res.send "robot.brain.data.tokens_received = #{Util.inspect(robot.brain.data.tokens_received)}"
+    res.send "robot.brain.data.token_wallet = #{Util.inspect(robot.brain.data.token_wallet)}"
+    res.send "robot.brain.data.votes = #{Util.inspect(robot.brain.data.votes)}"
 
   robot.respond /set autosave to true/i, (res) ->
     robot.brain.setAutoSave true
