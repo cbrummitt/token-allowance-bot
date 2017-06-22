@@ -73,6 +73,7 @@ class TokenNetwork
     # it maps each user's id to a non-negative integer
     @token_wallet = {}
 
+    # a dictionary mapping user id's to the user id they have voted for
     @votes = {}
 
     for own key, user of robot.brain.data.users
@@ -83,12 +84,14 @@ class TokenNetwork
     # The fat arrow `=>` binds the current value of `this` (i.e., `@`)
     # on the spot.
     @robot.brain.on 'loaded', =>
-      if @robot.brain.data.tokens_given
-        @tokens_given = @robot.brain.data.tokens_given
-      if @robot.brain.data.tokens_received
-        @tokens_received = @robot.brain.data.tokens_received
-      if @robot.brain.data.token_wallet
-        @token_wallet = @robot.brain.data.token_wallet
+      if @robot.brain.get 'tokens_given'
+        @tokens_given = @robot.brain.get 'tokens_given'
+      if @robot.brain.get 'tokens_received'
+        @tokens_received = @robot.brain.get 'tokens_received'
+      if @robot.brain.get 'token_wallet'
+        @token_wallet = @robot.brain.get 'token_wallet'
+      if @robot.brain.get 'votes'
+        @votes = @robot.brain.get 'votes'
 
   recognize_user: (user_id) ->
     return (@tokens_given[user_id]? and
@@ -99,6 +102,7 @@ class TokenNetwork
     @tokens_given[user_id] = []
     @tokens_received[user_id] = []
     @token_wallet[user_id] = TOKEN_ALLOWANCE
+    @save_data_to_brain()
 
   initialize_user_without_overwriting_data: (user_id) ->
     if not @tokens_given[user_id]?
@@ -107,6 +111,13 @@ class TokenNetwork
       @tokens_received[user_id] = []
     if not @token_wallet[user_id]?
       @token_wallet[user_id] = TOKEN_ALLOWANCE
+    @save_data_to_brain()
+
+  save_data_to_brain: () ->
+    @robot.brain.set 'tokens_given', @tokens_given
+    @robot.brain.set 'tokens_received', @tokens_received
+    @robot.brain.set 'token_wallet', @token_wallet
+    @robot.brain.set 'votes', @votes
 
   initialize_user_if_unrecognized: (user_id) ->
     if not @recognize_user(user_id)
@@ -123,9 +134,11 @@ class TokenNetwork
     else
       for own key, user of @robot.brain.data.users
         @token_wallet[user['id']] = TOKEN_ALLOWANCE
+    @robot.brain.set 'token_wallet', @token_wallet
 
   reset_votes: () ->
     @votes = {}
+    @robot.brain.set 'votes', @votes
 
   vote_recipient_of: (voter_id) ->
     if @votes[voter_id]?
@@ -154,15 +167,16 @@ class TokenNetwork
     else
       # update @tokens_given
       @tokens_given[sender].push recipient for index in [1..num_tokens_to_give]
-      @robot.brain.data.tokens_given = @tokens_given
 
       # update @tokens_received
       @tokens_received[recipient].push sender for index in [1..num_tokens_to_give]
-      @robot.brain.data.tokens_received = @tokens_received
 
       # update @token_wallet
       @token_wallet[sender] = @token_wallet[sender] - num_tokens_to_give
-      @robot.brain.data.token_wallet = @token_wallet
+      
+      # update the key-value pairs in the robot's brain with the dictionaries
+      # of tokens give, received, and wallet
+      @save_data_to_brain()
 
       # create a message to be sent in the channel where the command was made
       token_or_tokens = if num_tokens_to_give != 1 then "tokens" else "token"
@@ -178,7 +192,7 @@ class TokenNetwork
     return [
       "Sorry #{name}. Tokens cannot be given to oneself.",
       "I can't do that #{name}. Tokens cannot be given to oneself.",
-      "Tokens can only be given to other people."
+      "Tokens can only be given to other people.",
       "Nice try #{name}! Unfortunately I can't let you give a token to yourself."
     ]
 
@@ -302,6 +316,7 @@ class TokenNetwork
 
     # Record the vote
     @votes[voter_id] = recipient_id
+    @save_data_to_brain()
   
     if previous_recipient? and recipient_id == previous_recipient
       return "You are already scheduled to vote for #{recipient_name}."
@@ -797,6 +812,7 @@ module.exports = (robot) ->
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
     res.send "tokenBot.token_wallet = #{Util.inspect(tokenBot.token_wallet)}"
+    res.send "tokenBot.votes = #{Util.inspect(tokenBot.votes)}"
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
 
   robot.respond /initialize unrecognized users without overwriting/i, (res) ->
@@ -817,3 +833,7 @@ module.exports = (robot) ->
       res.send "Yes, the vote contest is occurring."
     else
       res.send "No, the vote contest is not occurring."
+
+  robot.respond /compute_result_of_beauty_contest/i, (res) ->
+    res.send "If the contest were run right now, the result would be: \n\n
+      #{Util.inspect tokenBot.compute_result_of_beauty_contest()}"
