@@ -801,7 +801,7 @@ module.exports = (robot) ->
 
   robot.respond /initialize unrecognized users without overwriting/i, (res) ->
     for own key, user of robot.brain.data.users
-      @initialize_user_without_overwriting_data(user['id'])
+      tokenBot.initialize_user_without_overwriting_data user['id']
 
   robot.respond /what time zone are you on?/i, (res) ->
     res.send "I am on time zone #{TIMEZONE}."
