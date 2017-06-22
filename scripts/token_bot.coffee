@@ -76,7 +76,7 @@ class TokenNetwork
     # a dictionary mapping user id's to the user id they have voted for
     @votes = {}
 
-    for own key, user of robot.brain.data.users
+    for own key, user of @robot.brain.users()
       @initialize_user(user['id'])
 
     # If the brain was already on, then set the cache to the dictionary
@@ -102,7 +102,7 @@ class TokenNetwork
     @tokens_given[user_id] = []
     @tokens_received[user_id] = []
     @token_wallet[user_id] = TOKEN_ALLOWANCE
-    @save_data_to_brain()
+    @save_token_data_to_brain()
 
   initialize_user_without_overwriting_data: (user_id) ->
     if not @tokens_given[user_id]?
@@ -111,13 +111,12 @@ class TokenNetwork
       @tokens_received[user_id] = []
     if not @token_wallet[user_id]?
       @token_wallet[user_id] = TOKEN_ALLOWANCE
-    @save_data_to_brain()
+    @save_token_data_to_brain()
 
-  save_data_to_brain: () ->
+  save_token_data_to_brain: () ->
     @robot.brain.set 'tokens_given', @tokens_given
     @robot.brain.set 'tokens_received', @tokens_received
     @robot.brain.set 'token_wallet', @token_wallet
-    @robot.brain.set 'votes', @votes
 
   initialize_user_if_unrecognized: (user_id) ->
     if not @recognize_user(user_id)
@@ -126,13 +125,13 @@ class TokenNetwork
   reset_everyones_wallet: () ->
     if RUN_VOTE_CONTEST
       result_beauty_contest = @compute_result_of_beauty_contest()
-      for own key, user of @robot.brain.data.users
+      for own key, user of @robot.brain.users()
         if user['id'] in result_beauty_contest.winner_user_ids
           @token_wallet[user['id']] = TOKEN_ALLOWANCE + BONUS_TOKENS
         else
           @token_wallet[user['id']] = TOKEN_ALLOWANCE
     else
-      for own key, user of @robot.brain.data.users
+      for own key, user of @robot.brain.users()
         @token_wallet[user['id']] = TOKEN_ALLOWANCE
     @robot.brain.set 'token_wallet', @token_wallet
 
@@ -176,7 +175,7 @@ class TokenNetwork
       
       # update the key-value pairs in the robot's brain with the dictionaries
       # of tokens give, received, and wallet
-      @save_data_to_brain()
+      @save_token_data_to_brain()
 
       # create a message to be sent in the channel where the command was made
       token_or_tokens = if num_tokens_to_give != 1 then "tokens" else "token"
@@ -316,7 +315,7 @@ class TokenNetwork
 
     # Record the vote
     @votes[voter_id] = recipient_id
-    @save_data_to_brain()
+    @robot.brain.set 'votes', @votes
   
     if previous_recipient? and recipient_id == previous_recipient
       return "You are already scheduled to vote for #{recipient_name}."
@@ -644,7 +643,7 @@ module.exports = (robot) ->
 
     number_parseInt = switch
       when number_input == "" or not number_input? then leaderboard_length # default value
-      when number_input == "all" then robot.brain.data.users.length
+      when number_input == "all" then robot.brain.users().length
       else fuzzy_string_to_nonnegative_int number_input
 
     # if we can successfully parse number_input as a base-10 integer, 
@@ -814,10 +813,12 @@ module.exports = (robot) ->
     res.send "tokenBot.token_wallet = #{Util.inspect(tokenBot.token_wallet)}"
     res.send "tokenBot.votes = #{Util.inspect(tokenBot.votes)}"
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
-    res.send "Robot automatically saves: #{ Util.inspect robot.autoSave}"
+
+  robot.respond /set autosave to true/i, (res) ->
+    robot.brain.setAutoSave true
 
   robot.respond /initialize unrecognized users without overwriting/i, (res) ->
-    for own key, user of robot.brain.data.users
+    for own key, user of robot.brain.users()
       tokenBot.initialize_user_without_overwriting_data user['id']
 
   robot.respond /what time zone are you on?/i, (res) ->
