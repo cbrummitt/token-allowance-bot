@@ -113,6 +113,24 @@ class TokenNetwork
       @token_wallet[user_id] = TOKEN_ALLOWANCE
     @save_token_data_to_brain()
 
+  migrate_robot_brain_data_to_private_data: () ->
+    # A fix for migrating data from robot.brain.data to robot._private
+    migrated_data = 'Migrated data: '
+    if @robot.brain.data.tokens_given?
+      @tokens_given = @robot.brain.data.tokens_given
+      migrated_data += 'tokens_given '
+    if @robot.brain.data.tokens_received?
+      @tokens_received = @robot.brain.data.tokens_received
+      migrated_data += 'tokens_received '
+    if @robot.brain.data.token_wallet?
+      @token_wallet = @robot.brain.data.token_wallet
+      migrated_data += 'token_wallet '
+    if @robot.brain.data.votes?
+      @votes = @robot.brain.data.votes
+      migrated_data += 'votes '
+    @save_token_data_to_brain()
+    return migrated_data
+
   save_token_data_to_brain: () ->
     @robot.brain.set 'tokens_given', @tokens_given
     @robot.brain.set 'tokens_received', @tokens_received
@@ -842,3 +860,6 @@ module.exports = (robot) ->
       res.send "Yes, the vote contest is occurring."
     else
       res.send "No, the vote contest is not occurring."
+
+  robot.respond /migrate_robot_brain_data_to_private_data/i, (res) ->
+    res.send tokenBot.migrate_robot_brain_data_to_private_data()
