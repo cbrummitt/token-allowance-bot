@@ -142,16 +142,27 @@ class TokenNetwork
 
   fix_tokens_received: () ->
     summary_message = "Summary of fixing tokens received: \n"
+    summary_message += @reset_tokens_received_to_empty()
+    summary_message += "\n"
+    summary_message += @populate_tokens_received()
+    return summary_message
+
+  reset_tokens_received_to_empty: () ->
+    summary_message = "IDs of people who got their value set to empty: "
     for recipient, senders of @tokens_received
-      if @tokens_received[recipient].length > 0
-        summary_message += "setting to empty list tokens_received[recipient] for #{recipient}"
-      @tokens_received[recipient] = []
+      if senders.length > 0
+        summary_message += recipient + ", "
+        @tokens_received[recipient] = []
+    return summary_message
+
+  populate_tokens_received: () ->
+    summary_message = ""
     for sender, recipients of @tokens_given
       for recipient in recipients
         summary_message += "pushing #{sender} onto recipient list of #{recipient}\n"
         @tokens_received[recipient].push sender
     @save_token_data_to_brain()
-    return summary_message
+
 
   save_token_data_to_brain: () ->
     @robot.brain.set 'tokens_given', @tokens_given
@@ -895,3 +906,11 @@ module.exports = (robot) ->
   robot.respond /fix_tokens_received/i, (res) ->
     res.send "Fixing tokens_received..."
     res.send tokenBot.fix_tokens_received()
+
+  robot.respond /reset_tokens_received_to_empty/i, (res) ->
+    res.send "About to do reset_tokens_received_to_empty..."
+    res.send tokenBot.reset_tokens_received_to_empty()
+
+  robot.respond /populate_tokens_received/i, (res) ->
+    res.send "Populating tokens_received..."
+    res.send tokenBot.populate_tokens_received()
