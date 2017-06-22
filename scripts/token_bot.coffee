@@ -808,12 +808,13 @@ module.exports = (robot) ->
     res.send msg
 
   robot.respond /show your brain/i, (res) -> 
-    res.send "#{Util.inspect(robot.brain.data.users)}"
+    res.send "#{Util.inspect(robot.brain.users())}"
     res.send "tokenBot.tokens_given = #{Util.inspect(tokenBot.tokens_given)}"
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
     res.send "tokenBot.token_wallet = #{Util.inspect(tokenBot.token_wallet)}"
     res.send "tokenBot.votes = #{Util.inspect(tokenBot.votes)}"
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
+    res.send "Robot automatically saves: #{ Util.inspect robot.autoSave}"
 
   robot.respond /initialize unrecognized users without overwriting/i, (res) ->
     for own key, user of robot.brain.data.users
