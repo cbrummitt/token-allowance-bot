@@ -117,6 +117,7 @@ class TokenNetwork
     @robot.brain.set 'tokens_given', @tokens_given
     @robot.brain.set 'tokens_received', @tokens_received
     @robot.brain.set 'token_wallet', @token_wallet
+    @robot.brain.set 'votes', @votes
 
   initialize_user_if_unrecognized: (user_id) ->
     if not @recognize_user(user_id)
