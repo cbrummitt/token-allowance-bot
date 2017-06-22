@@ -142,15 +142,15 @@ class TokenNetwork
 
   fix_tokens_received: () ->
     summary_message = "Summary of fixing tokens received: \n"
-    # for own recipient, senders of @tokens_received
-    #   if @tokens_received[recipient].length > 0
-    #     summary_message += "setting to empty list tokens_received[recipient] for #{recipient}"
-    #   @tokens_received[recipient] = []
-    # for own sender, recipients of @tokens_given
-    #   for recipient in recipients
-    #     summary_message += "pushing #{sender} onto recipient list of #{recipient}\n"
-    #     @tokens_received[recipient].push sender
-    # @save_token_data_to_brain()
+    for recipient, senders of @tokens_received
+      if @tokens_received[recipient].length > 0
+        summary_message += "setting to empty list tokens_received[recipient] for #{recipient}"
+      @tokens_received[recipient] = []
+    for sender, recipients of @tokens_given
+      for recipient in recipients
+        summary_message += "pushing #{sender} onto recipient list of #{recipient}\n"
+        @tokens_received[recipient].push sender
+    @save_token_data_to_brain()
     return summary_message
 
   save_token_data_to_brain: () ->
