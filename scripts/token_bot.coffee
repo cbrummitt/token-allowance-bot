@@ -100,6 +100,14 @@ class TokenNetwork
     @tokens_received[user_id] = []
     @token_wallet[user_id] = TOKEN_ALLOWANCE
 
+  initialize_user_without_overwriting_data: (user_id) ->
+    if not @tokens_given[user_id]?
+      @tokens_given[user_id] = []
+    if not @tokens_received[user_id]?
+      @tokens_received[user_id] = []
+    if not @token_wallet[user_id]?
+      @token_wallet[user_id] = TOKEN_ALLOWANCE
+
   initialize_user_if_unrecognized: (user_id) ->
     if not @recognize_user(user_id)
       @initialize_user(user_id)
@@ -790,6 +798,10 @@ module.exports = (robot) ->
     res.send "tokenBot.tokens_received = #{Util.inspect(tokenBot.tokens_received)}"
     res.send "tokenBot.token_wallet = #{Util.inspect(tokenBot.token_wallet)}"
     res.send "Util.inspect robot.brain = #{ Util.inspect robot.brain }"
+
+  robot.respond /initialize unrecognized users without overwriting/i, (res) ->
+    for own key, user of robot.brain.data.users
+      @initialize_user_without_overwriting_data(user['id'])
 
   robot.respond /what time zone are you on?/i, (res) ->
     res.send "I am on time zone #{TIMEZONE}."
