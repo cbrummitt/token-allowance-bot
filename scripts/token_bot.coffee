@@ -159,7 +159,7 @@ class TokenNetwork
     summary_message = ""
     for sender, recipients of @tokens_given
       for recipient in recipients
-        summary_message += "pushing #{sender} onto recipient list of #{recipient}\n"
+        summary_message += "pushing " + sender + " onto recipient list of " + recipient + "\n"
         @tokens_received[recipient].push sender
     @save_token_data_to_brain()
 
