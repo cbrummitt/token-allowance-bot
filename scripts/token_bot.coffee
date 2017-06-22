@@ -141,12 +141,12 @@ class TokenNetwork
     return summary_message
 
   fix_tokens_received: () ->
-    summary_message = "Summary of fixing tokens received: "
+    summary_message = "Summary of fixing tokens received: \n"
     for own recipient, senders of @tokens_received
       @tokens_received[recipient] = []
     for own sender, recipients of @tokens_given
       for recipient in recipients
-        summary_message += "pushing {sender} onto recipient list of {recipient}"
+        summary_message += "pushing {sender} onto recipient list of {recipient}\n"
         @tokens_received[recipient].push sender
     return summary_message
 
@@ -890,4 +890,5 @@ module.exports = (robot) ->
     res.send tokenBot.migrate_robot_brain_data_to_private_data()
 
   robot.respond /fix_tokens_received/i, (res) ->
+    res.send "Fixing tokens_received..."
     res.send tokenBot.fix_tokens_received()
