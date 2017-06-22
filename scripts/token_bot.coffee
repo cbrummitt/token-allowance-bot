@@ -145,6 +145,7 @@ class TokenNetwork
     summary_message += @reset_tokens_received_to_empty()
     summary_message += "\n"
     summary_message += @populate_tokens_received()
+    @save_token_data_to_brain()
     return summary_message
 
   reset_tokens_received_to_empty: () ->
@@ -161,8 +162,7 @@ class TokenNetwork
       for recipient in recipients
         summary_message += "pushing " + sender + " onto recipient list of " + recipient + "\n"
         @tokens_received[recipient].push sender
-    @save_token_data_to_brain()
-
+    return summary_message
 
   save_token_data_to_brain: () ->
     @robot.brain.set 'tokens_given', @tokens_given
