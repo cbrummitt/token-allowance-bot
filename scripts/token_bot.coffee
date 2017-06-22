@@ -878,13 +878,6 @@ module.exports = (robot) ->
     res.send "robot.brain.data.token_wallet = #{Util.inspect(robot.brain.data.token_wallet)}"
     res.send "robot.brain.data.votes = #{Util.inspect(robot.brain.data.votes)}"
 
-  robot.respond /set autosave to true/i, (res) ->
-    robot.brain.setAutoSave true
-
-  robot.respond /initialize unrecognized users without overwriting/i, (res) ->
-    for own key, user of robot.brain.users()
-      tokenBot.initialize_user_without_overwriting_data user['id']
-
   robot.respond /what time zone are you on?/i, (res) ->
     res.send "I am on time zone #{TIMEZONE}."
 
@@ -900,17 +893,6 @@ module.exports = (robot) ->
     else
       res.send "No, the vote contest is not occurring."
 
-  robot.respond /migrate_robot_brain_data_to_private_data/i, (res) ->
-    res.send tokenBot.migrate_robot_brain_data_to_private_data()
-
   robot.respond /fix_tokens_received/i, (res) ->
     res.send "Fixing tokens_received..."
     res.send tokenBot.fix_tokens_received()
-
-  robot.respond /reset_tokens_received_to_empty/i, (res) ->
-    res.send "About to do reset_tokens_received_to_empty..."
-    res.send tokenBot.reset_tokens_received_to_empty()
-
-  robot.respond /populate_tokens_received/i, (res) ->
-    res.send "Populating tokens_received..."
-    res.send tokenBot.populate_tokens_received()
