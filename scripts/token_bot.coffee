@@ -115,21 +115,25 @@ class TokenNetwork
 
   migrate_robot_brain_data_to_private_data: () ->
     # A fix for migrating data from robot.brain.data to robot._private
-    migrated_data = 'Migrated data: '
+    summary_message = 'Migrated data: '
     if @robot.brain.data.tokens_given?
+      message += ' tokens_given'
       @tokens_given = @robot.brain.data.tokens_given
-      migrated_data += 'tokens_given '
+
     if @robot.brain.data.tokens_received?
+      message += ' tokens_received'
       @tokens_received = @robot.brain.data.tokens_received
-      migrated_data += 'tokens_received '
+
     if @robot.brain.data.token_wallet?
+      message += ' token_wallet'
       @token_wallet = @robot.brain.data.token_wallet
-      migrated_data += 'token_wallet '
+
     if @robot.brain.data.votes?
       @votes = @robot.brain.data.votes
-      migrated_data += 'votes '
+      summary_message += 'votes '
+
     @save_token_data_to_brain()
-    return migrated_data
+    return summary_message
 
   save_token_data_to_brain: () ->
     @robot.brain.set 'tokens_given', @tokens_given
