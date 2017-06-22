@@ -84,13 +84,13 @@ class TokenNetwork
     # The fat arrow `=>` binds the current value of `this` (i.e., `@`)
     # on the spot.
     @robot.brain.on 'loaded', =>
-      if @robot.brain.get 'tokens_given'
+      if @robot.brain.get('tokens_given')?
         @tokens_given = @robot.brain.get 'tokens_given'
-      if @robot.brain.get 'tokens_received'
+      if @robot.brain.get('tokens_received')?
         @tokens_received = @robot.brain.get 'tokens_received'
-      if @robot.brain.get 'token_wallet'
+      if @robot.brain.get('token_wallet')?
         @token_wallet = @robot.brain.get 'token_wallet'
-      if @robot.brain.get 'votes'
+      if @robot.brain.get('votes')?
         @votes = @robot.brain.get 'votes'
 
   recognize_user: (user_id) ->
@@ -804,7 +804,7 @@ module.exports = (robot) ->
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
     msg = "Here are all the users I know about: "
-    msg += ("@#{user.name}" for own key, user of robot.brain.data.users).join ", "
+    msg += ("@#{user.name}" for own key, user of robot.brain.users()).join ", "
     res.send msg
 
   robot.respond /show your brain/i, (res) -> 
