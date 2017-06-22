@@ -839,6 +839,12 @@ module.exports = (robot) ->
     res.send "tokenBot.token_wallet = #{Util.inspect(tokenBot.token_wallet)}"
     res.send "tokenBot.votes = #{Util.inspect(tokenBot.votes)}"
 
+  robot.respond /show robot.brain.data/i, (res) ->
+    res.send "tokenBot.tokens_given = #{Util.inspect(robot.brain.data.tokens_given)}"
+    res.send "tokenBot.tokens_received = #{Util.inspect(robot.brain.data.tokens_received)}"
+    res.send "tokenBot.token_wallet = #{Util.inspect(robot.brain.data.token_wallet)}"
+    res.send "tokenBot.votes = #{Util.inspect(robot.brain.data.votes)}"
+
   robot.respond /set autosave to true/i, (res) ->
     robot.brain.setAutoSave true
 
