@@ -493,7 +493,7 @@ module.exports = (robot) ->
     all_mention = "@all"
     msg = "Hi #{all_mention} I just reset everyone's wallet to #{TOKEN_ALLOWANCE} tokens."
     msg += " Make sure to thank #{TOKEN_ALLOWANCE} people for giving useful feedback"
-    msg += " on their business ideas before these #{TOKEN_ALLOWANCE} tokens disappear"
+    msg += " on your business idea before these #{TOKEN_ALLOWANCE} tokens disappear"
     msg += " next week!"
     robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
     tokenBot.reset_everyones_wallet()
