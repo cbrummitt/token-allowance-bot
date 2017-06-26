@@ -543,10 +543,10 @@ module.exports = (robot) ->
       msg = "I tallied the votes of the contest. *The following
         #{person_people_win} voted for the #{person_people_voted} who received
         the most votes*, so they receive #{BONUS_TOKENS} extra tokens: \n\n
-        #{winner_list} \n\n
+        #{winner_list} :tada: :fireworks: :clap: :grin: \n\n
         Congratulations on choosing the #{person_people_voted} who received
         the most votes! \n\n *The #{person_people_voted} who received the most
-        votes* #{was_were_voted} #{most_voted_list} . Nice work!"
+        votes* #{was_were_voted} #{most_voted_list} . Nice work #{most_voted_list} ! :thumbsup:"
       robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
 
   job = new CronJob(FREQUENCY_RESET_WALLETS, (->
