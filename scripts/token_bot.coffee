@@ -76,6 +76,9 @@ class TokenNetwork
     # a dictionary mapping user id's to the user id they have voted for
     @votes = {}
 
+    # a list of dictionaries of who voted for whom
+    @votes_history = []
+
     for own key, user of @robot.brain.users()
       @initialize_user(user['id'])
 
@@ -187,7 +190,14 @@ class TokenNetwork
         @token_wallet[user['id']] = TOKEN_ALLOWANCE
     @robot.brain.set 'token_wallet', @token_wallet
 
-  reset_votes: () ->
+  save_votes_to_brain: () ->
+    votes_history = @robot.brain.get 'votes_history'
+    if not votes_history?
+      votes_history = []
+    votes_history.push @votes
+    @robot.brain.set 'votes_history', votes_history
+
+  reset_votes: () -> 
     @votes = {}
     @robot.brain.set 'votes', @votes
 
@@ -500,6 +510,7 @@ module.exports = (robot) ->
 
   run_beauty_contest = () ->
     run_beauty_contest_without_resetting_votes()
+    tokenBot.save_votes_to_brain()
     tokenBot.reset_votes()
 
   run_beauty_contest_without_resetting_votes = () ->
