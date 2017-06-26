@@ -463,6 +463,21 @@ regexEscape = (str) ->
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
 
 
+format_list_of_nouns = (list_strings) ->
+  # Given a list of strings, return a string with the items separated by 'and'
+  # if it is just two items, and by commas followed by an 'and' if it is 3 or
+  # more items (with an Oxford comma).
+  if list_strings.length == 0
+    return ""
+  if list_strings.length == 1
+    return list_strings[0]
+  if list_strings.length == 2
+    return list_strings.join ' and '
+  comma_joined = list_strings.slice(0, -1).join ', '
+  comma_joined += ', and ' + list_strings.slice(-1)
+  return comma_joined
+
+
 module.exports = (robot) ->
   tokenBot = new TokenNetwork robot
 
@@ -520,18 +535,18 @@ module.exports = (robot) ->
     winner_names = result_beauty_contest.winner_user_names
     mosted_voted_names = result_beauty_contest.most_votes_user_names
     if winner_names.length >= 1
-      winner_list = winner_names.join ", "
-      most_voted_list = mosted_voted_names.join ", "
+      winner_list = format_list_of_nouns winner_names
+      most_voted_list = format_list_of_nouns mosted_voted_names
       person_people_win = if winner_names.length > 1 then "people" else "person"
       person_people_voted = if mosted_voted_names.length > 1 then "people" else "person"
       was_were_voted = if mosted_voted_names.length > 1 then "were" else "was"
-      msg = "I tallied the votes of the contest. The following
+      msg = "I tallied the votes of the contest. *The following
         #{person_people_win} voted for the #{person_people_voted} who received
-        the most votes, so they receive #{BONUS_TOKENS} extra tokens: \n\n
+        the most votes*, so they receive #{BONUS_TOKENS} extra tokens: \n\n
         #{winner_list} \n\n
         Congratulations on choosing the #{person_people_voted} who received
-        the most votes! \n\n The #{person_people_voted} who received the most
-        votes #{was_were_voted} #{most_voted_list}. Nice work!"
+        the most votes! \n\n *The #{person_people_voted} who received the most
+        votes* #{was_were_voted} #{most_voted_list} . Nice work!"
       robot.messageRoom ROOM_ANNOUNCE_ALLOWANCE, msg
 
   job = new CronJob(FREQUENCY_RESET_WALLETS, (->
@@ -868,7 +883,7 @@ module.exports = (robot) ->
   # show users, show all users -- show all users and their user names
   robot.respond /show (?:all )?users$/i, (res) ->
     msg = "Here are all the users I know about: "
-    msg += ("@#{user.name}" for own key, user of robot.brain.users()).join ", "
+    msg += format_list_of_nouns("@#{user.name}" for own key, user of robot.brain.users())
     res.send msg
 
   robot.respond /show your brain/i, (res) -> 
