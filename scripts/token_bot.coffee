@@ -194,7 +194,9 @@ class TokenNetwork
     votes_history = @robot.brain.get 'votes_history'
     if not votes_history?
       votes_history = []
-    votes_history.push @votes
+    votes_history.push {
+      'votes': @votes,
+      'unix_time_milliseconds': Math.round(new Date().getTime())}
     @robot.brain.set 'votes_history', votes_history
 
   reset_votes: () -> 
